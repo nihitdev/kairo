@@ -397,7 +397,7 @@ run_hypr_rice_payload_test() {
     mkdir -p "$home"
     HOME="$home" XDG_CONFIG_HOME="$home/.config" \
         "$repo_root/install.sh" --no-backup --only hypr >/dev/null
-    [[ -f $home/.config/hypr/hyprland.conf ]] || fail 'Hyprland rice payload was not installed'
+    [[ -f $home/.config/hypr/hyprland.lua ]] || fail 'Hyprland rice payload was not installed'
     [[ -f $home/.config/waybar/style.css ]] || fail 'Waybar rice payload was not installed with Hyprland'
     cmp -s "$repo_root/.config/waybar/style.css" "$home/.config/waybar/style.css" ||
         fail 'installed Waybar rice differs from selected branch'
