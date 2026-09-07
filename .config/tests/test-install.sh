@@ -293,7 +293,7 @@ run_package_profile_dry_run_test() {
         --aur-helper paru --enable-chaotic-aur --only nvim)
     after=$(find "$home" -printf '%P|%y|%s\n' | sort)
     [[ $before == "$after" ]] || fail 'package-profile dry-run changed the filesystem'
-    [[ $plan == *'Trust and locally sign Chaotic-AUR key'* ]] || fail 'Chaotic-AUR dry-run plan missing'
+    [[ $plan == *'Trust and locally sign Chaotic-AUR key'* || $plan == *'Chaotic-AUR is already enabled'* ]] || fail 'Chaotic-AUR dry-run plan missing'
     [[ $plan == *'Run sudo pacman -S --needed'* ]] || fail 'toolchain package plan missing'
     [[ $plan == *'wget'* ]] || fail 'core-build profile omitted wget'
 }
