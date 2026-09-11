@@ -41,33 +41,33 @@ chaotic_config_backup=''
 
 declare -a module_names=(
     bash fish nushell zsh starship atuin bat broot yazi lazygit fastfetch
-    git nvim kitty cava ssh oh-my-posh hypr rofi
+    git nvim kitty cava ssh oh-my-posh hypr rofi wezterm
 )
 declare -a module_labels=(
     Bash Fish Nushell Zsh Starship Atuin Bat Broot Yazi LazyGit Fastfetch
-    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland Rofi
+    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland Rofi WezTerm
 )
 declare -a module_categories=(
     Shells Shells Shells Shells Shells CLI CLI CLI CLI CLI CLI
-    Development Development Desktop Desktop System Shells Desktop Desktop
+    Development Development Desktop Desktop System Shells Desktop Desktop Desktop
 )
 declare -A module_default=(
     [bash]=true [fish]=true [nushell]=true [zsh]=true [starship]=true
     [atuin]=true [bat]=true [broot]=true [yazi]=true [lazygit]=true
     [fastfetch]=true [git]=true [nvim]=true [kitty]=true [cava]=true
-    [ssh]=true [oh-my-posh]=false [hypr]=false [rofi]=false
+    [ssh]=true [oh-my-posh]=false [hypr]=false [rofi]=false [wezterm]=true
 )
 declare -A module_package=(
     [bash]=bash [fish]=fish [nushell]=nushell [zsh]=zsh [starship]=starship
     [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
-    [fastfetch]=fastfetch [git]=git [nvim]=neovim [kitty]=kitty [cava]=cava
+    [fastfetch]=fastfetch [git]=git [nvim]=neovim [kitty]=kitty [cava]=cava [wezterm]=wezterm
     [ssh]=openssh [hypr]=hyprland [rofi]=rofi-wayland
 )
 declare -A module_aur_package=([oh-my-posh]=oh-my-posh-bin)
 declare -A module_command=(
     [bash]=bash [fish]=fish [nushell]=nu [zsh]=zsh [starship]=starship
     [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
-    [fastfetch]=fastfetch [git]=git [nvim]=nvim [kitty]=kitty [cava]=cava
+    [fastfetch]=fastfetch [git]=git [nvim]=nvim [kitty]=kitty [cava]=cava [wezterm]=wezterm
     [ssh]=ssh [oh-my-posh]=oh-my-posh [hypr]=Hyprland [rofi]=rofi
 )
 declare -A installed_package_cache=()
@@ -107,7 +107,7 @@ Options:
 
 Components:
   bash zsh nushell git lazygit broot nvim yazi fastfetch oh-my-posh
-  starship atuin bat cava ssh kitty fish hypr rofi all
+  starship atuin bat cava ssh kitty fish hypr rofi wezterm all
 EOF
 }
 
@@ -519,6 +519,10 @@ collect_missing_packages() {
     if is_selected fish; then
         package_is_installed fzf fzf || record_unique missing_official_packages fzf
         package_is_installed curl curl || record_unique missing_official_packages curl
+    fi
+    if is_selected wezterm; then
+        package_is_installed zsh zsh || record_unique missing_official_packages zsh
+        package_is_installed ttf-jetbrains-mono-nerd || record_unique missing_official_packages ttf-jetbrains-mono-nerd
     fi
     if is_selected nvim; then
         package_is_installed git git || record_unique missing_official_packages git
@@ -1033,6 +1037,12 @@ validate_installed_configs() {
                 ;;
             ssh) [[ -f $HOME/.ssh/config.d/dotfiles.conf ]] || return 1 ;;
             hypr) [[ -d $config_root/hypr ]] || return 1 ;;
+            wezterm)
+                [[ -f $config_root/wezterm/wezterm.lua ]] || return 1
+                for config in config colors events utils; do
+                    [[ -d $config_root/wezterm/$config ]] || return 1
+                done
+                ;;
         esac
     done
 }
@@ -1233,6 +1243,12 @@ install_item cava "$source_config_root/cava/config" "$config_root/cava/config"
 install_item ssh "$source_config_root/ssh/config" "$HOME/.ssh/config.d/dotfiles.conf"
 install_include_line ssh "$HOME/.ssh/config" 'Include ~/.ssh/config.d/*.conf'
 install_item kitty "$source_config_root/kitty" "$config_root/kitty"
+if is_selected wezterm && [[ -e $HOME/.wezterm.lua || -L $HOME/.wezterm.lua ]]; then
+    skipped+=(wezterm)
+    warnings+=('WezTerm deployment skipped: move ~/.wezterm.lua aside before installing the XDG configuration')
+else
+    install_item wezterm "$source_config_root/wezterm" "$config_root/wezterm"
+fi
 install_item hypr "$source_config_root/hypr" "$config_root/hypr"
 install_item hypr "$source_config_root/waybar" "$config_root/waybar"
 install_item rofi "$source_config_root/rofi" "$config_root/rofi"

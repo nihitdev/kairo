@@ -143,6 +143,14 @@ def validate_vendored_files() -> None:
         if "MIT License" not in text or len(text.splitlines()) < 20:
             error(path, "missing complete vendored license")
 
+    wezterm_license = ROOT / ".config/wezterm/LICENSE"
+    if not wezterm_license.is_file():
+        error(wezterm_license, "missing vendored MIT license")
+    else:
+        text = wezterm_license.read_text(encoding="utf-8")
+        if "Copyright (c) 2023 Kevin Silvester" not in text or len(text.splitlines()) < 20:
+            error(wezterm_license, "missing complete vendored license or attribution")
+
     duplicate_a = ROOT / ".config/bat/themes/Catppuccin Mocha.tmTheme"
     duplicate_b = ROOT / ".config/yazi/flavors/catppuccin-mocha.yazi/tmtheme.xml"
     if duplicate_a.read_bytes() != duplicate_b.read_bytes():

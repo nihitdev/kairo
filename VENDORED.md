@@ -27,6 +27,26 @@ generated System24 CSS and GitHub-hosted assets to reviewed commits.
 Its generated CSS import is pinned here so an upstream branch update cannot
 silently alter an installed theme.
 
+## WezTerm
+
+`.config/wezterm/` is a snapshot of the working local configuration based on
+Kevin Silvester's wezterm-config (upstream revision
+`052853ec9bbc4855026c3974a89ec34c826ba209`). Its complete MIT license and copyright
+notice are retained in `.config/wezterm/LICENSE`, along with inline attribution.
+The modular UI, bindings, colors, and Linux font size of 9.75 are preserved.
+Hard-coded upstream Windows usernames and home paths are replaced with user defaults.
+
+Backdrop images and upstream screenshots are omitted. The backdrop controller
+falls back to the configured background color when no images exist; cycling,
+random selection, and focus mode remain available. Add local images under
+`~/.config/wezterm/backdrops/` (ignored by Git), or use `set_images_dir` in
+`wezterm.lua` to point at an external wallpaper directory. Prefer an external
+location to keep personal images outside the installer's managed directory.
+
+Deploy with `./install.sh --only wezterm`. Kairo uses its transactional copy
+workflow and respects `XDG_CONFIG_HOME`. If `~/.wezterm.lua` exists, deployment
+is skipped with a warning so a competing configuration is not created.
+
 ## Update checks
 
 Run:

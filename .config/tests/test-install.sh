@@ -65,6 +65,7 @@ run_normal_install_test() {
     [[ -f $home/.bashrc ]] || fail 'normal install omitted Bash'
     [[ -f $home/.config/fish/config.fish ]] || fail 'normal install omitted Fish'
     [[ -f $home/.config/nvim/init.lua ]] || fail 'normal install omitted Neovim'
+    [[ -f $home/.config/wezterm/wezterm.lua ]] || fail 'normal install omitted WezTerm'
     [[ -f $home/.config/starship/zsh.toml ]] || fail 'normal install omitted Starship'
     [[ ! -e $home/.config/hypr ]] || fail 'normal install unexpectedly selected opt-in Hyprland'
 }
@@ -376,6 +377,7 @@ run_all_selector_test() {
     plan=$(HOME="$home" XDG_CONFIG_HOME="$home/.config" \
         "$repo_root/install.sh" --dry-run --only all)
     [[ $plan == *'Install kitty'* ]] || fail '--only all did not select Kitty'
+    [[ $plan == *'Install wezterm'* ]] || fail '--only all did not select WezTerm'
     [[ $plan == *'Install fish'* ]] || fail '--only all did not select Fish'
     [[ $plan == *'Install nvim'* ]] || fail '--only all did not select Neovim'
 }
@@ -385,7 +387,7 @@ run_specific_selector_test() {
     local component
     mkdir -p "$home"
     for component in bash zsh nushell git lazygit broot nvim yazi fastfetch \
-        oh-my-posh starship atuin bat cava ssh kitty fish; do
+        oh-my-posh starship atuin bat cava ssh kitty fish wezterm; do
         HOME="$home" XDG_CONFIG_HOME="$home/.config" \
             "$repo_root/install.sh" --dry-run --only "$component" >/dev/null ||
             fail "--only rejected supported component: $component"
@@ -403,6 +405,30 @@ run_hypr_rice_payload_test() {
         fail 'installed Waybar rice differs from selected branch'
 }
 
+run_wezterm_payload_test() {
+    local home="$test_root/wezterm" config
+    config="$home/custom-config"
+    mkdir -p "$home"
+    HOME="$home" XDG_CONFIG_HOME="$config" \
+        "$repo_root/install.sh" --only wezterm >/dev/null
+    diff -r "$repo_root/.config/wezterm" "$config/wezterm" || fail 'WezTerm payload differs'
+    [[ ! -e $home/.wezterm.lua ]] || fail 'legacy WezTerm config was created'
+    HOME="$home" XDG_CONFIG_HOME="$config" \
+        "$repo_root/install.sh" --only wezterm >/dev/null
+    [[ ! -e $home/.dotfiles-backup ]] || fail 'unchanged WezTerm created a backup'
+
+    local legacy_home="$test_root/wezterm-legacy" output
+    mkdir -p "$legacy_home"
+    printf 'return {}\n' >"$legacy_home/.wezterm.lua"
+    output=$(HOME="$legacy_home" XDG_CONFIG_HOME="$legacy_home/.config" \
+        "$repo_root/install.sh" --only wezterm)
+    [[ $output == *'WezTerm deployment skipped'* ]] || fail 'legacy conflict was not reported'
+    [[ $output == *'Skipped: wezterm'* ]] || fail 'WezTerm skip was missing from summary'
+    [[ ! -e $legacy_home/.config/wezterm ]] || fail 'competing XDG config was created'
+    assert_file_contains "$legacy_home/.wezterm.lua" 'return {}'
+}
+
+run_wezterm_payload_test
 run_normal_install_test
 run_nvim_payload_test
 run_preservation_test

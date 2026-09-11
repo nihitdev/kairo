@@ -10,6 +10,9 @@ depends=(bash git)
 optdepends=(
   'hyprland: Hyprland compositor configuration'
   'kitty: terminal configuration'
+  'wezterm: modular terminal configuration'
+  'zsh: WezTerm default shell'
+  'ttf-jetbrains-mono-nerd: WezTerm font and UI icons'
   'rofi-wayland: launcher and menu configuration'
   'waybar: status bar configuration'
   'quickshell: Kairo desktop shell runtime'

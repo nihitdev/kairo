@@ -29,7 +29,8 @@ jobs:
 
       - name: Check Lua syntax
         run: |
-          find .config/nvim .config/yazi -type f -name '*.lua' -print0 \
+          find .config/nvim .config/yazi .config/wezterm \
+            -type f -name '*.lua' -print0 \
             | xargs -0 -n1 luac -p
 
       - name: Check Git configuration

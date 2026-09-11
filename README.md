@@ -150,7 +150,7 @@ deploys; Git itself does not rewrite the already-installed files in `~/.config`.
 | Prompt and history | [Starship](.config/starship/), [Atuin](.config/atuin/), [Oh My Posh](.config/oh-my-posh/) |
 | CLI workflow | [Bat](.config/bat/), [Broot](.config/broot/), [Yazi](.config/yazi/), [LazyGit](.config/lazygit/), [Fastfetch](.config/fastfetch/), [Cava](.config/cava/) |
 | Development | [Git](.config/git/), [Neovim](.config/nvim/), [SSH](.config/ssh/) |
-| Desktop | [Kitty](.config/kitty/), [Hyprland](.config/hypr/), [Waybar](.config/waybar/) |
+| Desktop | [WezTerm](.config/wezterm/), [Kitty](.config/kitty/), [Hyprland](.config/hypr/), [Waybar](.config/waybar/) |
 
 Hyprland is opt-in because replacing a compositor configuration can disrupt an active session. Preview it before installation:
 
@@ -159,6 +159,39 @@ Hyprland is opt-in because replacing a compositor configuration can disrupt an a
 ```
 
 Third-party snapshots and intentionally duplicated assets are documented in [VENDORED.md](VENDORED.md).
+
+## WezTerm
+
+WezTerm is selected by default and is available in the interactive module picker
+and through `--only wezterm`:
+
+```sh
+# Preview the configuration deployment
+./install.sh --dry-run --only wezterm
+
+# Install the configuration and missing Arch dependencies
+./install.sh --install-packages --only wezterm
+```
+
+The installer deploys the complete [modular configuration](.config/wezterm/)
+to `~/.config/wezterm` (or `$XDG_CONFIG_HOME/wezterm`) using Kairo's transactional
+copy, backup, and rollback workflow. Package installation includes `wezterm`,
+`zsh` for the configured default shell, and `ttf-jetbrains-mono-nerd` for the font
+and UI icons. Packages are only installed with `--install-packages` or when
+selected during interactive review.
+
+The configuration retains the 9.75 font size, custom tab bar, left-click new-tab
+action, right-click launch menu, colours, keybindings, and status modules.
+Personal backdrop images are excluded; the background colour works without
+images. To use your own wallpapers, set an external directory with
+`set_images_dir` in [wezterm.lua](.config/wezterm/wezterm.lua), before
+`scan_images_dir`. An external directory keeps images outside the managed
+configuration that the installer replaces.
+
+If `~/.wezterm.lua` exists, Kairo skips WezTerm deployment and reports the
+conflict. Move that file aside before installing the XDG configuration.
+Upstream attribution and the retained MIT license are documented in
+[VENDORED.md](VENDORED.md#wezterm).
 
 ## Developer toolchains
 
@@ -276,6 +309,7 @@ dotfiles/
 │   ├── nushell/              # Nushell configuration and startup files
 │   ├── oh-my-zsh/            # Zsh + Oh My Zsh configuration
 │   ├── starship/             # Four shell-specific prompt configs
+│   ├── wezterm/              # Modular WezTerm configuration
 │   ├── scripts/
 │   │   ├── install-ui.sh     # Dependency-free terminal UI
 │   │   └── validate_repo.py  # Repository validation
