@@ -375,6 +375,13 @@ python3 .config/scripts/validate_repo.py
 
 The Linux test suite covers normal and repeated installation, dry-run immutability, component selection, backup and no-backup modes, Git and SSH include deduplication, shell-specific Starship paths, rollback, remote bootstrap, non-interactive execution, terminal input handling, and Kairo Shell deployment, preservation, release verification, and rollback.
 
+## Community
+
+See [Contributing](CONTRIBUTING.md) for development and pull request guidance,
+[Support](SUPPORT.md) for help and bug reports, [Security](SECURITY.md) for
+vulnerability reporting, and the [Code of Conduct](CODE_OF_CONDUCT.md) for
+community expectations.
+
 ## License
 
 Released under the terms of [LICENSE](LICENSE).
