@@ -27,11 +27,11 @@ without permission.
 For behavior visible in a project thread, you may ask a maintainer to moderate
 it. Do not repeat abusive content or expose someone else's private information.
 
-For a sensitive concern, request a private contact method from the maintainer.
-If you use the [issue tracker](https://github.com/nihitdev/kairo/issues) for that
-request, state only that you need a private contact; do not include names,
-incident details, or evidence. The request itself is public. A dedicated private
-conduct-reporting address has not yet been published.
+For a sensitive concern, email `code.nihit.dev` with the subject **Kairo conduct
+report**. Do not include private details in the subject. If your mail client
+cannot send to that address, use the [issue tracker](https://github.com/nihitdev/kairo/issues)
+to request a private contact method; do not include names, incident details, or
+evidence in that public request.
 
 Once a private channel is available, share the relevant context and links, and
 explain what help you need. Maintainers should limit disclosure of report details

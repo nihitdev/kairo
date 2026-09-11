@@ -5,11 +5,12 @@
 Do not post vulnerability details, exploit code, credentials, or private data in
 public issues or pull requests.
 
-A dedicated private reporting channel has not yet been configured. To arrange a
-private report, open an [issue](https://github.com/nihitdev/kairo/issues) titled
+Email `code.nihit.dev` with the subject **Kairo security report**. Do not include
+credentials or other secrets in the subject. If your mail client cannot send to
+that address, open an [issue](https://github.com/nihitdev/kairo/issues) titled
 **Private security contact requested**, with no technical details, affected
-systems, or sensitive attachments. Wait for the maintainer to provide a private
-contact method before sharing the report. That initial request is public.
+systems, or sensitive attachments, and wait for the maintainer to provide a
+private contact method.
 
 Once a private channel is available, include:
 
