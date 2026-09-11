@@ -4,48 +4,53 @@
 
 ### Arch, composed.
 
-A safe, interactive installer for an Arch Linux, Hyprland, and CLI-first workstation.
+**A safe, interactive workstation installer for Arch Linux, Hyprland, and a CLI-first development setup.**
 
 [![Arch Linux](https://img.shields.io/badge/Arch-Linux-1793D1?logo=archlinux&logoColor=white)](https://archlinux.org/)
 [![Website](https://img.shields.io/badge/Website-get--kairo.vercel.app-cba6f7)](https://get-kairo.vercel.app)
 [![Shell](https://img.shields.io/badge/Installer-Bash-a6e3a1?logo=gnubash&logoColor=11111b)](install.sh)
 [![License](https://img.shields.io/github/license/nihitdev/kairo)](LICENSE)
 
-[Website](https://get-kairo.vercel.app) · [Quick start](#quick-start) · [Modules](#included-configurations) · [Safety](#safety-first)
+[Website](https://get-kairo.vercel.app) · [Quick start](#quick-start) · [Features](#features) · [Modules](#included-configurations) · [Safety](#safety-first)
 
 </div>
 
-Kairo turns a fresh Arch installation into a focused development environment without treating your home directory like a blank canvas. It combines curated dotfiles, optional package installation, developer toolchains, GPU detection, and a dependency-free terminal UI with transactional replacement and rollback.
+Kairo turns a fresh Arch installation into a configured development workstation without assuming your home directory is disposable.
 
-## Highlights
+It combines curated dotfiles, optional package installation, developer toolchains, GPU detection, and a dependency-free terminal UI. Changes are staged before activation, existing configuration can be backed up, and failed transactions roll back instead of leaving half-installed state behind.
 
-- Full-screen interactive installer built with Bash and standard terminal sequences
-- Arch-first package management with `pacman`, plus optional Paru or Yay support
-- Selectable dotfile modules and independent developer toolchain profiles
-- Intel, AMD, and NVIDIA GPU detection with reviewed driver proposals
-- Private backups, staged replacements, path validation, and transaction rollback
-- Deterministic plain output for CI, redirected output, and automation
-- Separate Starship configuration for Bash, Fish, Nushell, and Zsh
-- Fish login-shell setup after a successful interactive installation
-- Switchable rice branches with coordinated Hyprland, Waybar, Kitty, and wallpaper colors
+> **Preview first. Install second.** `./install.sh --dry-run` performs a zero-write preview of the selected changes.
+
+## Features
+
+- **Interactive installer** — full-screen Bash TUI using standard terminal sequences
+- **Selective deployment** — install only the dotfile modules and toolchains you want
+- **Arch-native packages** — `pacman` first, with optional Paru or Yay for AUR packages
+- **Transactional changes** — staged replacements, private backups, validation, and rollback
+- **GPU detection** — reviewed package proposals for Intel, AMD, and modern NVIDIA hardware
+- **Developer profiles** — Rust, Python, web, C/C++, containers, Wayland, and media tooling
+- **Per-shell prompts** — separate Starship configuration for Bash, Fish, Nushell, and Zsh
+- **Curated rice branches** — coordinated Hyprland, Waybar, Kitty, and wallpaper palettes
+- **Automation-friendly output** — deterministic plain output outside interactive terminals
+- **No surprise upgrades** — Kairo installs what you selected without silently upgrading the whole system
 
 ## Quick start
 
-### 1. Curl
+### Remote installer
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/nihitdev/kairo/main/install.sh | bash
 ```
 
-### 2. Wget
+or:
 
 ```sh
 wget -qO- https://raw.githubusercontent.com/nihitdev/kairo/main/install.sh | bash
 ```
 
-Both remote entry points request sudo access, clone Kairo to `~/kairo`, enter the checkout, and launch the full interactive installer. An existing clean Kairo checkout is updated with a fast-forward pull; unrelated or modified directories are never overwritten. CI and redirected/non-terminal sessions remain plain and deterministic.
+The remote entry point requests sudo when required, clones Kairo to `~/kairo`, and launches the interactive installer. If a clean checkout already exists, it is updated with a fast-forward pull. Modified or unrelated directories are not overwritten.
 
-### 3. Clone
+### Clone manually
 
 ```sh
 git clone https://github.com/nihitdev/kairo.git
@@ -53,106 +58,74 @@ cd kairo
 ./install.sh
 ```
 
-Cloning provides the complete interactive TUI. Start with a zero-write preview if you want to inspect every action first:
+Want to inspect everything before Kairo writes anything?
 
 ```sh
 ./install.sh --dry-run
 ```
 
-## Installer experience
-
-Running `./install.sh` in a terminal opens a guided flow:
+## Installer flow
 
 ```text
 Welcome → Detect → Dependencies → Modules → Review
         → Backup → Packages → Dotfiles → Configure → Validate → Complete
 ```
 
-Kairo shows the detected distribution, architecture, shell, display session, package tools, service manager, and configuration root. Before changing anything, the review screen lists selected modules, missing packages, replacement targets, and backup behavior.
-
-### Controls
+Kairo detects the distribution, architecture, shell, display session, package tools, service manager, and configuration root. The review step shows the selected modules, missing packages, replacement targets, and backup behavior before privileged or destructive work begins.
 
 | Key | Action |
 | --- | --- |
-| `↑` / `↓` or `J` / `K` | Move through choices |
-| `Space` | Toggle the focused item |
+| `↑` / `↓` or `J` / `K` | Move |
+| `Space` | Toggle item |
 | `A` | Select all |
 | `N` | Select none |
 | `Enter` | Continue |
 | `Q` or `Esc` | Cancel safely |
 
-## Useful commands
+## Common commands
 
 ```sh
 # Preview one module
 ./install.sh --dry-run --only starship
 
-# Install several modules
+# Install selected modules
 ./install.sh --only yazi --only broot --only starship
 
-# Install every supported dotfile module
+# Select every supported dotfile module
 ./install.sh --only all
 
-# Install missing packages for the selected modules
+# Install missing packages for selected modules
 ./install.sh --install-packages --only nvim --only yazi
 
-# Add developer toolchains
-./install.sh --install-packages --profile core-build --profile rust --profile web
+# Add development toolchains
+./install.sh --install-packages \
+  --profile core-build \
+  --profile rust \
+  --profile web
 
-# Select Yay instead of the default Paru helper
+# Use Yay instead of the default Paru helper
 ./install.sh --install-packages --aur-helper yay
 
 # Review and install detected GPU drivers
 ./install.sh --install-packages --install-gpu-drivers
 
-# Disable backup creation explicitly
+# Explicitly disable backups
 ./install.sh --no-backup --only starship
 ```
 
-Run `./install.sh --help` for the authoritative option and component list.
-
-## Rice branches
-
-Kairo ships each complete desktop palette as a Git branch. Switch the checkout,
-then apply its Hyprland, Waybar, Kitty, and wallpaper configuration through the
-same transactional installer:
-
-```sh
-cd ~/kairo
-git fetch origin
-git switch rice/catppuccin-mocha
-./install.sh --only hypr --only kitty
-```
-
-Preview the replacement first with `--dry-run`. To change rice later, return to
-a clean checkout, switch to another `rice/*` branch, and run the same install
-command. Kairo backs up replaced configuration unless `--no-backup` is given.
-
-Available branches:
-
-| Family | Branches |
-| --- | --- |
-| Classic terminal | `rice/campbell`, `rice/vintage` |
-| One Half | `rice/one-half-dark`, `rice/one-half-light` |
-| Tango | `rice/tango-dark`, `rice/tango-light` |
-| Catppuccin | `rice/catppuccin-latte`, `rice/catppuccin-frappe`, `rice/catppuccin-macchiato`, `rice/catppuccin-mocha` |
-| Rosé Pine | `rice/rose-pine`, `rice/rose-pine-moon`, `rice/rose-pine-dawn` |
-
-`main` remains the stable development branch. Rice branches contain distinct
-palette files, so changing branches changes the configuration that the installer
-deploys; Git itself does not rewrite the already-installed files in `~/.config`.
+Run `./install.sh --help` for the authoritative list of options, modules, and profiles.
 
 ## Included configurations
 
 | Area | Modules |
 | --- | --- |
 | Shells | [Bash](.config/bash/), [Fish](.config/fish/), [Nushell](.config/nushell/), [Zsh + Oh My Zsh](.config/oh-my-zsh/) |
-| Prompt and history | [Starship](.config/starship/), [Atuin](.config/atuin/), [Oh My Posh](.config/oh-my-posh/) |
+| Prompt & history | [Starship](.config/starship/), [Atuin](.config/atuin/), [Oh My Posh](.config/oh-my-posh/) |
 | CLI workflow | [Bat](.config/bat/), [Broot](.config/broot/), [Yazi](.config/yazi/), [LazyGit](.config/lazygit/), [Fastfetch](.config/fastfetch/), [Cava](.config/cava/) |
 | Development | [Git](.config/git/), [Neovim](.config/nvim/), [SSH](.config/ssh/) |
-| Desktop | [WezTerm](.config/wezterm/), [Kitty](.config/kitty/), [Hyprland](.config/hypr/), [Waybar](.config/waybar/) |
+| Desktop | [WezTerm](.config/wezterm/), [Kitty](.config/kitty/), [Hyprland](.config/hypr/), [Waybar](.config/waybar/), [Kairo Shell](#kairo-shell) |
 
-Hyprland is opt-in because replacing a compositor configuration can disrupt an active session. Preview it before installation:
+Hyprland is deliberately opt-in because replacing compositor configuration can disrupt an active session:
 
 ```sh
 ./install.sh --dry-run --only hypr
@@ -193,9 +166,54 @@ conflict. Move that file aside before installing the XDG configuration.
 Upstream attribution and the retained MIT license are documented in
 [VENDORED.md](VENDORED.md#wezterm).
 
+## Kairo Shell
+
+The optional `kairo-shell` module installs Kairo Shell `v2.2.0-beta.1`, verified
+against commit `64420cb38748b406608af95b2252f60958a8e5a9`. It is unselected by
+default; `--only all` includes it.
+
+```sh
+# Preview the shell and Hyprland startup integration
+./install.sh --dry-run --only hypr --only kairo-shell
+
+# Install the shell, Hyprland configuration, and required packages
+./install.sh --install-packages --only hypr --only kairo-shell
+```
+
+Selecting both modules replaces the managed Hyprland Waybar startup command
+with the installed `kairod start` path and skips Waybar deployment. Selecting
+only `hypr` continues to install Waybar. Selecting only `kairo-shell` installs
+the shell without changing Hyprland; start it with `~/.local/bin/kairod start`
+in a Hyprland session. Installation does not start a daemon or change an active
+session.
+
+The installer manages these paths with its normal backup and rollback workflow:
+
+- Application: `${XDG_DATA_HOME:-~/.local/share}/kairo`
+- Launchers: `${KAIRO_BIN_DIR:-~/.local/bin}/{kairo,kairod}`
+- Settings: `${XDG_CONFIG_HOME:-~/.config}/kairo/settings.json` (created only when absent)
+- Version state: `${XDG_STATE_HOME:-~/.local/state}/kairo/version`
+- Desktop entry and icon under the XDG data directory
+
+All destinations must resolve inside your home directory. Existing unrelated
+launcher files and unmanaged application directories are rejected. Put the
+launcher directory first in your session's `PATH`; its `kairo` command controls
+the desktop shell. Use `./install.sh` from this checkout for the dotfile installer.
+
+Runtime dependencies from the pinned release are included in Kairo's package
+review, including Quickshell, Hyprland, Qt, audio/network utilities, the Iosevka
+Nerd Font, and the AUR package `wl-gammarelay-rs`. Installation remains opt-in
+through `--install-packages` or interactive review. Without it, missing packages
+are reported and must be installed before starting the shell. The upstream
+interactive installer, system upgrades, display-manager setup, service changes,
+and optional wallpaper downloads are not run.
+
+The downloaded payload retains upstream AGPL-3.0 licensing and attribution.
+The [local shell prototype](shell/README.md) is separate from this release.
+
 ## Developer toolchains
 
-Profiles install workstation packages independently from dotfile modules. Repeat `--profile` to combine them or use `--profile all`.
+Profiles are independent from dotfile modules. Repeat `--profile` to combine them, or use `--profile all`.
 
 | Profile | Included tools |
 | --- | --- |
@@ -205,28 +223,28 @@ Profiles install workstation packages independently from dotfile modules. Repeat
 | `python` | Python, pip, uv |
 | `web` | Node.js, npm, pnpm, Bun |
 | `containers` | Docker, Docker Compose, Podman, Buildah |
-| `wayland` | Portal, clipboard, screenshots, brightness, media, and DDC tools |
+| `wayland` | Portal, clipboard, screenshot, brightness, media, and DDC tooling |
 | `media` | PipeWire, WirePlumber, FFmpeg, ImageMagick, yt-dlp |
 
 ## Package management
 
-Package installation is always opt-in through `--install-packages` or the interactive review. Kairo checks what is already present and installs only packages needed by the selected modules and profiles.
+Package installation is opt-in through `--install-packages` or the interactive review. Kairo checks what is already installed and only requests packages required by the selected modules and profiles.
 
 - Official packages are grouped into `sudo pacman -S --needed ...`.
 - AUR packages use Paru by default or Yay with `--aur-helper yay`.
-- AUR helpers are never run through `sudo` or as root.
-- A missing helper is bootstrapped from its official AUR PKGBUILD as the current user.
-- Kairo never performs a surprise full-system upgrade.
+- AUR helpers run as the current user, never through `sudo`.
+- A missing helper can be bootstrapped from its official AUR PKGBUILD.
+- Kairo does not perform a surprise full-system upgrade.
 
-When Fish is selected with `--install-packages`, Kairo installs Fisher when needed and synchronizes the plugins declared in `.config/fish/fish_plugins`: `fzf.fish`, `autopair.fish`, and `replay.fish`. Fisher-generated functions and machine-specific `fish_variables` remain outside version control.
+When Fish and package installation are selected, Kairo installs Fisher when required and synchronizes the plugins declared in `.config/fish/fish_plugins`: `fzf.fish`, `autopair.fish`, and `replay.fish`. Generated functions and machine-specific `fish_variables` stay outside version control.
 
-When Neovim is selected with `--install-packages`, Kairo bootstraps `lazy.nvim` and performs a headless LazyVim sync using the tracked `lazy-lock.json`. Without package installation, LazyVim performs its normal bootstrap the first time Neovim opens.
+For Neovim, Kairo can bootstrap `lazy.nvim` and perform a headless LazyVim sync using the tracked `lazy-lock.json`. Without package installation, LazyVim performs its normal bootstrap when Neovim first starts.
 
-When privileged work is selected, interactive mode requests and validates sudo access after review and before filesystem changes begin.
+Privileged work is requested only after review and before filesystem changes begin.
 
-### Chaotic-AUR
+### Optional Chaotic-AUR support
 
-[Chaotic-AUR](https://github.com/chaotic-aur) is an optional third-party repository and a separate trust decision:
+[Chaotic-AUR](https://github.com/chaotic-aur) is treated as a separate trust decision:
 
 ```sh
 ./install.sh --dry-run --enable-chaotic-aur --profile web
@@ -237,85 +255,88 @@ Kairo imports and locally signs the published key, installs the signed keyring a
 
 ## GPU drivers
 
-With `--install-gpu-drivers`, Kairo inspects graphics controllers and proposes an Arch package set for review:
+With `--install-gpu-drivers`, Kairo inspects graphics controllers and proposes an Arch package set for review.
 
-| Detected hardware | Proposed stack |
+| Hardware | Proposed stack |
 | --- | --- |
 | AMD | Mesa and RADV Vulkan |
 | Intel | Mesa, Intel Vulkan, and Intel media drivers |
 | Modern NVIDIA | Open kernel modules, utilities, VA-API bridge, and matching installed-kernel headers |
 
-Mixed Intel/AMD systems receive both applicable userspace stacks. Unclassified or legacy NVIDIA hardware produces a warning instead of guessing. Kairo does not generate an Xorg configuration or require Hyprland to be running.
-
-## Per-shell Starship
-
-One Starship binary is shared across all shells, while `STARSHIP_CONFIG` selects a shell-specific configuration:
-
-```text
-~/.config/starship/
-├── bash.toml       # Bash
-├── fish.toml       # Fish
-├── nushell.toml    # Nushell
-└── zsh.toml        # Zsh
-```
-
-The installer manages the complete directory; Kairo does not use a single prompt file at the configuration root.
+Mixed Intel/AMD systems receive both applicable userspace stacks. Legacy or unclassified NVIDIA hardware produces a warning rather than a guess. Kairo does not generate an Xorg configuration or require Hyprland to be running.
 
 ## Rice branches
 
-Kairo publishes one Git branch per curated rice. Each branch includes a matching Kitty palette, Waybar accents, and Hyprland border colors:
+Each curated desktop palette lives on a `rice/*` Git branch and coordinates the relevant Kitty, Waybar, Hyprland, and wallpaper configuration.
 
-```text
-rice/campbell             rice/vintage
-rice/one-half-dark        rice/one-half-light
-rice/tango-dark           rice/tango-light
-rice/catppuccin-latte     rice/catppuccin-frappe
-rice/catppuccin-macchiato rice/catppuccin-mocha
-rice/rose-pine            rice/rose-pine-moon
-rice/rose-pine-dawn
-```
+| Family | Branches |
+| --- | --- |
+| Classic terminal | `rice/campbell`, `rice/vintage` |
+| One Half | `rice/one-half-dark`, `rice/one-half-light` |
+| Tango | `rice/tango-dark`, `rice/tango-light` |
+| Catppuccin | `rice/catppuccin-latte`, `rice/catppuccin-frappe`, `rice/catppuccin-macchiato`, `rice/catppuccin-mocha` |
+| Rosé Pine | `rice/rose-pine`, `rice/rose-pine-moon`, `rice/rose-pine-dawn` |
 
-Switching a rice is intentionally an ordinary Git workflow. From a clean checkout, select a branch and reinstall the affected components:
+Switching rice is an ordinary Git workflow:
 
 ```sh
+cd ~/kairo
 git fetch origin
 git switch rice/catppuccin-mocha
-./install.sh --only kitty --only hypr
+
+./install.sh --dry-run --only hypr --only kitty
+./install.sh --only hypr --only kitty
 ```
 
-Waybar is included in the repository at `.config/waybar`; copy it to `~/.config/waybar` (or use your usual dotfile deployment step) after switching. Return to the default configuration with `git switch main`. The installer backs up replaced destinations, so switching back is reversible.
+`main` remains the stable development branch. Switching branches changes the configuration available to the installer; Git does not modify files already deployed under `~/.config`.
+
+Kairo backs up replaced destinations unless `--no-backup` is explicitly supplied.
+
+## Per-shell Starship
+
+Kairo uses one Starship binary with a separate configuration for each shell:
+
+```text
+~/.config/starship/
+├── bash.toml
+├── fish.toml
+├── nushell.toml
+└── zsh.toml
+```
+
+`STARSHIP_CONFIG` selects the appropriate file. The installer manages the complete Starship directory rather than using a single root-level prompt configuration.
 
 ## Safety first
 
-Kairo preserves the existing installer’s transactional design:
+Kairo is designed to make workstation setup repeatable without turning configuration replacement into a gamble.
 
 - Existing destinations are backed up under private, unique `~/.dotfiles-backup/YYYYMMDD-HHMMSS.xxxxxx/` directories.
 - Replacement payloads are staged before activation.
-- A failed operation restores replaced destinations and removes newly created partial targets.
-- Destinations outside the home directory, traversal paths, symlink escapes, `/`, `$HOME`, and the configuration root itself are rejected.
+- Failed operations restore replaced destinations and remove newly created partial targets.
+- `/`, `$HOME`, the configuration root, traversal paths, symlink escapes, and destinations outside the home directory are rejected.
 - `--dry-run` performs no writes, package changes, plugin installation, shell changes, or cache mutation.
-- Repeated installation is safe: unchanged payloads are retained and Git/SSH includes are not duplicated.
-- Git identity, signing, credentials, personal SSH material, `known_hosts`, and `authorized_keys` are not overwritten.
-
-`--no-backup` disables backup creation but does not disable staging, destination safety, or rollback handling.
+- Repeated installations preserve unchanged payloads and avoid duplicate Git/SSH includes.
+- Git identity, signing configuration, credentials, personal SSH material, `known_hosts`, and `authorized_keys` are not overwritten.
+- `--no-backup` disables backup creation, not staging, destination validation, or rollback handling.
 
 ## Repository map
 
 ```text
-dotfiles/
+kairo/
 ├── .config/
-│   ├── bash/                 # Managed Bash configuration
-│   ├── fish/                 # Fish configuration and integrations
-│   ├── nushell/              # Nushell configuration and startup files
-│   ├── oh-my-zsh/            # Zsh + Oh My Zsh configuration
-│   ├── starship/             # Four shell-specific prompt configs
-│   ├── wezterm/              # Modular WezTerm configuration
+│   ├── bash/
+│   ├── fish/
+│   ├── nushell/
+│   ├── oh-my-zsh/
+│   ├── starship/
+│   ├── wezterm/
 │   ├── scripts/
-│   │   ├── install-ui.sh     # Dependency-free terminal UI
-│   │   └── validate_repo.py  # Repository validation
-│   └── tests/                # Linux installer tests
-├── site/                     # Vite + Tailwind CSS website
-├── install.sh                # Main installer and remote entry point
+│   │   ├── install-ui.sh
+│   │   └── validate_repo.py
+│   └── tests/
+├── shell/                    # Local Quickshell prototype
+├── site/
+├── install.sh
 ├── VENDORED.md
 └── LICENSE
 ```
@@ -347,12 +368,13 @@ bash -n .config/scripts/install-ui.sh
 ./install.sh --dry-run
 ./install.sh --dry-run --only starship
 ./install.sh --dry-run --only yazi --only broot --only starship
+./install.sh --dry-run --only hypr --only kairo-shell
 python3 .config/scripts/validate_repo.py
 ./.config/tests/test-install.sh
 ```
 
-The Linux test suite covers normal and repeated installation, dry-run immutability, component selection, backup and no-backup modes, Git and SSH include deduplication, shell-specific Starship paths, rollback, remote bootstrap, non-interactive execution, and terminal input handling.
+The Linux test suite covers normal and repeated installation, dry-run immutability, component selection, backup and no-backup modes, Git and SSH include deduplication, shell-specific Starship paths, rollback, remote bootstrap, non-interactive execution, terminal input handling, and Kairo Shell deployment, preservation, release verification, and rollback.
 
 ## License
 
-Released under the terms in [LICENSE](LICENSE).
+Released under the terms of [LICENSE](LICENSE).

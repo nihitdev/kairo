@@ -456,4 +456,5 @@ run_static_security_defaults_test
 run_all_selector_test
 run_specific_selector_test
 run_hypr_rice_payload_test
+bash "$repo_root/.config/tests/test-kairo-shell.sh"
 printf 'Linux installer safety tests passed.\n'

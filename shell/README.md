@@ -1,6 +1,6 @@
-# Kairo Shell
+# Kairo Shell prototype
 
-Kairo Shell is the Quickshell layer for the Kairo desktop. It currently provides
+This local prototype is a Quickshell layer for the Kairo desktop. It currently provides
 the first working surface: a lightweight top bar with Kairo branding,
 workspace indicators, and a clock.
 
@@ -10,6 +10,7 @@ Run it from a checkout with:
 quickshell -p shell/shell.qml
 ```
 
-The shell is intentionally separate from the dotfile installer. Future pieces
-will add a launcher, control center, notifications, wallpaper controls, and
-rice-aware theme loading without replacing users' existing configurations.
+This prototype is not the payload deployed by the installer's `kairo-shell`
+module. That module downloads a pinned release of the separate Kairo Shell
+project, which includes the daemon, launcher, settings, and desktop surfaces.
+See the [installation guide](../README.md#kairo-shell).

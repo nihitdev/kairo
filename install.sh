@@ -39,23 +39,39 @@ transaction_active=false
 chaotic_config_changed=false
 chaotic_config_backup=''
 
+kairo_shell_version='v2.2.0-beta.1'
+kairo_shell_commit='64420cb38748b406608af95b2252f60958a8e5a9'
+kairo_shell_repo='https://github.com/nihitdev/kairo-shell.git'
+
+# Runtime packages from the pinned Kairo Shell release.
+declare -a kairo_shell_packages=(
+    kitty cava zbar pavucontrol alsa-utils wl-clipboard fd qt6-multimedia qt6-5compat ripgrep
+    cliphist jq socat inotify-tools pamixer brightnessctl ddcutil acpi iw bluez bluez-utils
+    libnotify networkmanager lm_sensors bc matugen pipewire wireplumber pipewire-pulse pipewire-alsa
+    libpulse python imagemagick wget file git psmisc ffmpeg fastfetch quickshell unzip
+    python-websockets qt6-websockets grim playerctl satty xdg-desktop-portal-gtk slurp wmctrl
+    power-profiles-daemon easyeffects nautilus qt5-wayland qt5-quickcontrols qt5-quickcontrols2
+    qt5-graphicaleffects qt6-wayland qt5ct qt6ct gpu-screen-recorder wf-recorder adw-gtk-theme
+    hyprland xdg-desktop-portal-hyprland ttf-iosevka-nerd curl fzf pciutils fontconfig
+)
+
 declare -a module_names=(
     bash fish nushell zsh starship atuin bat broot yazi lazygit fastfetch
-    git nvim kitty cava ssh oh-my-posh hypr rofi wezterm
+    git nvim kitty cava ssh oh-my-posh hypr kairo-shell rofi wezterm
 )
 declare -a module_labels=(
     Bash Fish Nushell Zsh Starship Atuin Bat Broot Yazi LazyGit Fastfetch
-    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland Rofi WezTerm
+    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland 'Kairo Shell' Rofi WezTerm
 )
 declare -a module_categories=(
     Shells Shells Shells Shells Shells CLI CLI CLI CLI CLI CLI
-    Development Development Desktop Desktop System Shells Desktop Desktop Desktop
+    Development Development Desktop Desktop System Shells Desktop Desktop Desktop Desktop
 )
 declare -A module_default=(
     [bash]=true [fish]=true [nushell]=true [zsh]=true [starship]=true
     [atuin]=true [bat]=true [broot]=true [yazi]=true [lazygit]=true
     [fastfetch]=true [git]=true [nvim]=true [kitty]=true [cava]=true
-    [ssh]=true [oh-my-posh]=false [hypr]=false [rofi]=false [wezterm]=true
+    [ssh]=true [oh-my-posh]=false [hypr]=false [kairo-shell]=false [rofi]=false [wezterm]=true
 )
 declare -A module_package=(
     [bash]=bash [fish]=fish [nushell]=nushell [zsh]=zsh [starship]=starship
@@ -107,7 +123,7 @@ Options:
 
 Components:
   bash zsh nushell git lazygit broot nvim yazi fastfetch oh-my-posh
-  starship atuin bat cava ssh kitty fish hypr rofi wezterm all
+  starship atuin bat cava ssh kitty fish hypr kairo-shell rofi wezterm all
 EOF
 }
 
@@ -286,6 +302,10 @@ backup_root=''
 backup_display="$HOME/.dotfiles-backup/<unique-run>"
 config_root=${XDG_CONFIG_HOME:-"$HOME/.config"}
 source_config_root="$repo_root/.config"
+kairo_shell_data=${XDG_DATA_HOME:-"$HOME/.local/share"}
+kairo_shell_target="$kairo_shell_data/kairo"
+kairo_shell_bin=${KAIRO_BIN_DIR:-"$HOME/.local/bin"}
+kairo_shell_state="${XDG_STATE_HOME:-$HOME/.local/state}/kairo"
 
 command -v realpath >/dev/null 2>&1 || {
     printf 'realpath is required for safe destination validation.\n' >&2
@@ -520,6 +540,12 @@ collect_missing_packages() {
         package_is_installed fzf fzf || record_unique missing_official_packages fzf
         package_is_installed curl curl || record_unique missing_official_packages curl
     fi
+    if is_selected kairo-shell; then
+        for package in "${kairo_shell_packages[@]}"; do
+            package_is_installed "$package" || record_unique missing_official_packages "$package"
+        done
+        package_is_installed wl-gammarelay-rs || record_unique missing_aur_packages wl-gammarelay-rs
+    fi
     if is_selected wezterm; then
         package_is_installed zsh zsh || record_unique missing_official_packages zsh
         package_is_installed ttf-jetbrains-mono-nerd || record_unique missing_official_packages ttf-jetbrains-mono-nerd
@@ -698,6 +724,116 @@ install_missing_packages() {
     fi
     installed_package_cache=()
     package_cache_loaded=false
+}
+
+validate_kairo_shell_destinations() {
+    is_selected kairo-shell || return 0
+    local destination name
+    for destination in "$kairo_shell_target" "$kairo_shell_bin/kairo" "$kairo_shell_bin/kairod" \
+        "$config_root/kairo/settings.json" "$kairo_shell_state/version" \
+        "$kairo_shell_data/applications/kairo.desktop" "$kairo_shell_data/icons/hicolor/scalable/apps/kairo.svg"; do
+        assert_safe_destination "$destination"
+    done
+    if [[ -e $kairo_shell_target && ! -f $kairo_shell_target/.kairo-install &&
+          ! -f $kairo_shell_target/bin/kairod ]]; then
+        printf 'Refusing to replace unmanaged Kairo Shell directory: %s\n' "$kairo_shell_target" >&2
+        return 1
+    fi
+    for name in kairo kairod; do
+        destination="$kairo_shell_bin/$name"
+        if [[ -e $destination || -L $destination ]]; then
+            if [[ ! -L $destination || $(readlink -- "$destination") != "$kairo_shell_target/bin/$name" ]]; then
+                printf 'Kairo Shell launcher conflicts with an existing file: %s\n' "$destination" >&2
+                return 1
+            fi
+        fi
+    done
+}
+
+install_kairo_shell() {
+    is_selected kairo-shell || return 0
+    local checkout payload name
+    if $dry_run; then
+        describe "Fetch Kairo Shell $kairo_shell_version ($kairo_shell_commit)"
+        describe "Install kairo-shell -> $kairo_shell_target"
+        describe "Install Kairo Shell launchers -> $kairo_shell_bin"
+        describe "Seed Kairo Shell settings -> $config_root/kairo/settings.json (preserve existing)"
+        describe "Install Kairo Shell version state -> $kairo_shell_state/version"
+        describe "Install Kairo Shell desktop entry and icon -> $kairo_shell_data"
+        record_installed kairo-shell
+        return 0
+    fi
+
+    ensure_external_root
+    checkout="$external_root/kairo-shell-checkout"
+    payload="$external_root/kairo-shell-payload"
+    describe "Fetch Kairo Shell $kairo_shell_version"
+    git clone --depth 1 --branch "$kairo_shell_version" "$kairo_shell_repo" "$checkout"
+    if [[ $(git -C "$checkout" rev-parse HEAD) != "$kairo_shell_commit" ]]; then
+        printf 'Kairo Shell release does not match the reviewed commit.\n' >&2
+        return 1
+    fi
+
+    mkdir -p -- "$payload"
+    cp -a -- "$checkout/bin" "$checkout/src" "$checkout/config" "$checkout/compositors" "$payload/"
+    cp -- "$checkout/version.txt" "$payload/src/version.txt"
+    cp -- "$checkout/LICENSE.md" "$checkout/UPSTREAM.md" "$checkout/CHANGELOG.md" "$checkout/README.md" "$payload/src/"
+    cp -- "$checkout/install/uninstall.sh" "$payload/uninstall.sh"
+    chmod +x "$payload/bin/kairo" "$payload/bin/kairod" "$payload/uninstall.sh"
+    find "$payload/src" -type f \( -name '*.sh' -o -name '*.py' \) -exec chmod +x {} +
+    printf 'Kairo managed installation\n' > "$payload/.kairo-install"
+    install_item kairo-shell "$payload" "$kairo_shell_target"
+    for name in kairo kairod; do
+        ln -s -- "$kairo_shell_target/bin/$name" "$external_root/$name"
+        install_item kairo-shell "$external_root/$name" "$kairo_shell_bin/$name"
+    done
+    install_seed_item kairo-shell "$checkout/config/kairo/settings.json" "$config_root/kairo/settings.json"
+    printf 'KAIRO_VERSION="%s"\nKAIRO_COMMIT="%s"\nCOMPOSITOR="hyprland"\n' \
+        "${kairo_shell_version#v}" "${kairo_shell_commit:0:7}" > "$external_root/kairo-version"
+    install_item kairo-shell "$external_root/kairo-version" "$kairo_shell_state/version"
+    install_item kairo-shell "$checkout/src/assets/applications/kairo.desktop" "$kairo_shell_data/applications/kairo.desktop"
+    install_item kairo-shell "$checkout/src/assets/kairo-logo.svg" "$kairo_shell_data/icons/hicolor/scalable/apps/kairo.svg"
+}
+
+install_hypr_desktop() {
+    is_selected hypr || return 0
+    local hypr_source="$source_config_root/hypr"
+    if ! is_selected kairo-shell; then
+        install_item hypr "$hypr_source" "$config_root/hypr"
+        install_item hypr "$source_config_root/waybar" "$config_root/waybar"
+        return 0
+    fi
+
+    local line found=false
+    while IFS= read -r line || [[ -n $line ]]; do
+        [[ $line != '    hl.exec_cmd("waybar")' ]] || found=true
+    done < "$hypr_source/hyprland.lua"
+    if ! $found; then
+        printf 'Kairo: could not locate the Waybar Hyprland startup line.\n' >&2
+        return 1
+    fi
+    describe "Configure Hyprland startup -> $kairo_shell_bin/kairod start"
+    describe 'Skip Waybar deployment because Kairo Shell is selected'
+    if $dry_run; then
+        install_item hypr "$hypr_source" "$config_root/hypr"
+        return 0
+    fi
+
+    ensure_external_root
+    local temp_hypr="$external_root/hypr" command
+    cp -a -- "$hypr_source" "$temp_hypr"
+    # Quote the executable for the command shell, then escape it for Lua.
+    command="'${kairo_shell_bin//\'/\'\\\'\'}/kairod' start"
+    command=${command//\\/\\\\}
+    command=${command//\"/\\\"}
+    while IFS= read -r line || [[ -n $line ]]; do
+        if [[ $line == '    hl.exec_cmd("waybar")' ]]; then
+            printf '    hl.exec_cmd("%s")\n' "$command"
+        else
+            printf '%s\n' "$line"
+        fi
+    done < "$hypr_source/hyprland.lua" > "$temp_hypr/hyprland.lua"
+    install_item hypr "$temp_hypr" "$config_root/hypr"
 }
 
 assert_safe_destination() {
@@ -1037,6 +1173,11 @@ validate_installed_configs() {
                 ;;
             ssh) [[ -f $HOME/.ssh/config.d/dotfiles.conf ]] || return 1 ;;
             hypr) [[ -d $config_root/hypr ]] || return 1 ;;
+            kairo-shell)
+                [[ -x $kairo_shell_target/bin/kairod && -f $kairo_shell_target/src/version.txt &&
+                   -L $kairo_shell_bin/kairo && -L $kairo_shell_bin/kairod &&
+                   -f $config_root/kairo/settings.json ]] || return 1
+                ;;
             wezterm)
                 [[ -f $config_root/wezterm/wezterm.lua ]] || return 1
                 for config in config colors events utils; do
@@ -1163,6 +1304,12 @@ interactive_prepare() {
         case "$index" in
             bash) [[ -e $HOME/.bashrc ]] && replacement_list+="  $HOME/.bashrc"$'\n' ;;
             zsh) [[ -e $HOME/.zshrc ]] && replacement_list+="  $HOME/.zshrc"$'\n' ;;
+            kairo-shell)
+                replacement_list+="  $kairo_shell_target"$'\n'"  $kairo_shell_bin/{kairo,kairod}"$'\n'
+                replacement_list+="  $kairo_shell_state/version"$'\n'
+                replacement_list+="  $kairo_shell_data/applications/kairo.desktop"$'\n'
+                replacement_list+="  $kairo_shell_data/icons/hicolor/scalable/apps/kairo.svg"$'\n'
+                ;;
             ssh) [[ -e $HOME/.ssh/config.d/dotfiles.conf ]] && replacement_list+="  $HOME/.ssh/config.d/dotfiles.conf"$'\n' ;;
             *) [[ -e $config_root/$index ]] && replacement_list+="  $config_root/$index"$'\n' ;;
         esac
@@ -1194,6 +1341,7 @@ if $interactive; then
 else
     collect_missing_packages
 fi
+validate_kairo_shell_destinations
 acquire_privileges
 
 if $interactive; then
@@ -1249,9 +1397,9 @@ if is_selected wezterm && [[ -e $HOME/.wezterm.lua || -L $HOME/.wezterm.lua ]]; 
 else
     install_item wezterm "$source_config_root/wezterm" "$config_root/wezterm"
 fi
-install_item hypr "$source_config_root/hypr" "$config_root/hypr"
-install_item hypr "$source_config_root/waybar" "$config_root/waybar"
+install_hypr_desktop
 install_item rofi "$source_config_root/rofi" "$config_root/rofi"
+install_kairo_shell
 if [[ -d $source_config_root/fish ]]; then
     install_item fish "$source_config_root/fish" "$config_root/fish"
 elif is_selected fish; then
