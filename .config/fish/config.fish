@@ -1,166 +1,81 @@
-# =============================================================================
-# Fish Configuration
-# ~/.config/fish/config.fish
-# =============================================================================
-
-
-# -----------------------------------------------------------------------------
-# PATH
-# -----------------------------------------------------------------------------
-
-# User binaries
-if test -d $HOME/.local/bin
-    fish_add_path $HOME/.local/bin
-end
-
-# Bun
-set -gx BUN_INSTALL $HOME/.bun
-if test -d $BUN_INSTALL/bin
-    fish_add_path $BUN_INSTALL/bin
-end
-
-
-# -----------------------------------------------------------------------------
-# Development Environment
-# -----------------------------------------------------------------------------
-
-# Go installs
+# Fish rice. Prompt: ~/.config/starship/fish.toml
+fish_add_path --path --append $HOME/.local/bin $HOME/.local/share/mise/shims
 set -gx GOBIN $HOME/.local/bin
-
-# Cargo installs
 set -gx CARGO_INSTALL_ROOT $HOME/.local
+set -gx BUN_INSTALL $HOME/.bun
+test -d $BUN_INSTALL/bin; and fish_add_path --path --append $BUN_INSTALL/bin
 
-
-# -----------------------------------------------------------------------------
-# Interactive Shell
-# -----------------------------------------------------------------------------
-
-if status is-interactive
-
-    # -------------------------------------------------------------------------
-    # General
-    # -------------------------------------------------------------------------
-
-    # Disable Fish greeting
-    set -g fish_greeting
-
-    # Default editor
-    set -gx EDITOR nvim
-    set -gx VISUAL nvim
-
-
-    # -------------------------------------------------------------------------
-    # Fish Colors
-    # -------------------------------------------------------------------------
-
-    set -g fish_color_normal         F1F3E4
-    set -g fish_color_command        e2342a
-    set -g fish_color_keyword        e83b30
-    set -g fish_color_param          F1F3E4
-    set -g fish_color_option         CCD0CF
-    set -g fish_color_quote          A3C293
-    set -g fish_color_redirection    8AA9CC
-    set -g fish_color_end            e83b30
-    set -g fish_color_error          FF6B6B
-    set -g fish_color_comment        949699
-    set -g fish_color_operator       93D4E0
-    set -g fish_color_escape         93D4E0
-    set -g fish_color_autosuggestion 949699
-
-
-    # -------------------------------------------------------------------------
-    # Fastfetch
-    # -------------------------------------------------------------------------
-
-    if command -v ryoku-fastfetch >/dev/null 2>&1
-        ryoku-fastfetch
-    end
-
-
-    # -------------------------------------------------------------------------
-    # Starship Prompt
-    # -------------------------------------------------------------------------
-
-    if command -v starship >/dev/null 2>&1
-        set -gx STARSHIP_CONFIG "$HOME/.config/starship/fish.toml"
-        starship init fish | source
-    end
-
-
-    # -------------------------------------------------------------------------
-    # Zoxide
-    # -------------------------------------------------------------------------
-
-    # Smart directory jumping
-    #
-    # z <name>  -> jump to a remembered directory
-    # zi        -> interactive directory picker
-    #
-    # Normal `cd` remains normal Fish cd.
-
-    if command -v zoxide >/dev/null 2>&1
-        zoxide init fish | source
-    end
-
-
-    # -------------------------------------------------------------------------
-    # Mise
-    # -------------------------------------------------------------------------
-
-    # Runtime / development tool version manager
-
-    if command -v mise >/dev/null 2>&1
-        mise activate fish | source
-    end
-
-
-    # -------------------------------------------------------------------------
-    # FZF
-    # -------------------------------------------------------------------------
-
-    # Use fd as the default filesystem walker when available
-
-    if command -v fd >/dev/null 2>&1
-        set -gx FZF_DEFAULT_COMMAND \
-            'fd --hidden --follow --exclude .git'
-
-        set -gx FZF_CTRL_T_COMMAND \
-            $FZF_DEFAULT_COMMAND
-
-        set -gx FZF_ALT_C_COMMAND \
-            'fd --type d --hidden --follow --exclude .git'
-    end
-
-    # Fish key bindings:
-    # Ctrl-R -> history
-    # Ctrl-T -> files
-    # Alt-C  -> directories
-
-    if command -v fzf >/dev/null 2>&1
-        fzf --fish | source
-    end
-
-
-    # -------------------------------------------------------------------------
-    # Eza
-    # -------------------------------------------------------------------------
-
-    if command -v eza >/dev/null 2>&1
-        alias ls  'eza -lh --group-directories-first --icons=auto'
-        alias lsa 'ls -a'
-        alias lt  'eza --tree --level=2 --long --icons --git'
-        alias lta 'lt -a'
-    end
-
+if not status is-interactive
+    return
 end
 
+set -g fish_greeting
+set -gx STARSHIP_CONFIG $HOME/.config/starship/fish.toml
+set -gx BAT_THEME ansi
+set -q EDITOR; or set -gx EDITOR 'omarchy-launch-editor --inline'
+set -q VISUAL; or set -gx VISUAL $EDITOR
+set -q BROWSER; or set -gx BROWSER omarchy-launch-browser
 
-# -----------------------------------------------------------------------------
-# User Overrides
-# -----------------------------------------------------------------------------
+# Catppuccin syntax, autosuggestion, and completion colors.
+set -g fish_color_normal cdd6f4
+set -g fish_color_command 89b4fa
+set -g fish_color_param cdd6f4
+set -g fish_color_quote a6e3a1
+set -g fish_color_redirection f5c2e7
+set -g fish_color_end cba6f7
+set -g fish_color_error f38ba8
+set -g fish_color_comment 7f849c
+set -g fish_color_autosuggestion 6c7086
+set -g fish_color_operator 94e2d5
+set -g fish_color_escape fab387
+set -g fish_color_search_match --background=313244
+set -g fish_pager_color_prefix cba6f7
+set -g fish_pager_color_completion cdd6f4
+set -g fish_pager_color_description 7f849c
+set -g fish_pager_color_selected_background --background=313244
 
-# Personal overrides belong here so the main config can stay clean.
-# ~/.config/fish/user.fish loads last and therefore wins over settings above.
+set -gx FZF_DEFAULT_OPTS '--height=45% --layout=reverse --border=rounded --color=bg+:#313244,fg:#cdd6f4,fg+:#cdd6f4,hl:#f5c2e7,hl+:#f5c2e7,border:#cba6f7,prompt:#94e2d5,pointer:#94e2d5,marker:#a6e3a1'
+set -g fzf_preview_dir_cmd eza --all --icons --color=always
+set -g fzf_diff_highlighter delta --paging=never
+if functions -q fzf_configure_bindings
+    fzf_configure_bindings --directory=ctrl-t --history=ctrl-r --git_log=ctrl-alt-l --git_status=ctrl-alt-s --processes=ctrl-alt-p --variables=ctrl-alt-v
+end
+
+if type -q eza
+    alias ls 'eza --icons --group-directories-first'
+    alias ll 'eza -lh --icons --git --group-directories-first'
+    alias la 'eza -lah --icons --git --group-directories-first'
+    alias lt 'eza --tree --level=2 --icons --group-directories-first'
+end
+type -q delta; and alias gdiff 'git -c core.pager=delta diff'
+alias rice-help 'cat ~/.config/fish/README.md'
+alias rice-update 'fisher update'
+
+abbr -a lg lazygit
+abbr -a top btop
+abbr -a ff fastfetch
+abbr -a disks duf
+abbr -a usage dust
+abbr -a preview bat --style=numbers
+abbr -a gst git status
+abbr -a ga git add
+abbr -a gcmsg git commit -m
+abbr -a gl git pull
+abbr -a gp git push
+abbr -a .. cd ..
+abbr -a ... cd ../..
+abbr -a c clear
+abbr -a reload exec fish
+
+if type -q mise
+    mise activate fish | source
+end
+if type -q zoxide
+    zoxide init fish | source
+end
+if type -q starship
+    starship init fish | source
+end
 
 if test -f $__fish_config_dir/user.fish
     source $__fish_config_dir/user.fish

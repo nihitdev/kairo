@@ -119,7 +119,7 @@ Run `./install.sh --help` for the authoritative list of options, modules, and pr
 
 | Area | Modules |
 | --- | --- |
-| Shells | [Bash](.config/bash/), [Fish](.config/fish/), [Nushell](.config/nushell/), [Zsh + Oh My Zsh](.config/oh-my-zsh/) |
+| Shells | [Bash](.config/bash/), [Fish](.config/fish/), [Nushell](.config/nushell/), [Zsh + Oh My Zsh](.config/zsh/) |
 | Prompt & history | [Starship](.config/starship/), [Atuin](.config/atuin/), [Oh My Posh](.config/oh-my-posh/) |
 | CLI workflow | [Bat](.config/bat/), [Broot](.config/broot/), [Yazi](.config/yazi/), [LazyGit](.config/lazygit/), [Fastfetch](.config/fastfetch/), [Cava](.config/cava/) |
 | Development | [Git](.config/git/), [Neovim](.config/nvim/), [SSH](.config/ssh/) |
@@ -236,7 +236,7 @@ Package installation is opt-in through `--install-packages` or the interactive r
 - A missing helper can be bootstrapped from its official AUR PKGBUILD.
 - Kairo does not perform a surprise full-system upgrade.
 
-When Fish and package installation are selected, Kairo installs Fisher when required and synchronizes the plugins declared in `.config/fish/fish_plugins`: `fzf.fish`, `autopair.fish`, and `replay.fish`. Generated functions and machine-specific `fish_variables` stay outside version control.
+When Fish and package installation are selected, Kairo installs Fisher when required and synchronizes the plugins declared in `.config/fish/fish_plugins`: `fzf.fish`, `autopair.fish`, and `fish-abbreviation-tips`. Fish provides autosuggestions, syntax highlighting, completions, and history search natively. Generated functions and machine-specific `fish_variables` stay outside version control.
 
 For Neovim, Kairo can bootstrap `lazy.nvim` and perform a headless LazyVim sync using the tracked `lazy-lock.json`. Without package installation, LazyVim performs its normal bootstrap when Neovim first starts.
 
@@ -327,7 +327,7 @@ kairo/
 │   ├── bash/
 │   ├── fish/
 │   ├── nushell/
-│   ├── oh-my-zsh/
+│   ├── zsh/
 │   ├── starship/
 │   ├── wezterm/
 │   ├── scripts/

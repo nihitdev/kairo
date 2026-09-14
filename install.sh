@@ -528,7 +528,7 @@ collect_missing_packages() {
         fi
     done
     if is_selected zsh; then
-        for package in zsh-autosuggestions zsh-syntax-highlighting; do
+        for package in zsh-autosuggestions zsh-syntax-highlighting zsh-completions zsh-history-substring-search fzf; do
             package_is_installed "$package" || record_unique missing_official_packages "$package"
         done
         package_is_installed git git || record_unique missing_official_packages git
@@ -1031,7 +1031,8 @@ ensure_external_root() {
 
 install_zsh_integrations() {
     is_selected zsh || return 0
-    if [[ -r $HOME/.oh-my-zsh/oh-my-zsh.sh ]]; then
+    local zsh_root="${XDG_DATA_HOME:-$HOME/.local/share}/zsh"
+    if [[ -r $zsh_root/oh-my-zsh/oh-my-zsh.sh ]]; then
         return
     fi
     if ! $install_packages; then
@@ -1039,7 +1040,7 @@ install_zsh_integrations() {
         return
     fi
     if $dry_run; then
-        describe "Clone Oh My Zsh -> $HOME/.oh-my-zsh"
+        describe "Clone Oh My Zsh -> $zsh_root/oh-my-zsh"
         return
     fi
     command -v git >/dev/null 2>&1 || { printf 'git is required to install Oh My Zsh.\n' >&2; return 1; }
@@ -1050,7 +1051,7 @@ install_zsh_integrations() {
     else
         git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$external_root/oh-my-zsh"
     fi
-    install_item zsh "$external_root/oh-my-zsh" "$HOME/.oh-my-zsh"
+    install_item zsh "$external_root/oh-my-zsh" "$zsh_root/oh-my-zsh"
 }
 
 install_fish_integrations() {
@@ -1363,7 +1364,8 @@ if [[ -f $source_config_root/bash/.bashrc ]]; then
 elif is_selected bash; then
     skipped+=(bash)
 fi
-install_item zsh "$source_config_root/oh-my-zsh/.zshrc" "$HOME/.zshrc"
+install_item zsh "$source_config_root/zsh/.zshrc" "$HOME/.zshrc"
+install_item zsh "$source_config_root/zsh" "$config_root/zsh"
 install_item nushell "$source_config_root/nushell/config.nu" "$config_root/nushell/config.nu"
 install_seed_item nushell "$source_config_root/nushell/dotfiles-init/starship.nu" "$config_root/nushell/dotfiles-init/starship.nu"
 install_seed_item nushell "$source_config_root/nushell/dotfiles-init/zoxide.nu" "$config_root/nushell/dotfiles-init/zoxide.nu"

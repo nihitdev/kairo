@@ -167,6 +167,7 @@ run_fish_payload_test() {
     HOME="$home" XDG_CONFIG_HOME="$home/.config" \
         "$repo_root/install.sh" --only fish >/dev/null
     [[ -f $home/.config/fish/config.fish ]] || fail 'Fish config missing'
+    [[ -f $home/.config/fish/README.md ]] || fail 'Fish README missing'
     [[ -f $home/.config/fish/conf.d/rashin.fish ]] || fail 'Fish conf.d payload missing'
     [[ -f $home/.config/fish/fish_plugins ]] || fail 'Fish plugin manifest missing'
     [[ ! -e $home/.config/fish/fish_variables ]] || fail 'Machine-specific Fish variables were installed'
@@ -181,7 +182,7 @@ run_fisher_dry_run_test() {
     [[ ! -e $home/.config/fish ]] || fail 'Fisher dry-run changed the filesystem'
     assert_file_contains "$repo_root/.config/fish/fish_plugins" 'patrickf1/fzf.fish'
     assert_file_contains "$repo_root/.config/fish/fish_plugins" 'jorgebucaran/autopair.fish'
-    assert_file_contains "$repo_root/.config/fish/fish_plugins" 'jorgebucaran/replay.fish'
+    assert_file_contains "$repo_root/.config/fish/fish_plugins" 'gazorby/fish-abbreviation-tips'
 }
 
 run_lazyvim_dry_run_test() {
@@ -327,7 +328,7 @@ run_shell_starship_reference_test() {
     assert_file_contains "$repo_root/.config/bash/.bashrc" '$HOME/.config/starship/bash.toml'
     assert_file_contains "$repo_root/.config/fish/config.fish" '$HOME/.config/starship/fish.toml'
     assert_file_contains "$repo_root/.config/nushell/config.nu" '/starship/nushell.toml'
-    assert_file_contains "$repo_root/.config/oh-my-zsh/.zshrc" '$HOME/.config/starship/zsh.toml'
+    assert_file_contains "$repo_root/.config/zsh/config.zsh" '$HOME/.config/starship/zsh.toml'
     if grep -R -E --exclude-dir=.git '(\.config/starship\.toml|starship/starship\.toml)' "$repo_root" >/dev/null; then
         fail 'stale single-file Starship path remains'
     fi
