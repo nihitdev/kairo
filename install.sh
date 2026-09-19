@@ -1268,7 +1268,7 @@ interactive_prepare() {
             [[ $profile == "${profile_names[index]}" ]] && profile_choices[index]=true
         done
     done
-    ui_select_modules profile_names profile_labels profile_categories profile_choices || exit 130
+    ui_select_modules profile_names profile_labels profile_categories profile_choices 'Choose development tools' || exit 130
     profiles=()
     for ((index=0; index<${#profile_names[@]}; index++)); do
         [[ ${profile_choices[index]} == true ]] && profiles+=("${profile_names[index]}")

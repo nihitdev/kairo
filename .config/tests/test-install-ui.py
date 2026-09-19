@@ -41,7 +41,7 @@ ui_read_key() {{
     {'((step == 5)) && { terminal_rows=24; terminal_columns=40; }' if resize else ':'}
     return 0
 }}
-ui_select_modules {group}_names {group}_labels {group}_categories choices
+ui_select_modules {group}_names {group}_labels {group}_categories choices {'"Choose development tools"' if group == 'profile' else ''}
 printf '\\nRESULT %s %s\\n' "${{choices[0]}}" "${{choices[1]}}"
 '''
     return subprocess.run(['bash', '-eu'], input=script, text=True,
@@ -59,9 +59,25 @@ class MenuTest(unittest.TestCase):
             for line in text.splitlines():
                 self.assertLessEqual(len(line), width, f'frame {index} wraps: {line!r}')
             self.assertTrue(frame.startswith('\x1b[H\x1b[J'), 'old frame was not erased')
-            self.assertEqual(text.count('Choose your modules'), 1)
+            self.assertEqual(text.count('Choose '), 1)
             self.assertEqual(text.count('Enter'), 1)
             self.assertEqual(text.count('›'), 1)
+            self.assertEqual(text.count('Page '), 1)
+            self.assertIn('Q', text)
+            anchor = re.search(r'\x1b\[(\d+);1H', frame)
+            self.assertIsNotNone(anchor)
+            footer_row = int(anchor[1])
+            self.assertEqual(footer_row, height - 4)
+            self.assertLess(ANSI.sub('', frame[:anchor.start()]).count('\n'), footer_row)
+            self.assertEqual(footer_row + frame[anchor.end():].count('\n'), height)
+            active = next(line for line in frame.splitlines() if '›' in line)
+            self.assertIn('\x1b[48;5;236m', active)
+            self.assertEqual(len(ANSI.sub('', active)), width - 2)
+        first = ANSI.sub('', frames[0])
+        all_selected = ANSI.sub('', frames[1])
+        total = re.search(r'0 / (\d+) selected', first)[1]
+        self.assertIn(f'{total} / {total} selected', all_selected)
+        self.assertIn(f'0 / {total} selected', ANSI.sub('', frames[2]))
         self.assertIn('RESULT true true', output)
 
     def test_navigation_and_selection(self):

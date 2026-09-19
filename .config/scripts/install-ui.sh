@@ -254,9 +254,10 @@ ui_confirm() {
 
 ui_select_modules() {
     local -n names_ref=$1 labels_ref=$2 categories_ref=$3 selected_ref=$4
+    local title=${5:-Choose your modules}
     local cursor=0 index count=${#names_ref[@]} previous_category=''
-    local rows columns page_size start end selected_count heading_rows footer_rows
-    local available used cost page
+    local rows columns start end selected_count heading_rows footer_rows
+    local available used cost page marker row_style
     local -a page_starts page_ends
     ui_clear
     while true; do
@@ -273,8 +274,7 @@ ui_select_modules() {
         ((rows < 32 || columns < 72)) && ui_compact=true
         heading_rows=9
         $ui_compact && heading_rows=4
-        footer_rows=3
-        ((columns < 72)) && footer_rows=4
+        footer_rows=4
         # Reserve the heading, selection count, page indicator, footer and
         # one final row. Count category headings when building each page.
         available=$((rows - heading_rows - 2 - 2 - footer_rows - 1))
@@ -297,32 +297,39 @@ ui_select_modules() {
             start=${page_starts[page]} end=${page_ends[page]}
             ((cursor < end)) && break
         done
-        page_size=$((end - start))
         ui_heading false
         selected_count=0
         for ((index=0; index<count; index++)); do [[ ${selected_ref[index]} == true ]] && ((selected_count++)) || true; done
-        ui_section 'Choose your modules'
-        printf '  %s%d selected%s\n' "$UI_GREEN" "$selected_count" "$UI_RESET"
+        ui_section "$title"
+        printf '  %s%d / %d selected%s\n' "$UI_GREEN" "$selected_count" "$count" "$UI_RESET"
         previous_category=''
         for ((index=start; index<end; index++)); do
             if [[ ${categories_ref[index]} != "$previous_category" ]]; then
                 previous_category=${categories_ref[index]}
                 printf '\n  %s%.*s%s\n' "$UI_PURPLE" "$((columns - 2))" "$previous_category" "$UI_RESET"
             fi
-            if ((index == cursor)); then printf '%s%s  › %s' "$UI_SURFACE" "$UI_BOLD" "$UI_RESET"; else printf '    '; fi
+            marker='[ ]'
+            row_style=$UI_DIM
             if [[ ${selected_ref[index]} == true ]]; then
-                printf '%s●%s %.*s' "$UI_GREEN" "$UI_RESET" "$((columns - 6))" "${labels_ref[index]}"
-            else
-                printf '%s○%s %.*s' "$UI_DIM" "$UI_RESET" "$((columns - 6))" "${labels_ref[index]}"
+                marker='[x]'
+                row_style=$UI_WHITE
             fi
-            ((index == cursor)) && printf '%s' "$UI_RESET"
-            printf '\n'
+            if ((index == cursor)); then
+                printf '%s%s%s  › %s %-*.*s%s\n' "$UI_SURFACE" "$UI_BOLD" "$UI_WHITE" \
+                    "$marker" "$((columns - 10))" "$((columns - 10))" "${labels_ref[index]}" "$UI_RESET"
+            else
+                printf '%s    %s %.*s%s\n' "$row_style" "$marker" "$((columns - 10))" \
+                    "${labels_ref[index]}" "$UI_RESET"
+            fi
         done
-        ((count > page_size)) && printf '\n%s%d–%d of %d modules%s\n' "$UI_DIM" "$((start + 1))" "$end" "$count" "$UI_RESET"
+        printf '\n  %sPage %d/%d · %d–%d of %d%s\n' "$UI_DIM" \
+            "$((page + 1))" "${#page_starts[@]}" "$((start + 1))" "$end" "$count" "$UI_RESET"
+        # Keep controls anchored while moving between differently sized pages.
+        printf '\033[%d;1H' "$((rows - footer_rows))"
         if ((columns < 72)); then
-            ui_footer $'↑/↓ j/k move  Space toggle\nA all  N none  Enter review'
+            ui_footer $'↑↓/jk move  Space toggle\nA all N none Enter next Q quit'
         else
-            ui_footer '↑/↓ or j/k  move    Space  toggle    A  all    N  none    Enter  review'
+            ui_footer $'↑/↓ or j/k move · Space toggle · A all · N none\nPgUp/PgDn page · Home/End jump · Enter review · Q/Esc cancel'
         fi
         # Remove remnants only after the new frame has been painted.
         printf '\033[J\033[?2026l'
