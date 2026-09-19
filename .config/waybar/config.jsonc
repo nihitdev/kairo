@@ -1,0 +1,153 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 34,
+  "spacing": 4,
+  "margin-top": 5,
+  "margin-left": 8,
+  "margin-right": 8,
+
+  "modules-left": [
+    "hyprland/workspaces",
+    "custom/layout"
+  ],
+
+  "modules-center": [
+    "custom/skull"
+  ],
+
+  "modules-right": [
+    "custom/cpucat",
+    "mpris",
+    "custom/network",
+    "custom/bluetooth",
+    "wireplumber",
+    "backlight",
+    "battery",
+    "clock",
+    "custom/notifications",
+    "custom/power"
+  ],
+
+  "hyprland/workspaces": {
+    "format": "{name}",
+    "on-click": "activate",
+    "sort-by-number": true
+  },
+
+  "custom/layout": {
+    "exec": "~/.config/waybar/scripts/layout-status.sh",
+    "interval": 1,
+    "signal": 8,
+    "format": "{}",
+    "tooltip": "Click to switch layout",
+    "on-click": "~/.config/hypr/scripts/toggle-layout.sh"
+  },
+
+  "custom/skull": {
+    "exec": "~/.config/waybar/scripts/skull.sh",
+    "format": "{}",
+    "tooltip": true
+  },
+
+  "custom/cpucat": {
+    "exec": "~/.config/waybar/scripts/catloop.sh",
+    "tooltip": false
+  },
+
+  "mpris": {
+    "format": "  {artist} - {title}",
+    "format-paused": "󰐊  {artist} - {title}",
+    "max-length": 30,
+    "player": "spotify",
+    "tooltip": true,
+
+    "on-click": "playerctl play-pause",
+    "on-click-right": "~/.config/waybar/scripts/tui.sh music",
+    "on-scroll-up": "playerctl next",
+    "on-scroll-down": "playerctl previous"
+  },
+
+  "custom/network": {
+    "exec": "printf ''",
+    "interval": 3600,
+    "format": "{}",
+    "tooltip": "Network",
+    "on-click": "~/.config/waybar/scripts/tui.sh network"
+  },
+
+  "custom/bluetooth": {
+    "exec": "printf ''",
+    "interval": 3600,
+    "format": "{}",
+    "tooltip": "Bluetooth",
+    "on-click": "~/.config/waybar/scripts/tui.sh bluetooth"
+  },
+
+  "wireplumber": {
+    "scroll-step": 5,
+    "format": "󰕾  {volume}%",
+    "format-muted": "󰝟  muted",
+    "tooltip": true,
+    "on-click": "~/.config/waybar/scripts/tui.sh audio",
+    "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+  },
+
+  "backlight": {
+    "device": "intel_backlight",
+    "format": "󰃠  {percent}%",
+    "tooltip": true,
+    "on-scroll-up": "brightnessctl set +5%",
+    "on-scroll-down": "brightnessctl set 5%-"
+  },
+
+  "battery": {
+    "states": {
+      "warning": 30,
+      "critical": 15
+    },
+
+    "format": "{icon}  {capacity}%",
+    "format-charging": "󰂄  {capacity}%",
+    "format-plugged": "󱐋  {capacity}%",
+    "format-full": "󰁹  {capacity}%",
+
+    "format-icons": [
+      "󰂎",
+      "󰁺",
+      "󰁻",
+      "󰁼",
+      "󰁽",
+      "󰁾",
+      "󰁿",
+      "󰂀",
+      "󰂁",
+      "󰂂",
+      "󰁹"
+    ],
+
+    "tooltip": true,
+    "on-click": "~/.config/waybar/scripts/tui.sh system"
+  },
+
+  "clock": {
+    "format": "  {:%H:%M}",
+    "tooltip-format": "{:%A, %d %B %Y}",
+    "on-click": "~/.config/waybar/scripts/tui.sh calendar"
+  },
+
+  "custom/notifications": {
+    "exec": "~/.config/waybar/scripts/notifications.sh",
+    "interval": 2,
+    "format": "{}",
+    "tooltip": "Notifications",
+    "on-click": "swaync-client -t",
+    "on-click-right": "swaync-client -d"
+  },
+
+  "custom/power": {
+    "format": "",
+    "tooltip": "Power",
+    "on-click": "rofi -show power-menu"
+  }
+}

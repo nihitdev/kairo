@@ -1,133 +1,195 @@
 * {
-  border: none;
-  border-radius: 0;
-  min-height: 0;
-  font-family: JetBrainsMono Nerd Font;
-  font-size: 13px;
+    font-family: "SpaceMono Nerd Font", "Iosevka", monospace;
+    font-size: 13px;
+    font-weight: 700;
+    min-height: 0;
+    border: none;
 }
 
 window#waybar {
-  background-color: #181825;
-  transition-property: background-color;
-  transition-duration: 0.5s;
+    background: rgba(20, 18, 33, 0.34);
+    color: #e0def4;
+
+    border: 1px solid rgba(196, 167, 231, 0.14);
+    border-radius: 12px;
 }
 
-window#waybar.hidden {
-  opacity: 0.5;
-}
+/* ───────── WORKSPACES ───────── */
 
 #workspaces {
-  background-color: transparent;
+    margin-left: 7px;
 }
 
 #workspaces button {
-  all: initial;
-  /* Remove GTK theme values (waybar #1351) */
-  min-width: 0;
-  /* Fix weird spacing in materia (waybar #450) */
-  box-shadow: inset 0 -3px transparent;
-  /* Use box-shadow instead of border so the text isn't offset */
-  padding: 6px 18px;
-  margin: 6px 3px;
-  border-radius: 4px;
-  background-color: #1e1e2e;
-  color: #cdd6f4;
+    min-width: 25px;
+
+    padding: 0 6px;
+    margin: 5px 2px;
+
+    border-radius: 7px;
+
+    background: transparent;
+    color: #6e6a86;
+
+    transition: all 0.2s ease;
 }
 
 #workspaces button.active {
-  color: #1e1e2e;
-  background-color: #cdd6f4;
+    background: rgba(196, 167, 231, 0.17);
+    color: #c4a7e7;
 }
 
 #workspaces button:hover {
-  box-shadow: inherit;
-  text-shadow: inherit;
-  color: #1e1e2e;
-  background-color: #cdd6f4;
+    background: rgba(156, 207, 216, 0.13);
+    color: #9ccfd8;
 }
 
 #workspaces button.urgent {
-  background-color: #f38ba8;
+    background: rgba(235, 111, 146, 0.17);
+    color: #eb6f92;
 }
 
-#memory,
-#custom-power,
-#battery,
-#backlight,
+/* ───────── MODULES ───────── */
+
+#custom-layout,
+#mpris,
+#custom-network,
+#custom-bluetooth,
 #wireplumber,
-#network,
+#backlight,
+#battery,
 #clock,
-#tray {
-  border-radius: 4px;
-  margin: 6px 3px;
-  padding: 6px 12px;
-  background-color: #1e1e2e;
-  color: #181825;
-}
-
 #custom-power {
-  margin-right: 6px;
+    padding: 0 9px;
+    margin: 5px 1px;
+
+    border-radius: 7px;
+
+    background: rgba(25, 23, 36, 0.25);
+    color: #e0def4;
+
+    transition: all 0.2s ease;
 }
 
-#custom-logo {
-  padding-right: 7px;
-  padding-left: 7px;
-  margin-left: 5px;
-  font-size: 15px;
-  border-radius: 8px 0px 0px 8px;
-  color: #1793d1;
+#custom-layout:hover,
+#mpris:hover,
+#custom-network:hover,
+#custom-bluetooth:hover,
+#wireplumber:hover,
+#backlight:hover,
+#battery:hover,
+#clock:hover,
+#custom-power:hover {
+    background: rgba(196, 167, 231, 0.15);
 }
 
-#memory {
-  background-color: #fab387;
+/* ───────── COLORS ───────── */
+
+#custom-layout {
+    color: #c4a7e7;
 }
 
-#battery {
-  background-color: #f38ba8;
+#mpris {
+    color: #9ccfd8;
 }
 
-#battery.warning,
-#battery.critical,
-#battery.urgent {
-  background-color: #ff0000;
-  color: #FFFF00;
+#custom-network {
+    color: #9ccfd8;
+    font-size: 15px;
 }
 
-#battery.charging {
-  background-color: #a6e3a1;
-  color: #181825;
-}
-
-#backlight {
-  background-color: #fab387;
+#custom-bluetooth {
+    color: #31748f;
+    font-size: 15px;
 }
 
 #wireplumber {
-  background-color: #f9e2af;
+    color: #c4a7e7;
 }
 
-#network {
-  background-color: #94e2d5;
-  padding-right: 17px;
+#backlight {
+    color: #f6c177;
+}
+
+#battery {
+    color: #9ccfd8;
+}
+
+#battery.warning {
+    color: #f6c177;
+}
+
+#battery.critical {
+    color: #eb6f92;
+    background: rgba(235, 111, 146, 0.15);
+}
+
+#wireplumber.muted {
+    color: #6e6a86;
 }
 
 #clock {
-  font-family: JetBrainsMono Nerd Font;
-  background-color: #cba6f7;
+    color: #c4a7e7;
 }
 
 #custom-power {
-  background-color: #f2cdcd;
+    color: #eb6f92;
+    font-size: 15px;
+    margin-right: 7px;
 }
 
+/* ───────── CUSTOM ART ───────── */
+
+#custom-cpucat {
+    font-family: "Waycat", monospace;
+    font-size: 20px;
+    font-weight: bold;
+
+    color: #e0def4;
+
+    padding: 0 7px;
+}
+
+#custom-skull {
+    font-family: "Skulltype", monospace;
+    font-size: 21px;
+    font-weight: bold;
+
+    color: #c4a7e7;
+
+    padding: 0 8px;
+}
+
+/* ───────── TOOLTIPS ───────── */
 
 tooltip {
-  border-radius: 8px;
-  padding: 15px;
-  background-color: #131822;
+    background: rgba(25, 23, 36, 0.94);
+    border: 1px solid rgba(196, 167, 231, 0.25);
+    border-radius: 8px;
 }
 
 tooltip label {
-  padding: 5px;
-  background-color: #131822;
+    color: #e0def4;
+    padding: 5px;
+    font-size: 11px;
+}
+
+/* ───────── NOTIFICATIONS ───────── */
+
+#custom-notifications {
+    padding: 0 9px;
+    margin: 5px 1px;
+
+    border-radius: 7px;
+
+    background: rgba(25, 23, 36, 0.25);
+    color: #c4a7e7;
+
+    font-size: 15px;
+    transition: all 0.2s ease;
+}
+
+#custom-notifications:hover {
+    background: rgba(196, 167, 231, 0.15);
+    color: #e0def4;
 }

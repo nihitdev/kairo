@@ -117,7 +117,7 @@ ui_width() {
     local columns
     columns=$(tput cols 2>/dev/null || printf '80')
     ((columns > 84)) && columns=84
-    ((columns < 40)) && columns=40
+    ((columns < 4)) && columns=4
     printf '%d' "$((columns - 4))"
 }
 
@@ -147,11 +147,9 @@ ui_heading() {
     if [[ $clear_screen == true ]]; then
         ui_clear
     else
-        # Repaint in place. Avoiding a full erase prevents visible flashes
-        # while navigating lists on slower terminals and remote sessions.
-        # Kitty and other modern terminals buffer synchronized updates; older
-        # terminals safely ignore this private mode.
-        printf '\033[?2026h\033[H'
+        # Clear inside the synchronized frame so shorter rows and pages do
+        # not leave old labels or separators behind.
+        printf '\033[?2026h\033[H\033[J'
     fi
     if $ui_compact; then
         printf '%s%s◆ KAIRO%s\n%sArch-first dotfiles installer%s\n' \
@@ -257,38 +255,75 @@ ui_confirm() {
 ui_select_modules() {
     local -n names_ref=$1 labels_ref=$2 categories_ref=$3 selected_ref=$4
     local cursor=0 index count=${#names_ref[@]} previous_category=''
-    local rows page_size start end selected_count
+    local rows columns page_size start end selected_count heading_rows footer_rows
+    local available used cost page
+    local -a page_starts page_ends
     ui_clear
     while true; do
+        rows=$(tput lines 2>/dev/null || printf '24')
+        columns=$(tput cols 2>/dev/null || printf '80')
+        if ((rows < 16 || columns < 32)); then
+            ui_clear
+            printf 'Resize to at least 32 x 16'
+            ui_read_key || return 1
+            case "$UI_KEY" in quit | escape) return 1 ;; esac
+            continue
+        fi
+        ui_compact=false
+        ((rows < 32 || columns < 72)) && ui_compact=true
+        heading_rows=9
+        $ui_compact && heading_rows=4
+        footer_rows=3
+        ((columns < 72)) && footer_rows=4
+        # Reserve the heading, selection count, page indicator, footer and
+        # one final row. Count category headings when building each page.
+        available=$((rows - heading_rows - 2 - 2 - footer_rows - 1))
+        page_starts=() page_ends=()
+        start=0
+        while ((start < count)); do
+            used=0 end=$start previous_category=''
+            while ((end < count)); do
+                cost=1
+                [[ ${categories_ref[end]} != "$previous_category" ]] && cost=3
+                ((used + cost > available)) && break
+                used=$((used + cost))
+                previous_category=${categories_ref[end]}
+                ((end++)) || true
+            done
+            page_starts+=("$start") page_ends+=("$end")
+            start=$end
+        done
+        for ((page=0; page<${#page_starts[@]}; page++)); do
+            start=${page_starts[page]} end=${page_ends[page]}
+            ((cursor < end)) && break
+        done
+        page_size=$((end - start))
         ui_heading false
         selected_count=0
         for ((index=0; index<count; index++)); do [[ ${selected_ref[index]} == true ]] && ((selected_count++)) || true; done
         ui_section 'Choose your modules'
         printf '  %s%d selected%s\n' "$UI_GREEN" "$selected_count" "$UI_RESET"
-        rows=$(tput lines 2>/dev/null || printf '24')
-        page_size=$((rows - 10))
-        ((page_size < 6)) && page_size=6
-        ((page_size > count)) && page_size=$count
-        start=$((cursor / page_size * page_size))
-        end=$((start + page_size))
-        ((end > count)) && end=$count
         previous_category=''
         for ((index=start; index<end; index++)); do
             if [[ ${categories_ref[index]} != "$previous_category" ]]; then
                 previous_category=${categories_ref[index]}
-                printf '\n  %s%s%s\n' "$UI_PURPLE" "$previous_category" "$UI_RESET"
+                printf '\n  %s%.*s%s\n' "$UI_PURPLE" "$((columns - 2))" "$previous_category" "$UI_RESET"
             fi
             if ((index == cursor)); then printf '%s%s  › %s' "$UI_SURFACE" "$UI_BOLD" "$UI_RESET"; else printf '    '; fi
             if [[ ${selected_ref[index]} == true ]]; then
-                printf '%s●%s %-20s' "$UI_GREEN" "$UI_RESET" "${labels_ref[index]}"
+                printf '%s●%s %.*s' "$UI_GREEN" "$UI_RESET" "$((columns - 6))" "${labels_ref[index]}"
             else
-                printf '%s○%s %-20s' "$UI_DIM" "$UI_RESET" "${labels_ref[index]}"
+                printf '%s○%s %.*s' "$UI_DIM" "$UI_RESET" "$((columns - 6))" "${labels_ref[index]}"
             fi
             ((index == cursor)) && printf '%s' "$UI_RESET"
             printf '\n'
         done
         ((count > page_size)) && printf '\n%s%d–%d of %d modules%s\n' "$UI_DIM" "$((start + 1))" "$end" "$count" "$UI_RESET"
-        ui_footer '↑/↓ or j/k  move    Space  toggle    A  all    N  none    Enter  review'
+        if ((columns < 72)); then
+            ui_footer $'↑/↓ j/k move  Space toggle\nA all  N none  Enter review'
+        else
+            ui_footer '↑/↓ or j/k  move    Space  toggle    A  all    N  none    Enter  review'
+        fi
         # Remove remnants only after the new frame has been painted.
         printf '\033[J\033[?2026l'
         ui_read_key || return 1
@@ -300,8 +335,8 @@ ui_select_modules() {
             enter) return 0 ;;
             up) ((cursor > 0)) && ((cursor--)) || true ;;
             down) ((cursor + 1 < count)) && ((cursor++)) || true ;;
-            page_up) cursor=$((cursor - page_size)); ((cursor < 0)) && cursor=0 ;;
-            page_down) cursor=$((cursor + page_size)); ((cursor >= count)) && cursor=$((count - 1)) ;;
+            page_up) ((page > 0)) && cursor=${page_starts[page-1]} || cursor=0 ;;
+            page_down) ((page + 1 < ${#page_starts[@]})) && cursor=${page_starts[page+1]} || cursor=$((count - 1)) ;;
             home) cursor=0 ;;
             end) cursor=$((count - 1)) ;;
             mouse | ignore) continue ;;

@@ -1,12 +1,14 @@
 add_newline = true
 
 format = """
-$directory$git_branch$git_status
-$character"""
+[╭─    ](bold cyan)$directory$git_branch$git_status
+[╰─](bold cyan)$character"""
 
 [directory]
 style = "bold cyan"
+format = "[$path]($style)"
 truncation_length = 4
+truncate_to_repo = false
 
 [git_branch]
 symbol = " "
@@ -18,6 +20,6 @@ style = "bold red"
 format = " [$all_status$ahead_behind]($style)"
 
 [character]
-success_symbol = "[╰─❯](bold green)"
-error_symbol = "[╰─❯](bold red)"
-vimcmd_symbol = "[╰─❮](bold yellow)"
+success_symbol = "[ζ](bold green) "
+error_symbol = "[ζ](bold red) "
+vimcmd_symbol = "[ζ](bold yellow) "

@@ -1,23 +1,8 @@
-add_newline = true
+add_newline = false
 
-format = """
-$directory$git_branch$git_status
-$character"""
-
-[directory]
-style = "bold blue"
-truncation_length = 4
-
-[git_branch]
-symbol = " "
-style = "bold purple"
-format = " [$symbol$branch]($style)"
-
-[git_status]
-style = "bold red"
-format = " [$all_status$ahead_behind]($style)"
+format = """[  ~](bold blue)$character"""
 
 [character]
-success_symbol = "[λ](bold green)"
-error_symbol = "[λ](bold red)"
-vimcmd_symbol = "[λ](bold yellow)"
+success_symbol = "[](bold green) "
+error_symbol = "[](bold red) "
+vimcmd_symbol = "[](bold yellow) "

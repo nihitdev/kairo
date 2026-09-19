@@ -798,6 +798,8 @@ install_kairo_shell() {
 install_hypr_desktop() {
     is_selected hypr || return 0
     local hypr_source="$source_config_root/hypr"
+    install_item hypr "$source_config_root/hyprlock" "$config_root/hyprlock"
+    install_item hypr "$source_config_root/swaync" "$config_root/swaync"
     if ! is_selected kairo-shell; then
         install_item hypr "$hypr_source" "$config_root/hypr"
         install_item hypr "$source_config_root/waybar" "$config_root/waybar"
@@ -807,7 +809,7 @@ install_hypr_desktop() {
     local line found=false
     while IFS= read -r line || [[ -n $line ]]; do
         [[ $line != '    hl.exec_cmd("waybar")' ]] || found=true
-    done < "$hypr_source/hyprland.lua"
+    done < "$hypr_source/config/autostart.lua"
     if ! $found; then
         printf 'Kairo: could not locate the Waybar Hyprland startup line.\n' >&2
         return 1
@@ -832,7 +834,7 @@ install_hypr_desktop() {
         else
             printf '%s\n' "$line"
         fi
-    done < "$hypr_source/hyprland.lua" > "$temp_hypr/hyprland.lua"
+    done < "$hypr_source/config/autostart.lua" > "$temp_hypr/config/autostart.lua"
     install_item hypr "$temp_hypr" "$config_root/hypr"
 }
 

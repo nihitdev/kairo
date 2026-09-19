@@ -1,0 +1,164 @@
+configuration {
+    font: "SpaceMono Nerd Font 11";
+    show-icons: true;
+}
+
+* {
+    bg:          #191724E6;
+    card:        #26233ACC;
+    card-hover:  #393552DD;
+
+    text:        #E0DEF4FF;
+    muted:       #908CAAFF;
+
+    purple:      #C4A7E7FF;
+    cyan:        #9CCFD8FF;
+
+    background-color: transparent;
+    text-color: @text;
+}
+
+/* ───────── WINDOW ───────── */
+
+window {
+    width: 78%;
+    height: 76%;
+
+    location: center;
+    anchor: center;
+
+    transparency: "real";
+
+    background-color: @bg;
+
+    border: 1px;
+    border-color: #C4A7E744;
+    border-radius: 20px;
+
+    padding: 0px;
+}
+
+/* ───────── MAIN ───────── */
+
+mainbox {
+    padding: 24px;
+    spacing: 20px;
+
+    background-color: transparent;
+
+    children: [
+        inputbar,
+        listview
+    ];
+}
+
+/* ───────── SEARCH ───────── */
+
+inputbar {
+    height: 48px;
+
+    padding: 0px 16px;
+    spacing: 12px;
+
+    border-radius: 12px;
+
+    background-color: #26233AAA;
+
+    children: [
+        textbox-prompt-colon,
+        entry
+    ];
+}
+
+textbox-prompt-colon {
+    expand: false;
+
+    str: "󰸉";
+
+    font: "SpaceMono Nerd Font 17";
+
+    text-color: @purple;
+    background-color: transparent;
+}
+
+entry {
+    placeholder: "Search wallpapers...";
+    placeholder-color: @muted;
+
+    text-color: @text;
+    background-color: transparent;
+
+    vertical-align: 0.5;
+}
+
+/* ───────── GALLERY ───────── */
+
+listview {
+    columns: 4;
+    lines: 3;
+
+    spacing: 14px;
+
+    fixed-columns: true;
+    fixed-height: true;
+
+    cycle: true;
+    scrollbar: false;
+
+    background-color: transparent;
+}
+
+/* ───────── CARDS ───────── */
+
+element {
+    orientation: vertical;
+
+    padding: 8px;
+    spacing: 8px;
+
+    border: 1px;
+    border-color: transparent;
+
+    border-radius: 14px;
+
+    background-color: @card;
+    text-color: @muted;
+}
+
+element normal.normal {
+    background-color: @card;
+}
+
+element selected.normal {
+    background-color: @card-hover;
+
+    border: 2px;
+    border-color: @purple;
+
+    text-color: @text;
+}
+
+/* ───────── PREVIEW ───────── */
+
+element-icon {
+    size: 190px;
+
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+
+    border-radius: 10px;
+
+    background-color: transparent;
+}
+
+/* ───────── FILE NAME ───────── */
+
+element-text {
+    background-color: transparent;
+    text-color: inherit;
+
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+
+    margin: 2px 4px 3px 4px;
+}
