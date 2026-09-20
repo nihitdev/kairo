@@ -1,7 +1,7 @@
 hl.config({
     general = {
         gaps_in = 4,
-        gaps_out = 6,
+        gaps_out = 8,
         border_size = 2,
 
         col = {
@@ -11,30 +11,39 @@ hl.config({
 
         resize_on_border = true,
         allow_tearing = false,
-        layout = "scrolling",
+        layout = "dwindle",
     },
 
     decoration = {
-        rounding = 4,
+        rounding = 10,
         rounding_power = 2,
 
         active_opacity = 1.0,
-        inactive_opacity = 0.94,
+        inactive_opacity = 0.97,
 
         shadow = {
             enabled = true,
-            range = 8,
-            render_power = 4,
-            color = "rgba(00000088)",
+            range = 14,
+            render_power = 3,
+            color = "rgba(100d1c99)",
         },
 
         blur = {
             enabled = true,
-            size = 12,
-            passes = 4,
+            size = 6,
+            passes = 3,
             ignore_opacity = true,
-            vibrancy = 0.25,
+            vibrancy = 0.12,
         },
+    },
+
+    -- Keep manual splits stable; scrolling columns fit two windows on this display.
+    dwindle = {
+        preserve_split = true,
+    },
+    scrolling = {
+        column_width = 0.5,
+        follow_focus = true,
     },
 
     misc = {

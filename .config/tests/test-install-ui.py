@@ -90,5 +90,31 @@ class MenuTest(unittest.TestCase):
         self.check_frames(render(40, 120, resize=True), 40, 120, resize=True)
 
 
+class ShellChoiceTest(unittest.TestCase):
+    def choose(self, keys, initial='keep'):
+        script = UI.read_text() + "\n" + f"""
+tput() {{ case "$1" in lines) echo 16 ;; cols) echo 32 ;; esac; }}
+keys=({' '.join(keys)})
+step=0
+ui_read_key() {{ UI_KEY=${{keys[step]}}; step=$((step + 1)); }}
+choice={initial}
+status=0
+ui_select_default_shell choice || status=$?
+printf '\nRESULT %s %s\n' "$choice" "$status"
+"""
+        return subprocess.run(['bash', '-eu'], input=script, text=True,
+                              capture_output=True, check=True, timeout=5).stdout
+
+    def test_default_and_each_shell(self):
+        for index, shell in enumerate(('keep', 'bash', 'zsh', 'fish', 'nushell')):
+            output = self.choose(['down'] * index + ['enter'])
+            self.assertIn(f'RESULT {shell} 0', output)
+
+    def test_cli_preselection_and_cancel(self):
+        self.assertIn('RESULT fish 0', self.choose(['enter'], 'fish'))
+        self.assertIn('RESULT zsh 1', self.choose(['down', 'quit'], 'zsh'))
+        self.assertIn('RESULT keep 0', self.choose(['end', 'home', 'enter']))
+
+
 if __name__ == '__main__':
     unittest.main()

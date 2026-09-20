@@ -351,6 +351,49 @@ ui_select_modules() {
     done
 }
 
+# Single-choice login-shell menu; Enter keeps the highlighted choice.
+ui_select_default_shell() {
+    local -n result=$1
+    local -a names=(keep bash zsh fish nushell)
+    local -a labels=('Keep current shell' Bash Zsh Fish Nushell)
+    local cursor=0 index rows columns
+    for index in "${!names[@]}"; do
+        [[ ${names[index]} != "$result" ]] || cursor=$index
+    done
+    while true; do
+        rows=$(tput lines 2>/dev/null || printf '24')
+        columns=$(tput cols 2>/dev/null || printf '80')
+        ui_clear
+        if ((rows < 16 || columns < 32)); then
+            printf 'Resize to at least 32 x 16'
+        else
+            ui_section 'Default login shell'
+            printf '\n'
+            for index in "${!names[@]}"; do
+                if ((index == cursor)); then
+                    printf '  %s› %s%s\n' "$UI_CYAN" "${labels[index]}" "$UI_RESET"
+                else
+                    printf '    %s\n' "${labels[index]}"
+                fi
+            done
+            printf '\n  Applied after installation.\n  chsh may ask for a password.\n'
+            ui_footer $'↑↓/jk move  Enter choose\nQ/Esc cancel'
+        fi
+        ui_read_key || return 1
+        case "$UI_KEY" in
+            quit | escape) return 1 ;;
+            *) ((rows >= 16 && columns >= 32)) || continue ;;
+        esac
+        case "$UI_KEY" in
+            enter) result=${names[cursor]}; return 0 ;;
+            up) ((cursor > 0)) && ((cursor--)) || true ;;
+            down) ((cursor < 4)) && ((cursor++)) || true ;;
+            home) cursor=0 ;;
+            end) cursor=4 ;;
+        esac
+    done
+}
+
 ui_success() {
     local details=$1 title=${2:-INSTALLATION COMPLETE}
     ui_heading

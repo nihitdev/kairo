@@ -36,7 +36,7 @@ example test font:
 A-E Cat running
 G-J Cat sleeping
 
-inspired by [https://github.com/win0err/gnome-runcat](gnome-runcat)
+inspired by [gnome-runcat](https://github.com/win0err/gnome-runcat)
 
 
 ## Examples

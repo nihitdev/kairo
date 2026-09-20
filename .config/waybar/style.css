@@ -1,195 +1,101 @@
+/* ARCHNEMESIS — Rosé Pine on purple-black glass. GTK CSS. */
+@define-color text #e0def4;
+@define-color muted #908caa;
+@define-color iris #c4a7e7;
+@define-color foam #9ccfd8;
+@define-color gold #f6c177;
+@define-color love #eb6f92;
+
 * {
-    font-family: "SpaceMono Nerd Font", "Iosevka", monospace;
+    font-family: "Iosevka Nerd Font Mono", monospace;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     min-height: 0;
     border: none;
+    text-shadow: none;
 }
-
 window#waybar {
-    background: rgba(20, 18, 33, 0.34);
-    color: #e0def4;
-
-    border: 1px solid rgba(196, 167, 231, 0.14);
-    border-radius: 12px;
+    background: rgba(20, 18, 33, 0.68);
+    color: @text;
+    border: 1px solid rgba(196, 167, 231, 0.20);
+    border-radius: 10px;
 }
-
-/* ───────── WORKSPACES ───────── */
-
-#workspaces {
-    margin-left: 7px;
-}
-
+#workspaces { margin-left: 5px; }
 #workspaces button {
-    min-width: 25px;
-
+    min-width: 20px;
     padding: 0 6px;
-    margin: 5px 2px;
-
-    border-radius: 7px;
-
+    margin: 4px 2px;
+    border-radius: 6px;
     background: transparent;
-    color: #6e6a86;
-
-    transition: all 0.2s ease;
+    color: @muted;
+    box-shadow: none;
+    transition: background-color 160ms ease, color 160ms ease;
 }
-
-#workspaces button.active {
-    background: rgba(196, 167, 231, 0.17);
-    color: #c4a7e7;
-}
-
 #workspaces button:hover {
     background: rgba(156, 207, 216, 0.13);
-    color: #9ccfd8;
+    color: @foam;
 }
-
+#workspaces button.active {
+    background: rgba(196, 167, 231, 0.22);
+    color: @iris;
+    box-shadow: inset 0 -2px @iris;
+}
 #workspaces button.urgent {
-    background: rgba(235, 111, 146, 0.17);
-    color: #eb6f92;
+    background: rgba(235, 111, 146, 0.22);
+    color: @love;
 }
-
-/* ───────── MODULES ───────── */
-
-#custom-layout,
-#mpris,
-#custom-network,
-#custom-bluetooth,
-#wireplumber,
-#backlight,
-#battery,
-#clock,
-#custom-power {
-    padding: 0 9px;
-    margin: 5px 1px;
-
-    border-radius: 7px;
-
-    background: rgba(25, 23, 36, 0.25);
-    color: #e0def4;
-
-    transition: all 0.2s ease;
+#custom-layout, #mpris, #custom-network, #custom-bluetooth,
+#wireplumber, #backlight, #battery, #clock, #custom-notifications, #custom-power {
+    padding: 0 8px;
+    margin: 4px 1px;
+    border-radius: 6px;
+    background: rgba(38, 35, 58, 0.36);
+    transition: background-color 160ms ease, color 160ms ease;
 }
-
-#custom-layout:hover,
-#mpris:hover,
-#custom-network:hover,
-#custom-bluetooth:hover,
-#wireplumber:hover,
-#backlight:hover,
-#battery:hover,
-#clock:hover,
-#custom-power:hover {
-    background: rgba(196, 167, 231, 0.15);
+#custom-layout:hover, #mpris:hover, #custom-network:hover, #custom-bluetooth:hover,
+#wireplumber:hover, #backlight:hover, #battery:hover, #clock:hover,
+#custom-notifications:hover, #custom-power:hover {
+    background: rgba(196, 167, 231, 0.18);
+    color: @text;
 }
-
-/* ───────── COLORS ───────── */
-
-#custom-layout {
-    color: #c4a7e7;
+#connectivity, #system {
+    margin: 4px 2px;
+    border-radius: 6px;
+    background: rgba(38, 35, 58, 0.36);
 }
-
-#mpris {
-    color: #9ccfd8;
+#connectivity > widget > *, #system > widget > * {
+    margin: 0;
+    background: transparent;
 }
-
-#custom-network {
-    color: #9ccfd8;
-    font-size: 15px;
+#connectivity > widget > *:hover, #system > widget > *:hover {
+    background: rgba(196, 167, 231, 0.18);
 }
-
-#custom-bluetooth {
-    color: #31748f;
-    font-size: 15px;
-}
-
-#wireplumber {
-    color: #c4a7e7;
-}
-
-#backlight {
-    color: #f6c177;
-}
-
-#battery {
-    color: #9ccfd8;
-}
-
-#battery.warning {
-    color: #f6c177;
-}
-
-#battery.critical {
-    color: #eb6f92;
-    background: rgba(235, 111, 146, 0.15);
-}
-
-#wireplumber.muted {
-    color: #6e6a86;
-}
-
-#clock {
-    color: #c4a7e7;
-}
-
-#custom-power {
-    color: #eb6f92;
-    font-size: 15px;
-    margin-right: 7px;
-}
-
-/* ───────── CUSTOM ART ───────── */
-
+#custom-layout, #wireplumber, #clock, #custom-notifications { color: @iris; }
+#mpris, #custom-network, #custom-bluetooth, #battery { color: @foam; }
+#backlight, #battery.warning { color: @gold; }
+#battery.critical:not(.charging) { color: @love; }
+#wireplumber.muted, #mpris.paused,
+#custom-notifications.dnd-none, #custom-notifications.dnd-notification { color: @muted; }
+#custom-power { color: @love; margin-right: 5px; }
 #custom-cpucat {
-    font-family: "Waycat", monospace;
+    font-family: "Waycat";
     font-size: 20px;
-    font-weight: bold;
-
-    color: #e0def4;
-
-    padding: 0 7px;
+    font-weight: normal;
+    color: @text;
+    min-width: 24px;
+    padding: 0 5px;
 }
-
 #custom-skull {
-    font-family: "Skulltype", monospace;
+    font-family: "Skulltype";
     font-size: 21px;
-    font-weight: bold;
-
-    color: #c4a7e7;
-
+    font-weight: normal;
+    color: @iris;
+    min-width: 28px;
     padding: 0 8px;
 }
-
-/* ───────── TOOLTIPS ───────── */
-
 tooltip {
-    background: rgba(25, 23, 36, 0.94);
-    border: 1px solid rgba(196, 167, 231, 0.25);
+    background: rgba(25, 23, 36, 0.96);
+    border: 1px solid rgba(196, 167, 231, 0.28);
     border-radius: 8px;
 }
-
-tooltip label {
-    color: #e0def4;
-    padding: 5px;
-    font-size: 11px;
-}
-
-/* ───────── NOTIFICATIONS ───────── */
-
-#custom-notifications {
-    padding: 0 9px;
-    margin: 5px 1px;
-
-    border-radius: 7px;
-
-    background: rgba(25, 23, 36, 0.25);
-    color: #c4a7e7;
-
-    font-size: 15px;
-    transition: all 0.2s ease;
-}
-
-#custom-notifications:hover {
-    background: rgba(196, 167, 231, 0.15);
-    color: #e0def4;
-}
+tooltip label { color: @text; padding: 6px; font-size: 12px; font-weight: 400; }

@@ -65,9 +65,9 @@ run_install "$home" --only hypr --only kairo-shell > "$test_root/install"
 [[ $(readlink "$home/bin/kairo") == "$home/data/kairo/bin/kairo" ]] || fail 'incorrect launcher target'
 grep -Fq 'personal' "$home/config/kairo/settings.json" || fail 'existing settings replaced'
 [[ -f $home/config/waybar/sentinel ]] || fail 'existing Waybar config removed'
-grep -Fq 'kairod' "$home/config/hypr/hyprland.lua" || fail 'Hyprland startup not integrated'
-if grep -Fq 'hl.exec_cmd("waybar")' "$home/config/hypr/hyprland.lua"; then fail 'Waybar startup remained'; fi
-if command -v luac >/dev/null 2>&1; then luac -p "$home/config/hypr/hyprland.lua"; fi
+grep -Fq 'kairod' "$home/config/hypr/config/bar.lua" || fail 'Hyprland startup not integrated'
+if grep -Fq 'waybar' "$home/config/hypr/config/bar.lua"; then fail 'Waybar startup remained'; fi
+if command -v luac >/dev/null 2>&1; then luac -p "$home/config/hypr/config/bar.lua"; fi
 [[ ! -d $home/data/kairo/.git ]] || fail 'Git metadata deployed'
 cmp "$fixture/LICENSE.md" "$home/data/kairo/src/LICENSE.md" || fail 'license not preserved'
 run_install "$home" --only hypr --only kairo-shell > "$test_root/repeat"

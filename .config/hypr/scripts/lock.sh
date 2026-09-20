@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-WALL="$(cat "$HOME/.cache/current-wallpaper" 2>/dev/null)"
-
-if [[ ! -f "$WALL" ]]; then
-    WALL="$(find "$HOME/Pictures/wallpapers/catppuccin" -type f \
-        \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) \
-        | head -n1)"
+# A missing wallpaper must never prevent locking the session.
+pgrep -u "$(id -u)" -x hyprlock >/dev/null && exit 0
+config_root=${XDG_CONFIG_HOME:-$HOME/.config}
+wall=''
+if [[ -r $HOME/.cache/current-wallpaper ]]; then
+    IFS= read -r wall < "$HOME/.cache/current-wallpaper" || true
 fi
-
-[[ -z "$WALL" ]] && exit 1
-
-sed "s|__WALLPAPER__|$WALL|g" \
-    "$HOME/.config/hyprlock/hyprlock.template.conf" \
-    > "$HOME/.config/hyprlock/hyprlock.conf"
-
-exec hyprlock --config "$HOME/.config/hyprlock/hyprlock.conf"
+if [[ ! -f $wall && -f $config_root/hypr/current-wallpaper ]]; then
+    wall=$(realpath -- "$config_root/hypr/current-wallpaper")
+fi
+if [[ ! -f $wall ]]; then
+    wall=''
+fi
+# Escape sed replacement characters, including '&' in wallpaper directory names.
+escaped=${wall//\\/\\\\}
+escaped=${escaped//&/\\&}
+escaped=${escaped//|/\\|}
+sed "s|__WALLPAPER__|$escaped|g" \
+    "$config_root/hyprlock/hyprlock.template.conf" \
+    > "$config_root/hyprlock/hyprlock.conf"
+exec hyprlock --config "$config_root/hyprlock/hyprlock.conf"

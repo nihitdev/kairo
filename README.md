@@ -113,6 +113,22 @@ Kairo detects the distribution, architecture, shell, display session, package to
 ./install.sh --no-backup --only starship
 ```
 
+The interactive installer asks which login shell to use: **keep current** (the
+default), Bash, Zsh, Fish, or Nushell. Installing shell configs does not implicitly
+change your login shell. For command-line installation:
+
+```bash
+./install.sh --dry-run --only zsh --default-shell zsh
+./install.sh --no-backup --install-packages --only fish --default-shell fish
+./install.sh --only nushell --default-shell nu
+```
+
+`--install-packages` includes a missing selected shell even if its config module is
+not selected. The installer checks `/etc/shells` and runs `chsh` for the current
+user only, after the configuration transaction succeeds. Authentication may be
+required. Log out and back in afterward; terminal-specific shell overrides can
+still take precedence. `--default-shell keep` never calls `chsh`.
+
 Run `./install.sh --help` for the authoritative list of options, modules, and profiles.
 
 ## Included configurations
@@ -132,6 +148,52 @@ Hyprland is deliberately opt-in because replacing compositor configuration can d
 ```
 
 Third-party snapshots and intentionally duplicated assets are documented in [VENDORED.md](VENDORED.md).
+
+### ARCHNEMESIS desktop installation
+
+The Hyprland and Waybar payloads track the live dark Rosé Pine setup: compact glass
+surfaces, Dwindle/Scrolling switching, event-driven notifications, and CPU-reactive
+skull/cat artwork. The original workspace, media, launcher, lock, and wallpaper
+shortcuts are preserved. These Lua configs target Hyprland 0.56 or newer.
+
+```bash
+# Preview the complete desktop (no writes or package installation)
+./install.sh --dry-run --only hypr
+
+# Install the desktop plus its runtime tools; skip persistent backups if desired
+./install.sh --no-backup --install-packages --only hypr
+
+# Update only Waybar and its bundled artwork fonts
+./install.sh --dry-run --only waybar
+./install.sh --no-backup --only waybar
+```
+
+`hypr` includes Waybar, Hyprlock, and SwayNC. It seeds the custom Rofi setup only
+when no Rofi directory exists; select `--only rofi` explicitly to replace one.
+Kairo Shell takes precedence over Waybar when both are selected. Its startup
+command lives in an installer-generated `hypr/config/bar.lua`, avoiding edits to
+the daemon list. Installing only Waybar expects the matching Hyprland/Rofi scripts
+to already be present for its click actions.
+
+The installer deploys Waycat and Skulltype into the user's XDG font directory and
+refreshes that directory's font cache. `--install-packages` includes Iosevka Nerd
+Font, Hyprpaper/Hypridle/Hyprlock, SwayNC, and the TUI tools used by the bar. It does
+not automatically install every application mentioned in personal keybinds.
+
+Wallpaper images and machine-specific wallpaper links are not included in Git.
+An install preserves the target user's existing wallpaper link or saved selection,
+then falls back to the installed Hyprland wallpaper if available. Add your images
+to `~/Pictures/wallpapers/catppuccin` and use **Super+Alt+Space** to choose one.
+The picker updates Hyprpaper's persistent selection. Locking falls back to a solid
+background when no image is available. Desktop launchers use the standard
+`~/.config` layout; use that location for the complete desktop installation.
+
+Desktop source syntax and destinations are checked before package installation or
+configuration replacement. The installer does not restart the compositor, bar,
+or session services. Review the result and reload them when ready.
+
+A remote `--dry-run` prints bootstrap guidance without cloning, updating, invoking
+sudo, or changing `~/kairo`. Use an existing checkout for the detailed install plan.
 
 ## WezTerm
 
@@ -180,8 +242,8 @@ default; `--only all` includes it.
 ./install.sh --install-packages --only hypr --only kairo-shell
 ```
 
-Selecting both modules replaces the managed Hyprland Waybar startup command
-with the installed `kairod start` path and skips Waybar deployment. Selecting
+Selecting both modules writes a managed bar override with the installed
+`kairod start` path and skips Waybar deployment. Selecting
 only `hypr` continues to install Waybar. Selecting only `kairo-shell` installs
 the shell without changing Hyprland; start it with `~/.local/bin/kairod start`
 in a Hyprland session. Installation does not start a daemon or change an active

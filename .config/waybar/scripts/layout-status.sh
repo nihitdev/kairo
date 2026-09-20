@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-
-CFG="$HOME/.config/hypr/config/appearance.lua"
-
-if grep -q 'layout = "scrolling"' "$CFG"; then
-    printf '󰖲 SCROLL\n'
-else
-    printf '󰕰 DWINDLE\n'
-fi
+# Read the running compositor, including changes made outside the toggle script.
+layout=$(hyprctl -j getoption general:layout 2>/dev/null | jq -r '.str // empty')
+case "$layout" in
+    scrolling) printf '󰖲 SCROLL\n' ;;
+    dwindle) printf '󰕰 DWINDLE\n' ;;
+    *) printf '󰕰 %s\n' "${layout:-UNKNOWN}" ;;
+esac

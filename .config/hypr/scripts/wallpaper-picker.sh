@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 WALLDIR="$HOME/Pictures/wallpapers/catppuccin"
 
@@ -17,7 +18,7 @@ selection="$(
         -show-icons \
         -p "󰸉  Wallpaper" \
         -theme "$HOME/.config/rofi/wallpaper/wallpaper.rasi"
-)"
+)" || exit 0
 
 [[ -z "$selection" ]] && exit 0
 
@@ -31,7 +32,19 @@ wall="$(
 [[ -z "$wall" ]] && exit 1
 
 # Hyprpaper IPC.
-hyprctl hyprpaper wallpaper "LVDS-1, $wall, cover"
+# Apply to every connected monitor instead of assuming a laptop output name.
+mapfile -t monitors < <(hyprctl -j monitors | jq -r '.[].name')
+(( ${#monitors[@]} > 0 )) || exit 1
+for monitor in "${monitors[@]}"; do
+    result=$(hyprctl hyprpaper wallpaper "$monitor, $wall, cover")
+    if [[ "$result" == *error* || "$result" == *Error* ]]; then
+        notify-send -a Hyprpaper 'Could not apply wallpaper' "$result"
+        exit 1
+    fi
+done
+
+# Hyprpaper reads this link at the next login.
+ln -sfn -- "$wall" "$HOME/.config/hypr/current-wallpaper"
 
 # Remember current wallpaper.
 mkdir -p "$HOME/.cache"

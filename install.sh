@@ -17,7 +17,7 @@ dry_run=false
 no_backup=false
 install_packages=false
 interactive=false
-make_fish_default=false
+default_shell=keep
 enable_chaotic_aur=false
 aur_helper=paru
 install_gpu_drivers=false
@@ -55,36 +55,47 @@ declare -a kairo_shell_packages=(
     hyprland xdg-desktop-portal-hyprland ttf-iosevka-nerd curl fzf pciutils fontconfig
 )
 
+# Packages used by the shipped desktop scripts, not unrelated application bundles.
+declare -a hypr_packages=(
+    hyprland hyprpaper hypridle hyprlock swaync network-manager-applet
+    kitty rofi cliphist wl-clipboard jq libnotify brightnessctl playerctl
+    wireplumber xdg-desktop-portal-hyprland qt5-wayland qt6-wayland qt6ct kvantum
+)
+declare -a waybar_packages=(
+    waybar python jq swaync kitty wireplumber brightnessctl playerctl
+    networkmanager bluetui pulsemixer btop cava calcurse rofi libnotify fontconfig ttf-iosevka-nerd
+)
+
 declare -a module_names=(
     bash fish nushell zsh starship atuin bat broot yazi lazygit fastfetch
-    git nvim kitty cava ssh oh-my-posh hypr kairo-shell rofi wezterm
+    git nvim kitty cava ssh oh-my-posh hypr kairo-shell rofi wezterm waybar
 )
 declare -a module_labels=(
     Bash Fish Nushell Zsh Starship Atuin Bat Broot Yazi LazyGit Fastfetch
-    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland 'Kairo Shell' Rofi WezTerm
+    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland 'Kairo Shell' Rofi WezTerm Waybar
 )
 declare -a module_categories=(
     Shells Shells Shells Shells Shells CLI CLI CLI CLI CLI CLI
-    Development Development Desktop Desktop System Shells Desktop Desktop Desktop Desktop
+    Development Development Desktop Desktop System Shells Desktop Desktop Desktop Desktop Desktop
 )
 declare -A module_default=(
     [bash]=true [fish]=true [nushell]=true [zsh]=true [starship]=true
     [atuin]=true [bat]=true [broot]=true [yazi]=true [lazygit]=true
     [fastfetch]=true [git]=true [nvim]=true [kitty]=true [cava]=true
-    [ssh]=true [oh-my-posh]=false [hypr]=false [kairo-shell]=false [rofi]=false [wezterm]=true
+    [ssh]=true [oh-my-posh]=false [hypr]=false [kairo-shell]=false [rofi]=false [wezterm]=true [waybar]=false
 )
 declare -A module_package=(
     [bash]=bash [fish]=fish [nushell]=nushell [zsh]=zsh [starship]=starship
     [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
     [fastfetch]=fastfetch [git]=git [nvim]=neovim [kitty]=kitty [cava]=cava [wezterm]=wezterm
-    [ssh]=openssh [hypr]=hyprland [rofi]=rofi-wayland
+    [ssh]=openssh [hypr]=hyprland [rofi]=rofi [waybar]=waybar
 )
 declare -A module_aur_package=([oh-my-posh]=oh-my-posh-bin)
 declare -A module_command=(
     [bash]=bash [fish]=fish [nushell]=nu [zsh]=zsh [starship]=starship
     [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
     [fastfetch]=fastfetch [git]=git [nvim]=nvim [kitty]=kitty [cava]=cava [wezterm]=wezterm
-    [ssh]=ssh [oh-my-posh]=oh-my-posh [hypr]=Hyprland [rofi]=rofi
+    [ssh]=ssh [oh-my-posh]=oh-my-posh [hypr]=Hyprland [rofi]=rofi [waybar]=waybar
 )
 declare -A installed_package_cache=()
 package_cache_loaded=false
@@ -109,6 +120,9 @@ Usage: ./install.sh [options]
 Options:
   --dry-run          Show what would change without writing files
   --no-backup        Replace existing files without backing them up
+  --default-shell NAME
+                     Login shell: keep (default), bash, zsh, fish, nushell (or nu)
+                     Changes only after a successful install; may prompt for password
   --install-packages Install missing selected packages with pacman and paru/yay
   --profile NAME     Install an optional package profile; repeatable
                      Profiles: core-build cpp rust python web containers wayland media all
@@ -123,7 +137,7 @@ Options:
 
 Components:
   bash zsh nushell git lazygit broot nvim yazi fastfetch oh-my-posh
-  starship atuin bat cava ssh kitty fish hypr kairo-shell rofi wezterm all
+  starship atuin bat cava ssh kitty fish hypr kairo-shell rofi wezterm waybar all
 EOF
 }
 
@@ -134,6 +148,12 @@ while (($#)); do
             ;;
         --no-backup)
             no_backup=true
+            ;;
+        --default-shell)
+            [[ $# -ge 2 ]] || { printf 'Missing value for --default-shell\n' >&2; exit 2; }
+            default_shell=$2
+            [[ $default_shell != nu ]] || default_shell=nushell
+            shift
             ;;
         --install-packages)
             install_packages=true
@@ -174,6 +194,11 @@ while (($#)); do
     esac
     shift
 done
+
+case "$default_shell" in
+    keep | bash | zsh | fish | nushell) ;;
+    *) printf 'Unsupported default shell: %s\n' "$default_shell" >&2; exit 2 ;;
+esac
 
 [[ $aur_helper == paru || $aur_helper == yay ]] || {
     printf 'Unsupported AUR helper: %s (expected paru or yay)\n' "$aur_helper" >&2
@@ -247,6 +272,11 @@ trap cleanup EXIT
 
 # Remote quick start: clone/update ~/kairo, then run the normal local installer.
 if [[ ! -f $repo_root/.config/nvim/init.lua ]]; then
+    if $dry_run; then
+        printf 'Planned: clone/update ~/kairo and run the selected installer options.\n'
+        printf 'For a detailed zero-write preview, run --dry-run from an existing checkout.\n'
+        exit 0
+    fi
     kairo_checkout="$HOME/kairo"
     if [[ -t 1 && ${CI:-false} != true && -r /dev/tty ]]; then
         command -v sudo >/dev/null 2>&1 || {
@@ -413,6 +443,10 @@ is_selected() {
     local component=$1
     local selected
 
+    # Hyprland includes Waybar unless the alternative desktop shell is selected.
+    if [[ $component == waybar ]] && ! is_selected kairo-shell && is_selected hypr; then
+        return 0
+    fi
     if ((${#only[@]} == 0)); then
         [[ ${module_default[$component]:-false} == true ]]
         return
@@ -518,6 +552,7 @@ collect_missing_packages() {
     missing_aur_packages=()
     for component in "${module_names[@]}"; do
         is_selected "$component" || continue
+        if [[ $component == waybar ]] && is_selected kairo-shell; then continue; fi
         command_name=${module_command[$component]:-}
         if [[ -n ${module_package[$component]:-} ]]; then
             package=${module_package[$component]}
@@ -527,6 +562,20 @@ collect_missing_packages() {
             package_is_installed "$package" "$command_name" || record_unique missing_aur_packages "$package"
         fi
     done
+    if [[ $default_shell != keep ]]; then
+        package_is_installed "$default_shell" "${module_command[$default_shell]}" ||
+            record_unique missing_official_packages "$default_shell"
+    fi
+    if is_selected hypr; then
+        for package in "${hypr_packages[@]}"; do
+            package_is_installed "$package" || record_unique missing_official_packages "$package"
+        done
+    fi
+    if is_selected waybar && ! is_selected kairo-shell; then
+        for package in "${waybar_packages[@]}"; do
+            package_is_installed "$package" || record_unique missing_official_packages "$package"
+        done
+    fi
     if is_selected zsh; then
         for package in zsh-autosuggestions zsh-syntax-highlighting zsh-completions zsh-history-substring-search fzf; do
             package_is_installed "$package" || record_unique missing_official_packages "$package"
@@ -795,47 +844,105 @@ install_kairo_shell() {
     install_item kairo-shell "$checkout/src/assets/kairo-logo.svg" "$kairo_shell_data/icons/hicolor/scalable/apps/kairo.svg"
 }
 
+preflight_desktop() {
+    local module file
+    for module in hypr waybar; do
+        is_selected "$module" || continue
+        [[ $module != waybar ]] || ! is_selected kairo-shell || continue
+        [[ -d $source_config_root/$module ]] || {
+            printf 'Missing desktop payload: %s\n' "$module" >&2; return 1;
+        }
+        assert_safe_destination "$config_root/$module"
+        while IFS= read -r -d '' file; do
+            case "$file" in
+                *.sh) bash -n "$file" ;;
+                *.lua) if command -v luac >/dev/null 2>&1; then luac -p "$file"; fi ;;
+            esac
+        done < <(find "$source_config_root/$module" -type f \( -name '*.sh' -o -name '*.lua' \) -print0)
+    done
+    if is_selected hypr; then
+        for module in hyprlock swaync rofi; do
+            [[ -d $source_config_root/$module ]] || {
+                printf 'Missing desktop payload: %s\n' "$module" >&2; return 1;
+            }
+            assert_safe_destination "$config_root/$module"
+        done
+        [[ -f $source_config_root/hypr/hyprland.lua &&
+           -f $source_config_root/hypr/hyprpaper.conf ]] || return 1
+    fi
+    if is_selected waybar && ! is_selected kairo-shell; then
+        [[ -f $source_config_root/waybar/config.jsonc &&
+           -f $source_config_root/waybar/style.css &&
+           -f $source_config_root/waybar/scripts/fonts/Waycat.ttf &&
+           -f $source_config_root/waybar/scripts/fonts/Skulltype.ttf ]] || return 1
+        assert_safe_destination "$kairo_shell_data/fonts/archnemesis"
+        if command -v python3 >/dev/null 2>&1; then
+            python3 -m json.tool "$source_config_root/waybar/config.jsonc" >/dev/null
+        fi
+    fi
+}
+
 install_hypr_desktop() {
     is_selected hypr || return 0
-    local hypr_source="$source_config_root/hypr"
+    local hypr_source="$source_config_root/hypr" temp_hypr command wallpaper=''
+    local saved="$HOME/.cache/current-wallpaper"
+    # Preserve the recipient's choice; never distribute the author's absolute symlink.
+    if [[ -f $config_root/hypr/current-wallpaper ]]; then
+        wallpaper=$(realpath -- "$config_root/hypr/current-wallpaper")
+    elif [[ -r $saved ]]; then
+        IFS= read -r wallpaper < "$saved" || true
+        [[ -f $wallpaper ]] || wallpaper=''
+    fi
+    if [[ -z $wallpaper && -f /usr/share/hypr/wall0.png ]]; then
+        wallpaper=/usr/share/hypr/wall0.png
+    fi
+    if [[ -n $wallpaper ]]; then
+        describe "Preserve/seed wallpaper -> $wallpaper"
+    else
+        warnings+=('No wallpaper found: add images to ~/Pictures/wallpapers/catppuccin and press Super+Alt+Space')
+    fi
+    if is_selected kairo-shell; then
+        describe "Configure Hyprland startup -> $kairo_shell_bin/kairod start"
+        describe 'Skip Waybar deployment because Kairo Shell is selected'
+    fi
     install_item hypr "$source_config_root/hyprlock" "$config_root/hyprlock"
     install_item hypr "$source_config_root/swaync" "$config_root/swaync"
-    if ! is_selected kairo-shell; then
-        install_item hypr "$hypr_source" "$config_root/hypr"
-        install_item hypr "$source_config_root/waybar" "$config_root/waybar"
-        return 0
+    # Required by the existing keybinds; preserve a user's custom Rofi setup.
+    if ! is_selected rofi; then
+        install_seed_item hypr "$source_config_root/rofi" "$config_root/rofi"
     fi
-
-    local line found=false
-    while IFS= read -r line || [[ -n $line ]]; do
-        [[ $line != '    hl.exec_cmd("waybar")' ]] || found=true
-    done < "$hypr_source/config/autostart.lua"
-    if ! $found; then
-        printf 'Kairo: could not locate the Waybar Hyprland startup line.\n' >&2
-        return 1
-    fi
-    describe "Configure Hyprland startup -> $kairo_shell_bin/kairod start"
-    describe 'Skip Waybar deployment because Kairo Shell is selected'
     if $dry_run; then
         install_item hypr "$hypr_source" "$config_root/hypr"
         return 0
     fi
-
     ensure_external_root
-    local temp_hypr="$external_root/hypr" command
+    temp_hypr="$external_root/hypr"
     cp -a -- "$hypr_source" "$temp_hypr"
-    # Quote the executable for the command shell, then escape it for Lua.
-    command="'${kairo_shell_bin//\'/\'\\\'\'}/kairod' start"
-    command=${command//\\/\\\\}
-    command=${command//\"/\\\"}
-    while IFS= read -r line || [[ -n $line ]]; do
-        if [[ $line == '    hl.exec_cmd("waybar")' ]]; then
-            printf '    hl.exec_cmd("%s")\n' "$command"
+    if [[ -n $wallpaper ]]; then
+        if [[ $wallpaper == "$config_root/hypr/"* ]]; then
+            cp -L -- "$wallpaper" "$temp_hypr/current-wallpaper"
         else
-            printf '%s\n' "$line"
+            ln -sfn -- "$wallpaper" "$temp_hypr/current-wallpaper"
         fi
-    done < "$hypr_source/config/autostart.lua" > "$temp_hypr/config/autostart.lua"
+    fi
+    if is_selected kairo-shell; then
+        # Shell quote the installed launcher, then encode the command for Lua.
+        command="'${kairo_shell_bin//\'/\'\\\'\'}/kairod' start"
+        command=${command//\\/\\\\}
+        command=${command//\"/\\\"}
+        printf 'return "%s"\n' "$command" > "$temp_hypr/config/bar.lua"
+    fi
     install_item hypr "$temp_hypr" "$config_root/hypr"
+}
+
+install_waybar() {
+    is_selected waybar || return 0
+    is_selected kairo-shell && return 0
+    install_item waybar "$source_config_root/waybar" "$config_root/waybar"
+    install_item waybar "$source_config_root/waybar/scripts/fonts" "$kairo_shell_data/fonts/archnemesis"
+    if ! is_selected hypr; then
+        warnings+=('Waybar actions expect the matching Hyprland scripts and custom Rofi setup; use --only hypr for the complete desktop')
+    fi
 }
 
 assert_safe_destination() {
@@ -893,6 +1000,8 @@ install_item() {
         skipped+=("$component")
         return 1
     fi
+
+    assert_safe_destination "$destination"
 
     if payload_is_current "$source" "$destination"; then
         describe "$component already current -> $destination"
@@ -1135,29 +1244,52 @@ regenerate_nushell_caches() {
     fi
 }
 
-configure_fish_default() {
-    $make_fish_default || return 0
-    is_selected fish || return 0
-    local fish_path current_shell
-    fish_path=$(command -v fish 2>/dev/null || true)
-    [[ -n $fish_path ]] || { warnings+=('Fish is not installed, so the login shell was not changed'); return; }
-    current_shell=$(getent passwd "$(id -un)" 2>/dev/null | cut -d: -f7 || true)
-    if [[ $current_shell == "$fish_path" ]]; then
-        describe "Fish is already the default shell"
-        return
+validate_default_shell() {
+    [[ $default_shell != keep ]] || return 0
+    if ! $dry_run && ! $install_packages && ! command -v "${module_command[$default_shell]}" >/dev/null 2>&1; then
+        printf 'Selected login shell %s is missing. Install it first or use --install-packages.\n' "$default_shell" >&2
+        return 1
     fi
+}
+
+configure_default_shell() {
+    [[ $default_shell != keep ]] || return 0
+    local shell_path current_shell account allowed registered=false
+    shell_path=$(command -v "${module_command[$default_shell]}" 2>/dev/null || true)
     if $dry_run; then
-        describe "Set default shell -> $fish_path"
-        return
+        describe "Set default shell -> ${shell_path:-$default_shell (after package installation)}"
+        return 0
     fi
-    grep -Fqx -- "$fish_path" /etc/shells || {
-        warnings+=("$fish_path is not listed in /etc/shells; default shell unchanged")
-        return
-    }
-    if chsh -s "$fish_path"; then
-        describe "Set default shell -> $fish_path"
+    if [[ ! -x $shell_path ]] || ! command -v chsh >/dev/null 2>&1; then
+        warnings+=("Cannot set $default_shell as login shell: executable or chsh is unavailable")
+        return 0
+    fi
+    shell_path=$(realpath -- "$shell_path")
+    account=$(id -un)
+    current_shell=$(getent passwd "$account" | cut -d: -f7)
+    if [[ ${current_shell##*/} == ${shell_path##*/} && $(realpath -m -- "$current_shell") == "$shell_path" ]]; then
+        describe "$default_shell is already the default shell"
+        return 0
+    fi
+    while IFS= read -r allowed; do
+        [[ $allowed == /* && -x $allowed ]] || continue
+        if [[ ${allowed##*/} == ${shell_path##*/} && $(realpath -- "$allowed") == "$shell_path" ]]; then
+            registered=true
+            shell_path=$allowed
+            break
+        fi
+    done < /etc/shells
+    if ! $registered; then
+        warnings+=("$shell_path is not registered in /etc/shells; login shell unchanged")
+        return 0
+    fi
+    # This account change is deliberately after config validation/commit.
+    # Never invoke sudo or change another user's shell.
+    describe "Changing login shell for $account; chsh may request your password"
+    if chsh -s "$shell_path"; then
+        describe "Default shell set to $default_shell; log out and back in to use it"
     else
-        warnings+=("Could not set the default shell to $fish_path; run chsh -s $fish_path manually")
+        warnings+=("Could not set $default_shell as login shell; run chsh -s $shell_path manually")
     fi
 }
 
@@ -1175,7 +1307,14 @@ validate_installed_configs() {
                 done
                 ;;
             ssh) [[ -f $HOME/.ssh/config.d/dotfiles.conf ]] || return 1 ;;
-            hypr) [[ -d $config_root/hypr ]] || return 1 ;;
+            hypr)
+                [[ -f $config_root/hypr/hyprland.lua && -f $config_root/hypr/hyprpaper.conf ]] || return 1
+                ;;
+            waybar)
+                if ! is_selected kairo-shell; then
+                    [[ -f $config_root/waybar/config.jsonc && -f $kairo_shell_data/fonts/archnemesis/Waycat.ttf ]] || return 1
+                fi
+                ;;
             kairo-shell)
                 [[ -x $kairo_shell_target/bin/kairod && -f $kairo_shell_target/src/version.txt &&
                    -L $kairo_shell_bin/kairo && -L $kairo_shell_bin/kairod &&
@@ -1213,12 +1352,16 @@ system_value() {
 
 interactive_prepare() {
     local -a choices=() profile_choices=()
-    local index profile selected_list='' missing_list='' replacement_list='' key
+    local index profile selected_list='' missing_list='' replacement_list='' key target
     ui_start
     ui_heading
     $dry_run && ui_status warn 'DRY RUN · no persistent changes will be made'
     ui_card 'Welcome to Kairo' 'A safe, transactional setup for your Arch Linux CLI and Hyprland workstation.'
-    ui_status ok 'Backups and automatic rollback enabled'
+    if $no_backup; then
+        ui_status warn 'Backups disabled; transactional rollback remains enabled'
+    else
+        ui_status ok 'Backups and automatic rollback enabled'
+    fi
     ui_status ok 'No packages are installed without confirmation'
     ui_status ok 'Your personal Git and SSH data stays untouched'
     ui_wait_for_enter || exit 130
@@ -1268,6 +1411,8 @@ interactive_prepare() {
             [[ $profile == "${profile_names[index]}" ]] && profile_choices[index]=true
         done
     done
+    ui_select_default_shell default_shell || exit 130
+
     ui_select_modules profile_names profile_labels profile_categories profile_choices 'Choose development tools' || exit 130
     profiles=()
     for ((index=0; index<${#profile_names[@]}; index++)); do
@@ -1296,6 +1441,12 @@ interactive_prepare() {
     for index in "${only[@]}"; do
         selected_list+="  • $(module_label "$index")"$'\n'
     done
+    if is_selected hypr && ! is_selected kairo-shell; then
+        selected_list+=$'  Hyprland includes Waybar, fonts, Hyprlock and SwayNC.\n'
+        selected_list+=$'  Rofi is seeded only when absent.\n'
+    elif is_selected kairo-shell && is_selected waybar; then
+        selected_list+=$'  Kairo Shell selected: Waybar deployment is skipped.\n'
+    fi
     if ((${#profiles[@]})); then
         selected_list+=$'\n  Package profiles\n'
         for profile in "${profiles[@]}"; do selected_list+="  • $profile"$'\n'; done
@@ -1307,6 +1458,14 @@ interactive_prepare() {
         case "$index" in
             bash) [[ -e $HOME/.bashrc ]] && replacement_list+="  $HOME/.bashrc"$'\n' ;;
             zsh) [[ -e $HOME/.zshrc ]] && replacement_list+="  $HOME/.zshrc"$'\n' ;;
+            hypr)
+                for target in hypr hyprlock swaync; do
+                    if [[ -e $config_root/$target || -L $config_root/$target ]]; then
+                        replacement_list+="  $config_root/$target"$'\n'
+                    fi
+                done
+                ;;
+            waybar) ;; # Includes fonts; listed together below.
             kairo-shell)
                 replacement_list+="  $kairo_shell_target"$'\n'"  $kairo_shell_bin/{kairo,kairod}"$'\n'
                 replacement_list+="  $kairo_shell_state/version"$'\n'
@@ -1317,6 +1476,11 @@ interactive_prepare() {
             *) [[ -e $config_root/$index ]] && replacement_list+="  $config_root/$index"$'\n' ;;
         esac
     done
+    if is_selected waybar && ! is_selected kairo-shell; then
+        for target in "$config_root/waybar" "$kairo_shell_data/fonts/archnemesis"; do
+            if [[ -e $target || -L $target ]]; then replacement_list+="  $target"$'\n'; fi
+        done
+    fi
     [[ -n $replacement_list ]] || replacement_list='  none'
 
     ui_heading
@@ -1328,6 +1492,7 @@ interactive_prepare() {
     ui_rule
     ui_kv 'Backups' "$($no_backup && printf disabled || printf enabled)"
     ui_kv 'Config root' "$config_root"
+    ui_kv 'Login shell' "$default_shell"
     ui_kv 'AUR helper' "$aur_helper"
     ui_kv 'Chaotic-AUR' "$($enable_chaotic_aur && printf enabled || printf disabled)"
     $dry_run && ui_kv 'Mode' "${UI_YELLOW}DRY RUN${UI_RESET}"
@@ -1335,7 +1500,6 @@ interactive_prepare() {
         ui_confirm 'Install missing packages?' && install_packages=true
     fi
     ui_wait_for_enter || exit 130
-    is_selected fish && make_fish_default=true
 }
 
 detect_gpu_drivers
@@ -1345,6 +1509,8 @@ else
     collect_missing_packages
 fi
 validate_kairo_shell_destinations
+preflight_desktop
+validate_default_shell
 acquire_privileges
 
 if $interactive; then
@@ -1402,6 +1568,7 @@ else
     install_item wezterm "$source_config_root/wezterm" "$config_root/wezterm"
 fi
 install_hypr_desktop
+install_waybar
 install_item rofi "$source_config_root/rofi" "$config_root/rofi"
 install_kairo_shell
 if [[ -d $source_config_root/fish ]]; then
@@ -1429,6 +1596,9 @@ fi
 
 if $interactive; then ui_stage 6 7 'Rebuilding generated caches'; else describe '[6/7] Rebuilding caches'; fi
 regenerate_nushell_caches
+if is_selected waybar && ! is_selected kairo-shell && ! $dry_run && command -v fc-cache >/dev/null 2>&1; then
+    fc-cache "$kairo_shell_data/fonts/archnemesis"
+fi
 if is_selected bat && ! $dry_run && command -v bat >/dev/null 2>&1; then bat cache --build; fi
 install_lazyvim_plugins
 
@@ -1440,7 +1610,7 @@ if ! $dry_run; then
     chaotic_config_changed=false
 fi
 
-configure_fish_default
+configure_default_shell
 
 summary_label=Installed
 $dry_run && summary_label=Planned

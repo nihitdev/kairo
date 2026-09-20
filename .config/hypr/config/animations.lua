@@ -1,5 +1,5 @@
 -- ArchNemesis animations
--- Fast + smooth. No anime boss-fight transitions 💀
+-- Short ease-out transitions; no continuous border animation.
 
 hl.curve("easeOut", {
     type = "bezier",
@@ -20,51 +20,51 @@ hl.curve("workspace", {
 hl.animation({
     leaf = "global",
     enabled = true,
-    speed = 8,
+    speed = 3,
     bezier = "easeOut",
 })
 
 hl.animation({
     leaf = "windows",
     enabled = true,
-    speed = 5,
+    speed = 3.5,
     bezier = "easeOut",
 })
 
 hl.animation({
     leaf = "windowsIn",
     enabled = true,
-    speed = 4,
+    speed = 3,
     bezier = "easeOut",
-    style = "popin 92%",
+    style = "popin 96%",
 })
 
 hl.animation({
     leaf = "windowsOut",
     enabled = true,
-    speed = 4,
+    speed = 3,
     bezier = "easeOut",
-    style = "popin 92%",
+    style = "popin 96%",
 })
 
 hl.animation({
     leaf = "fade",
     enabled = true,
-    speed = 4,
+    speed = 3,
     bezier = "easeOut",
 })
 
 hl.animation({
     leaf = "layers",
     enabled = true,
-    speed = 4,
+    speed = 3,
     bezier = "easeOut",
 })
 
 hl.animation({
     leaf = "workspaces",
     enabled = true,
-    speed = 4,
+    speed = 3,
     bezier = "workspace",
     style = "slide",
 })

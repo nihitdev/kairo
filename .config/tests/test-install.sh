@@ -2,6 +2,9 @@
 
 set -Eeuo pipefail
 
+# Every fixture owns its home; never inherit the developer's live XDG paths.
+unset XDG_DATA_HOME XDG_STATE_HOME XDG_CACHE_HOME KAIRO_BIN_DIR QS_STATE_DIR
+
 repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
 test_root=$(mktemp -d)
 
@@ -158,7 +161,9 @@ run_kitty_payload_test() {
     [[ -f $home/.config/kitty/current-theme.conf ]] || fail 'Kitty theme missing'
     [[ -f $home/.config/kitty/tab.py ]] || fail 'Kitty tab implementation missing'
     [[ -f $home/.config/kitty/tab_bar.py ]] || fail 'Kitty tab entrypoint missing'
-    assert_file_contains "$home/.config/kitty/kitty.conf" 'shell /usr/bin/fish'
+    if grep -Eq '^shell[[:space:]]+/usr/bin/fish' "$home/.config/kitty/kitty.conf"; then
+        fail 'Kitty overrides the selected login shell with Fish'
+    fi
 }
 
 run_fish_payload_test() {
@@ -342,21 +347,18 @@ run_signal_cleanup_static_test() {
 }
 
 run_remote_verification_test() {
-    local home="$test_root/remote/home"
-    local script_copy="$test_root/remote/install.sh"
+    local home="$test_root/remote/home" script_copy="$test_root/remote/install.sh" output before after
     mkdir -p "$home"
     cp "$repo_root/install.sh" "$script_copy"
-    local output
+    before=$(find "$home" -printf '%P|%y|%s\n' | sort)
     output=$(HOME="$home" XDG_CONFIG_HOME="$home/.config" CI=true \
         bash "$script_copy" --dry-run)
-    [[ $output == *'Planned:'* ]] || fail 'remote clone bootstrap did not produce an install plan'
-    [[ -d $home/kairo/.git ]] || fail 'remote bootstrap did not clone Kairo under HOME'
-    [[ $output == *"Install starship -> $home/.config/starship"* ]] ||
-        fail 'remote clone bootstrap omitted current Starship payloads'
-
+    [[ $output == *'Planned: clone/update'* ]] || fail 'remote dry-run plan missing'
     output=$(HOME="$home" XDG_CONFIG_HOME="$home/.config" CI=true \
-        bash -s -- --dry-run --only nvim <"$script_copy")
-    [[ $output == *'Planned: nvim'* ]] || fail 'stdin bootstrap did not produce an install plan'
+        bash -s -- --dry-run --only nvim < "$script_copy")
+    [[ $output == *'detailed zero-write preview'* ]] || fail 'stdin dry-run guidance missing'
+    after=$(find "$home" -printf '%P|%y|%s\n' | sort)
+    [[ $before == "$after" ]] || fail 'remote dry-run wrote to HOME'
 }
 
 run_static_security_defaults_test() {
@@ -458,4 +460,6 @@ run_all_selector_test
 run_specific_selector_test
 run_hypr_rice_payload_test
 bash "$repo_root/.config/tests/test-kairo-shell.sh"
+bash "$repo_root/.config/tests/test-desktop-install.sh"
+bash "$repo_root/.config/tests/test-default-shell.sh"
 printf 'Linux installer safety tests passed.\n'

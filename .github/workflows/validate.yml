@@ -29,7 +29,7 @@ jobs:
 
       - name: Check Lua syntax
         run: |
-          find .config/nvim .config/yazi .config/wezterm \
+          find .config/hypr .config/nvim .config/yazi .config/wezterm \
             -type f -name '*.lua' -print0 \
             | xargs -0 -n1 luac -p
 
@@ -57,6 +57,7 @@ jobs:
           chmod +x "$fake_bin/pacman"
 
           PATH="$fake_bin:$PATH" ./.config/tests/test-install.sh
+          python3 .config/tests/test-install-ui.py
 
       - name: Check Nushell portability guards
         run: |
