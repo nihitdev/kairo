@@ -1,3 +1,7 @@
+-- ╭──────────────────────────────────────────────╮
+-- │ Appearance                                   │
+-- ╰──────────────────────────────────────────────╯
+
 hl.config({
     general = {
         gaps_in = 4,
@@ -11,7 +15,7 @@ hl.config({
 
         resize_on_border = true,
         allow_tearing = false,
-        layout = "dwindle",
+        layout = "scrolling",
     },
 
     decoration = {
@@ -21,26 +25,28 @@ hl.config({
         active_opacity = 1.0,
         inactive_opacity = 0.97,
 
+        -- Lighter shadow than before.
         shadow = {
             enabled = true,
-            range = 14,
-            render_power = 3,
-            color = "rgba(100d1c99)",
+            range = 8,
+            render_power = 2,
+            color = "rgba(100d1c80)",
         },
 
+        -- Keep the glass look without hammering the GPU.
         blur = {
             enabled = true,
-            size = 6,
-            passes = 3,
+            size = 5,
+            passes = 2,
             ignore_opacity = true,
-            vibrancy = 0.12,
+            vibrancy = 0.10,
         },
     },
 
-    -- Keep manual splits stable; scrolling columns fit two windows on this display.
     dwindle = {
         preserve_split = true,
     },
+
     scrolling = {
         column_width = 0.5,
         follow_focus = true,

@@ -560,38 +560,217 @@ notificationwindow, blankwindow {
   border-radius: var(--border-radius);
 }
 
+
 /* ─────────────────────────────────────────────
-   ARCHNEMESIS — Glass Control Center
+   ARCHNEMESIS — Frosted Glass SwayNC
    ───────────────────────────────────────────── */
 
 .control-center {
-    background: rgba(25, 23, 36, 0.62);
-    border: 1px solid rgba(196, 167, 231, 0.30);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    background: rgba(17, 17, 27, 0.58);
+    border: 1px solid rgba(137, 180, 250, 0.22);
+    border-radius: 20px;
+    box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.40),
+        inset 0 1px rgba(255, 255, 255, 0.04);
+    padding: 6px;
 }
 
-.control-center-list {
-    background: transparent;
-}
-
-.notification-row {
-    background: transparent;
-}
-
+/* Notification list */
+.control-center-list,
+.control-center-list-placeholder,
+.notification-row,
 .notification-background {
     background: transparent;
 }
 
-.notification {
-    background: rgba(31, 29, 46, 0.55);
-    border: 1px solid rgba(196, 167, 231, 0.16);
-    border-radius: 12px;
+/* Individual notification cards */
+.notification-row .notification-background .notification {
+    background: rgba(30, 30, 46, 0.60);
+    border: 1px solid rgba(205, 214, 244, 0.10);
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
 }
 
-.widget-title,
-.widget-dnd,
+.notification-row .notification-background .notification:hover {
+    background: rgba(49, 50, 68, 0.72);
+    border-color: rgba(137, 180, 250, 0.28);
+}
+
+/* Critical notifications */
+.notification-row .notification-background .notification.critical {
+    background: rgba(49, 25, 35, 0.72);
+    border: 1px solid rgba(243, 139, 168, 0.55);
+}
+
+/* Main notification content */
+.notification-row
+.notification-background
+.notification
+.notification-default-action {
+    background: transparent;
+    border-radius: 16px;
+    padding: 6px;
+}
+
+.notification-row
+.notification-background
+.notification
+.notification-default-action:hover {
+    background: rgba(137, 180, 250, 0.07);
+}
+
+/* Header */
+.widget-title {
+    background: rgba(30, 30, 46, 0.42);
+    border: 1px solid rgba(205, 214, 244, 0.08);
+    border-radius: 14px;
+    padding: 10px 12px;
+}
+
+.widget-title > label {
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+/* Clear All */
+.widget-title > button {
+    background: rgba(137, 180, 250, 0.12);
+    border: 1px solid rgba(137, 180, 250, 0.20);
+    color: rgb(205, 214, 244);
+    border-radius: 10px;
+    padding: 6px 12px;
+}
+
+.widget-title > button:hover {
+    background: rgba(137, 180, 250, 0.24);
+}
+
+/* DND */
+.widget-dnd {
+    background: rgba(30, 30, 46, 0.42);
+    border: 1px solid rgba(205, 214, 244, 0.08);
+    border-radius: 14px;
+    padding: 10px 12px;
+}
+
+.widget-dnd switch {
+    background: rgba(69, 71, 90, 0.85);
+    border: 1px solid rgba(205, 214, 244, 0.10);
+    border-radius: 999px;
+}
+
+.widget-dnd switch:checked {
+    background: rgba(137, 180, 250, 0.90);
+}
+
+.widget-dnd switch slider {
+    background: rgb(205, 214, 244);
+    border-radius: 999px;
+}
+
+/* Inhibitors */
 .widget-inhibitors {
-    background: rgba(31, 29, 46, 0.40);
-    border-radius: 12px;
+    background: rgba(30, 30, 46, 0.38);
+    border: 1px solid rgba(205, 214, 244, 0.08);
+    border-radius: 14px;
+}
+
+/* Close buttons */
+.close-button {
+    background: rgba(49, 50, 68, 0.75);
+    border: 1px solid rgba(205, 214, 244, 0.08);
+}
+
+.close-button:hover {
+    background: rgba(243, 139, 168, 0.80);
+}
+
+/* Floating popup notifications */
+.floating-notifications {
+    background: transparent;
+}
+
+.floating-notifications
+.notification-row
+.notification-background
+.notification {
+    background: rgba(17, 17, 27, 0.64);
+    border: 1px solid rgba(137, 180, 250, 0.24);
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.floating-notifications
+.notification-row
+.notification-background
+.notification.critical {
+    background: rgba(49, 25, 35, 0.72);
+    border-color: rgba(243, 139, 168, 0.60);
+}
+
+/* Empty notification center */
+.control-center-list-placeholder {
+    color: rgba(205, 214, 244, 0.55);
+}
+
+/* Group headers */
+.notification-group .notification-group-headers {
+    color: rgb(205, 214, 244);
+}
+
+/* Keep the outside surfaces completely transparent so
+   Hyprland provides the actual frosted-glass blur. */
+notificationwindow,
+blankwindow,
+.blank-window {
+    background: transparent;
+}
+
+/* ─────────────────────────────────────────────
+   ARCHNEMESIS — Floating Popup Glass Fix
+   ───────────────────────────────────────────── */
+
+notificationwindow,
+notificationwindow.background,
+.floating-notifications,
+.floating-notifications.background,
+.floating-notifications .notification-row,
+.floating-notifications .notification-background {
+    background: transparent;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.floating-notifications .notification-row .notification-background .notification {
+    background: rgba(17, 17, 27, 0.42);
+    background-color: rgba(17, 17, 27, 0.42);
+    border: 1px solid rgba(137, 180, 250, 0.30);
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+
+.floating-notifications
+.notification-row
+.notification-background
+.notification
+.notification-default-action {
+    background: transparent;
+    background-color: transparent;
+}
+
+.floating-notifications
+.notification-row
+.notification-background
+.notification
+.notification-default-action:hover {
+    background: rgba(137, 180, 250, 0.08);
+}
+
+.floating-notifications
+.notification-row
+.notification-background
+.notification.critical {
+    background: rgba(35, 18, 28, 0.48);
+    background-color: rgba(35, 18, 28, 0.48);
+    border-color: rgba(243, 139, 168, 0.65);
 }

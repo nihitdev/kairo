@@ -8,13 +8,13 @@
   "margin-right": 8,
   "modules-left": [
     "hyprland/workspaces",
-    "custom/layout"
+    "custom/layout",
+    "custom/cpucat"
   ],
   "modules-center": [
     "custom/skull"
   ],
   "modules-right": [
-    "custom/cpucat",
     "mpris",
     "group/connectivity",
     "group/system",
@@ -29,7 +29,7 @@
   },
   "custom/layout": {
     "exec": "~/.config/waybar/scripts/layout-status.sh",
-    "interval": 30,
+    "interval": "once",
     "signal": 8,
     "format": "{}",
     "on-click": "~/.config/hypr/scripts/toggle-layout.sh",

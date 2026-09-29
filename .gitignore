@@ -19,3 +19,7 @@ site/dist/
 .config/hypr/current-wallpaper
 .config/hypr/config/bar.lua
 .config/hyprlock/hyprlock.conf
+
+# Python runtime caches
+__pycache__/
+*.py[cod]

@@ -136,6 +136,13 @@ ui_kv() {
     printf '  %s%-14s%s %s\n' "$UI_DIM" "$1" "$UI_RESET" "$2"
 }
 
+# Plain text for the scrollable review, including implicit desktop dependencies.
+ui_swaync_summary() {
+    printf '%s\n' \
+        '  SwayNC: ARCHNEMESIS glass, grouped notifications, 10-second timeouts.' \
+        '  Battery alerts: 20%, 10%, 5%; starts with Hyprland (one watcher).'
+}
+
 ui_footer() {
     printf '\n'
     ui_rule
@@ -235,13 +242,59 @@ ui_run_spinner() {
 
 ui_wait_for_enter() {
     ui_footer 'Enter  continue    Q / Esc  cancel'
-    ui_read_key || return 1
-    printf '\n'
-    case "$UI_KEY" in
-        enter) return 0 ;;
-        quit | escape) return 1 ;;
-        *) return 0 ;;
-    esac
+    while ui_read_key; do
+        case "$UI_KEY" in
+            enter) printf '\n'; return 0 ;;
+            quit | escape) printf '\n'; return 1 ;;
+        esac
+    done
+    return 1
+}
+
+# Scroll a wrapped review without losing earlier lines above the terminal.
+ui_review() {
+    local text=$1 rows columns height offset=0 maximum index line
+    local -a lines=()
+    while true; do
+        rows=$(tput lines 2>/dev/null || printf '24')
+        columns=$(tput cols 2>/dev/null || printf '80')
+        ui_clear
+        if ((rows < 16 || columns < 32)); then
+            printf 'Resize to at least 32 x 16'
+            ui_read_key || return 1
+            case "$UI_KEY" in quit | escape) return 1 ;; esac
+            continue
+        fi
+        lines=()
+        while IFS= read -r line; do
+            while ((${#line} > columns - 2)); do
+                lines+=("${line:0:columns-2}")
+                line=${line:columns-2}
+            done
+            lines+=("$line")
+        done <<< "$text"
+        height=$((rows - 6))
+        maximum=$((${#lines[@]} - height))
+        ((maximum >= 0)) || maximum=0
+        ((offset <= maximum)) || offset=$maximum
+        ui_section 'Review installation'
+        for ((index=offset; index<offset+height && index<${#lines[@]}; index++)); do
+            printf '%s\n' "${lines[index]}"
+        done
+        printf '\033[%d;1H' "$((rows - 4))"
+        ui_footer $'↑↓/jk scroll  PgUp/PgDn page\nEnter install  Q/Esc cancel'
+        ui_read_key || return 1
+        case "$UI_KEY" in
+            enter) return 0 ;;
+            quit | escape) return 1 ;;
+            up) ((offset > 0)) && ((offset--)) || true ;;
+            down) ((offset < maximum)) && ((offset++)) || true ;;
+            page_up) offset=$((offset - height)); ((offset >= 0)) || offset=0 ;;
+            page_down) offset=$((offset + height)) ;;
+            home) offset=0 ;;
+            end) offset=$maximum ;;
+        esac
+    done
 }
 
 ui_confirm() {

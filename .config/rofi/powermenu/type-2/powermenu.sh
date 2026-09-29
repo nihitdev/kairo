@@ -1,99 +1,53 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# Current Theme
-dir="$HOME/.config/rofi/powermenu/type-2"
-theme='style-5'
+DIR="$HOME/.config/rofi/powermenu/type-2"
+THEME="$DIR/style-5.rasi"
 
-# CMDs
-uptime="`uptime -p | sed -e 's/up //g'`"
-host=`hostname`
-
-# Options
 shutdown=''
 reboot=''
 lock='󰌾'
 suspend='󰒲'
 logout='󰍃'
+
 yes=''
 no=''
 
-# Rofi CMD
-rofi_cmd() {
-	rofi -dmenu \
-		-p "Uptime: $uptime" \
-		-mesg "Uptime: $uptime" \
-		-theme ${dir}/${theme}.rasi
-}
+uptime="$(uptime -p | sed 's/^up //')"
 
-# Confirmation CMD
-confirm_cmd() {
-	rofi -theme-str 'window {location: center; anchor: center; fullscreen: false; width: 350px;}' \
-		-theme-str 'mainbox {children: [ "message", "listview" ];}' \
-		-theme-str 'listview {columns: 2; lines: 1;}' \
-		-theme-str 'element-text {horizontal-align: 0.5;}' \
-		-theme-str 'textbox {horizontal-align: 0.5;}' \
-		-dmenu \
-		-p 'Confirmation' \
-		-mesg 'Are you Sure?' \
-		-theme ${dir}/${theme}.rasi
-}
+choice="$(
+    printf '%s\n' "$lock" "$suspend" "$logout" "$reboot" "$shutdown" |
+        rofi -dmenu \
+            -p "Uptime: $uptime" \
+            -mesg "A R C H N E M E S I S" \
+            -theme "$THEME"
+)" || exit 0
 
-# Ask for confirmation
-confirm_exit() {
-	echo -e "$yes\n$no" | confirm_cmd
-}
-
-# Pass variables to rofi dmenu
-run_rofi() {
-	echo -e "$lock\n$suspend\n$logout\n$reboot\n$shutdown" | rofi_cmd
-}
-
-# Execute Command
-run_cmd() {
-	selected="$(confirm_exit)"
-	if [[ "$selected" == "$yes" ]]; then
-		if [[ $1 == '--shutdown' ]]; then
-			systemctl poweroff
-		elif [[ $1 == '--reboot' ]]; then
-			systemctl reboot
-		elif [[ $1 == '--suspend' ]]; then
-			systemctl suspend
-		elif [[ $1 == '--logout' ]]; then
-			if [[ "$DESKTOP_SESSION" == 'openbox' ]]; then
-				openbox --exit
-			elif [[ "$DESKTOP_SESSION" == 'bspwm' ]]; then
-				bspc quit
-			elif [[ "$DESKTOP_SESSION" == 'i3' ]]; then
-				i3-msg exit
-			elif [[ "$DESKTOP_SESSION" == 'plasma' ]]; then
-				qdbus org.kde.ksmserver /KSMServer logout 0 0 0
-			elif [[ "$DESKTOP_SESSION" == "xfce" ]]; then
-				killall xfce4-session
-			elif [[ "$DESKTOP_SESSION" == "hyprland" ]]; then
-				hyprctl dispatch exit
-			fi
-		fi
-	else
-		exit 0
-	fi
-}
-
-# Actions
-chosen="$(run_rofi)"
-case ${chosen} in
-    $shutdown)
-		run_cmd --shutdown
+case "$choice" in
+    "$lock")
+        exec "$HOME/.config/hypr/scripts/lock.sh"
         ;;
-    $reboot)
-		run_cmd --reboot
-        ;;
-    $lock)
-		"$HOME/.config/hypr/scripts/lock.sh"
-        ;;
-    $suspend)
-		run_cmd --suspend
-        ;;
-    $logout)
-		run_cmd --logout
+    "$suspend"|"$logout"|"$reboot"|"$shutdown")
+        confirm="$(
+            printf '%s\n' "$yes" "$no" |
+                rofi -dmenu \
+                    -p "Confirmation" \
+                    -mesg "Are you sure?" \
+                    -theme "$THEME" \
+                    -theme-str 'window { location: center; anchor: center; fullscreen: false; width: 350px; }' \
+                    -theme-str 'mainbox { children: [ "message", "listview" ]; }' \
+                    -theme-str 'listview { columns: 2; lines: 1; }' \
+                    -theme-str 'element-text { horizontal-align: 0.5; }' \
+                    -theme-str 'textbox { horizontal-align: 0.5; }'
+        )" || exit 0
+
+        [[ "$confirm" == "$yes" ]] || exit 0
+
+        case "$choice" in
+            "$suspend")  exec systemctl suspend ;;
+            "$logout")   exec hyprctl dispatch exit ;;
+            "$reboot")   exec systemctl reboot ;;
+            "$shutdown") exec systemctl poweroff ;;
+        esac
         ;;
 esac

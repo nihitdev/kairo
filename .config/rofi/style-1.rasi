@@ -1,7 +1,5 @@
 /**
  *
- * Author : Aditya Shakya (adi1090x)
- * Github : @adi1090x
  * 
  * Rofi Theme File
  * Rofi Version: 1.7.3
@@ -23,8 +21,15 @@ configuration {
 }
 
 /*****----- Global Properties -----*****/
-@import                          "shared/colors.rasi"
-@import                          "shared/fonts.rasi"
+* {
+    background:     #191724CC;
+    background-alt: #1F1D2ECC;
+    foreground:     #E0DEF4FF;
+    selected:       #C4A7E7FF;
+    active:         #9CCFD8FF;
+    urgent:         #EB6F92FF;
+}
+* { font: "JetBrainsMono Nerd Font Mono 10"; }
 
 /*****----- Main Window -----*****/
 window {

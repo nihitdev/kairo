@@ -71,7 +71,8 @@ Welcome → Detect → Dependencies → Modules → Review
         → Backup → Packages → Dotfiles → Configure → Validate → Complete
 ```
 
-Kairo detects the distribution, architecture, shell, display session, package tools, service manager, and configuration root. The review step shows the selected modules, missing packages, replacement targets, and backup behavior before privileged or destructive work begins.
+Kairo detects the distribution, architecture, shell, display session, package tools, service manager, and configuration root. The review step shows the selected modules, missing packages, replacement targets, and backup behavior before privileged or destructive work begins. Use arrow keys or Page Up/Page Down
+to scroll the review; Enter accepts it and Q/Escape cancels.
 
 | Key | Action |
 | --- | --- |
@@ -175,6 +176,23 @@ command lives in an installer-generated `hypr/config/bar.lua`, avoiding edits to
 the daemon list. Installing only Waybar expects the matching Hyprland/Rofi scripts
 to already be present for its click actions.
 
+SwayNC is also a default module (`--only swaync` for a scoped install). It deploys
+`config.json` and `style.css` individually, preserving other files in the SwayNC
+directory. The ARCHNEMESIS glass theme retains grouped notifications, DND and
+critical styling, and 10-second timeouts for all urgency levels. The existing
+Hyprland layer rules provide blur for the control center and floating popups.
+
+The same module installs `~/.local/bin/battery-guardian`. Hyprland starts it on
+login; a process lock prevents duplicate watchers. It checks the battery every
+15 seconds, warns once at 20%, 10% and 5%, and resets warnings when charging.
+BAT1 is preferred with automatic fallback to other BAT devices; desktops without
+a battery exit without starting a watcher. Dependencies are `swaync`, `libnotify`
+and `util-linux`. To deploy only these managed files without backups:
+
+```sh
+./install.sh --only swaync --no-backup
+```
+
 The installer deploys Waycat and Skulltype into the user's XDG font directory and
 refreshes that directory's font cache. `--install-packages` includes Iosevka Nerd
 Font, Hyprpaper/Hypridle/Hyprlock, SwayNC, and the TUI tools used by the bar. It does
@@ -183,7 +201,10 @@ not automatically install every application mentioned in personal keybinds.
 Wallpaper images and machine-specific wallpaper links are not included in Git.
 An install preserves the target user's existing wallpaper link or saved selection,
 then falls back to the installed Hyprland wallpaper if available. Add your images
-to `~/Pictures/wallpapers/catppuccin` and use **Super+Alt+Space** to choose one.
+to `~/Pictures/Wallpapers/CozyPixels/Catppuccin/Space & Cosmic` and use
+**Super+Alt+Space** to choose one. Pass `--install-wallpapers` to download the
+optional CozyPixels collection; failed installations roll back a newly downloaded
+collection along with the configuration changes.
 The picker updates Hyprpaper's persistent selection. Locking falls back to a solid
 background when no image is available. Desktop launchers use the standard
 `~/.config` layout; use that location for the complete desktop installation.
@@ -194,6 +215,9 @@ or session services. Review the result and reload them when ready.
 
 A remote `--dry-run` prints bootstrap guidance without cloning, updating, invoking
 sudo, or changing `~/kairo`. Use an existing checkout for the detailed install plan.
+
+Kitty seeds `user.conf` on first installation and preserves existing overrides
+on subsequent installs. It loads those overrides after the managed settings.
 
 ## WezTerm
 

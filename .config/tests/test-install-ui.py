@@ -116,5 +116,56 @@ printf '\nRESULT %s %s\n' "$choice" "$status"
         self.assertIn('RESULT keep 0', self.choose(['end', 'home', 'enter']))
 
 
+class ReviewTest(unittest.TestCase):
+    def test_wait_ignores_navigation(self):
+        script = UI.read_text() + """
+keys=(down space ignore enter)
+step=0
+ui_read_key() { UI_KEY=${keys[step]}; step=$((step + 1)); }
+ui_wait_for_enter
+printf 'READS %s' "$step"
+"""
+        result = subprocess.run(['bash', '-eu'], input=script, text=True,
+                                capture_output=True, check=True, timeout=5)
+        self.assertIn('READS 4', result.stdout)
+
+    def test_review_scroll_and_cancel(self):
+        script = UI.read_text() + """
+tput() { case "$1" in lines) echo 16 ;; cols) echo 32 ;; esac; }
+keys=(end home quit)
+step=0
+ui_read_key() { UI_KEY=${keys[step]}; step=$((step + 1)); }
+text=''
+for ((i=0; i<40; i++)); do text+="review line $i"$'\\n'; done
+status=0
+ui_review "$text" || status=$?
+printf 'RESULT %s' "$status"
+"""
+        result = subprocess.run(['bash', '-eu'], input=script, text=True,
+                                capture_output=True, check=True, timeout=5)
+        frames = result.stdout.split('\x1b[2J\x1b[H')[1:]
+        self.assertEqual(len(frames), 3)
+        self.assertIn('review line 0', frames[0])
+        self.assertNotIn('review line 39', frames[0])
+        self.assertIn('review line 39', frames[1])
+        self.assertIn('review line 0', frames[2])
+        self.assertIn('RESULT 1', result.stdout)
+
+    def test_swaync_label_and_review(self):
+        self.assertIn('SwayNC + battery', ANSI.sub('', render(24, 80)))
+        result = subprocess.run(['bash', '-eu'], input=UI.read_text() +
+                                '\nui_swaync_summary', text=True, capture_output=True,
+                                check=True, timeout=5)
+        self.assertIn('10-second timeouts', result.stdout)
+        self.assertIn('one watcher', result.stdout)
+
+    def test_module_labels_are_plain_text(self):
+        function = re.search(r'module_label\(\) \{.*?\n\}', INSTALLER, re.S)[0]
+        result = subprocess.run(['bash', '-eu'], input=ARRAYS + '\n' + function +
+                                '\nmodule_label hypr', text=True, capture_output=True,
+                                check=True, timeout=5)
+        self.assertEqual(result.stdout, 'Hyprland')
+
+
 if __name__ == '__main__':
     unittest.main()

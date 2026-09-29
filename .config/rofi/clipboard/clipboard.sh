@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-dir="$HOME/.config/rofi"
-theme="style-1"
-
-rofi \
+exec rofi \
     -modi "clipboard:$HOME/.config/rofi/clipboard/cliphist-rofi" \
     -show clipboard \
-    -theme "$dir/$theme.rasi"
+    -theme "$HOME/.config/rofi/style-1.rasi"

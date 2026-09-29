@@ -1,6 +1,8 @@
--- Automatic monitor configuration.
--- Uses each display's preferred mode.
+-- ╭──────────────────────────────────────────────╮
+-- │ Monitor                                      │
+-- ╰──────────────────────────────────────────────╯
 
+-- Automatic configuration using each display's preferred mode.
 hl.monitor({
     output = "",
     mode = "preferred",

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-if [ -z "$1" ]; then
-    cliphist list
-else
-    cliphist decode <<<"$1" | wl-copy
+if (($# == 0)); then
+    exec cliphist list
 fi
+
+cliphist decode <<<"$1" | wl-copy

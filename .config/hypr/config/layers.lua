@@ -1,28 +1,20 @@
-hl.layer_rule({
-    name = "waybar-glass",
-    match = {
-        namespace = "^waybar$",
-    },
+-- ╭──────────────────────────────────────────────╮
+-- │ Layer Rules                                  │
+-- ╰──────────────────────────────────────────────╯
 
-    blur = true,
-    ignore_alpha = 0.20,
-})
-
-hl.layer_rule({
-    name = "swaync-glass",
-    match = {
-        namespace = "^swaync-control-center$",
-    },
-
-    blur = true,
-    ignore_alpha = 0.20,
-})
-
--- Blur only the visible launcher/notification surfaces, not transparent margins.
-for _, namespace in ipairs({ "rofi", "swaync-notification-window" }) do
+-- Blur only surfaces that actually benefit from transparency.
+for _, namespace in ipairs({
+    "waybar",
+    "swaync-control-center",
+    "rofi",
+    "swaync-notification-window",
+}) do
     hl.layer_rule({
         name = namespace .. "-glass",
-        match = { namespace = "^" .. namespace .. "$" },
+        match = {
+            namespace = "^" .. namespace .. "$",
+        },
+
         blur = true,
         ignore_alpha = 0.20,
     })

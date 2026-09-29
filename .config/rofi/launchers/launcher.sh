@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-dir="$HOME/.config/rofi"
-theme='style-1'
-
-## Run
-rofi \
+exec rofi \
     -show drun \
-    -theme ${dir}/${theme}.rasi
+    -theme "$HOME/.config/rofi/style-1.rasi"

@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
-# One event subscription instead of spawning a client every two seconds.
+set -euo pipefail
+
 exec swaync-client --subscribe-waybar

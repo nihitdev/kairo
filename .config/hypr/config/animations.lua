@@ -1,6 +1,8 @@
--- ArchNemesis animations
--- Short ease-out transitions; no continuous border animation.
+-- ╭──────────────────────────────────────────────╮
+-- │ Animations                                   │
+-- ╰──────────────────────────────────────────────╯
 
+-- Fast ease-out curve for responsive window movement.
 hl.curve("easeOut", {
     type = "bezier",
     points = {
@@ -9,6 +11,7 @@ hl.curve("easeOut", {
     },
 })
 
+-- Slightly softer workspace movement.
 hl.curve("workspace", {
     type = "bezier",
     points = {
@@ -20,51 +23,51 @@ hl.curve("workspace", {
 hl.animation({
     leaf = "global",
     enabled = true,
-    speed = 3,
+    speed = 4,
     bezier = "easeOut",
 })
 
 hl.animation({
     leaf = "windows",
     enabled = true,
-    speed = 3.5,
+    speed = 4,
     bezier = "easeOut",
 })
 
 hl.animation({
     leaf = "windowsIn",
     enabled = true,
-    speed = 3,
+    speed = 4,
     bezier = "easeOut",
-    style = "popin 96%",
+    style = "popin 97%",
 })
 
 hl.animation({
     leaf = "windowsOut",
     enabled = true,
-    speed = 3,
+    speed = 4,
     bezier = "easeOut",
-    style = "popin 96%",
+    style = "popin 97%",
 })
 
 hl.animation({
     leaf = "fade",
     enabled = true,
-    speed = 3,
+    speed = 4,
     bezier = "easeOut",
 })
 
 hl.animation({
     leaf = "layers",
     enabled = true,
-    speed = 3,
+    speed = 4,
     bezier = "easeOut",
 })
 
 hl.animation({
     leaf = "workspaces",
     enabled = true,
-    speed = 3,
+    speed = 4,
     bezier = "workspace",
     style = "slide",
 })

@@ -431,6 +431,21 @@ run_wezterm_payload_test() {
     assert_file_contains "$legacy_home/.wezterm.lua" 'return {}'
 }
 
+run_kitty_override_test() {
+    local home="$test_root/kitty-overrides"
+    mkdir -p "$home/.config/kitty"
+    printf 'font_size 19\n' > "$home/.config/kitty/user.conf"
+    HOME="$home" XDG_CONFIG_HOME="$home/.config" CI=true \
+        "$repo_root/install.sh" --only kitty >/dev/null
+    assert_file_contains "$home/.config/kitty/user.conf" 'font_size 19'
+    local output
+    output=$(HOME="$home" XDG_CONFIG_HOME="$home/.config" CI=true \
+        "$repo_root/install.sh" --only kitty)
+    [[ $output == *'Already current: kitty'* ]] || fail 'Kitty override broke idempotence'
+}
+
+run_kitty_override_test
+
 run_wezterm_payload_test
 run_normal_install_test
 run_nvim_payload_test
@@ -462,4 +477,5 @@ run_hypr_rice_payload_test
 bash "$repo_root/.config/tests/test-kairo-shell.sh"
 bash "$repo_root/.config/tests/test-desktop-install.sh"
 bash "$repo_root/.config/tests/test-default-shell.sh"
+python3 "$repo_root/.config/tests/test-swaync.py"
 printf 'Linux installer safety tests passed.\n'

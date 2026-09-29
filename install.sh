@@ -21,6 +21,7 @@ default_shell=keep
 enable_chaotic_aur=false
 aur_helper=paru
 install_gpu_drivers=false
+install_wallpapers=false
 gpu_description='No supported GPU detected'
 declare -a only=()
 declare -a profiles=()
@@ -60,42 +61,43 @@ declare -a hypr_packages=(
     hyprland hyprpaper hypridle hyprlock swaync network-manager-applet
     kitty rofi cliphist wl-clipboard jq libnotify brightnessctl playerctl
     wireplumber xdg-desktop-portal-hyprland qt5-wayland qt6-wayland qt6ct kvantum
+    grim slurp procps-ng util-linux
 )
 declare -a waybar_packages=(
     waybar python jq swaync kitty wireplumber brightnessctl playerctl
-    networkmanager bluetui pulsemixer btop cava calcurse rofi libnotify fontconfig ttf-iosevka-nerd
+    networkmanager bluetui pulsemixer btop cava calcurse yazi rofi libnotify fontconfig ttf-iosevka-nerd
 )
 
 declare -a module_names=(
     bash fish nushell zsh starship atuin bat broot yazi lazygit fastfetch
-    git nvim kitty cava ssh oh-my-posh hypr kairo-shell rofi wezterm waybar
+    git nvim kitty cava ssh oh-my-posh hypr kairo-shell rofi wezterm waybar swaync
 )
 declare -a module_labels=(
     Bash Fish Nushell Zsh Starship Atuin Bat Broot Yazi LazyGit Fastfetch
-    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland 'Kairo Shell' Rofi WezTerm Waybar
+    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland 'Kairo Shell' Rofi WezTerm Waybar 'SwayNC + battery alerts'
 )
 declare -a module_categories=(
     Shells Shells Shells Shells Shells CLI CLI CLI CLI CLI CLI
-    Development Development Desktop Desktop System Shells Desktop Desktop Desktop Desktop Desktop
+    Development Development Desktop Desktop System Shells Desktop Desktop Desktop Desktop Desktop Desktop
 )
 declare -A module_default=(
     [bash]=true [fish]=true [nushell]=true [zsh]=true [starship]=true
     [atuin]=true [bat]=true [broot]=true [yazi]=true [lazygit]=true
     [fastfetch]=true [git]=true [nvim]=true [kitty]=true [cava]=true
-    [ssh]=true [oh-my-posh]=false [hypr]=false [kairo-shell]=false [rofi]=false [wezterm]=true [waybar]=false
+    [ssh]=true [oh-my-posh]=false [hypr]=false [kairo-shell]=false [rofi]=false [wezterm]=true [waybar]=false [swaync]=true
 )
 declare -A module_package=(
     [bash]=bash [fish]=fish [nushell]=nushell [zsh]=zsh [starship]=starship
     [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
     [fastfetch]=fastfetch [git]=git [nvim]=neovim [kitty]=kitty [cava]=cava [wezterm]=wezterm
-    [ssh]=openssh [hypr]=hyprland [rofi]=rofi [waybar]=waybar
+    [ssh]=openssh [hypr]=hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync
 )
 declare -A module_aur_package=([oh-my-posh]=oh-my-posh-bin)
 declare -A module_command=(
     [bash]=bash [fish]=fish [nushell]=nu [zsh]=zsh [starship]=starship
     [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
     [fastfetch]=fastfetch [git]=git [nvim]=nvim [kitty]=kitty [cava]=cava [wezterm]=wezterm
-    [ssh]=ssh [oh-my-posh]=oh-my-posh [hypr]=Hyprland [rofi]=rofi [waybar]=waybar
+    [ssh]=ssh [oh-my-posh]=oh-my-posh [hypr]=Hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync
 )
 declare -A installed_package_cache=()
 package_cache_loaded=false
@@ -108,7 +110,7 @@ declare -A profile_packages=(
     [rust]='rustup'
     [python]='python python-pip uv'
     [web]='nodejs npm pnpm bun'
-    [containers]='docker docker-compose podman buildah'
+    [containers]='podman podman-compose buildah'
     [wayland]='xdg-desktop-portal-hyprland wl-clipboard grim slurp swappy brightnessctl playerctl ddcutil libnotify'
     [media]='pipewire pipewire-pulse wireplumber ffmpeg imagemagick yt-dlp'
 )
@@ -131,13 +133,15 @@ Options:
                      Enable the third-party Chaotic-AUR binary repository
   --install-gpu-drivers
                      Install reviewed Arch drivers for detected GPUs
+  --install-wallpapers
+                     Clone the optional CozyPixels wallpaper collection
   --only NAME        Install one specific component; repeat for multiple tools
                      Use --only all to install every supported component
   -h, --help         Show this help
 
 Components:
   bash zsh nushell git lazygit broot nvim yazi fastfetch oh-my-posh
-  starship atuin bat cava ssh kitty fish hypr kairo-shell rofi wezterm waybar all
+  starship atuin bat cava ssh kitty fish hypr kairo-shell rofi wezterm waybar swaync all
 EOF
 }
 
@@ -176,6 +180,9 @@ while (($#)); do
         --install-gpu-drivers)
             install_gpu_drivers=true
             install_packages=true
+            ;;
+        --install-wallpapers)
+            install_wallpapers=true
             ;;
         --only)
             [[ $# -ge 2 ]] || { printf 'Missing value for --only\n' >&2; exit 2; }
@@ -443,6 +450,16 @@ is_selected() {
     local component=$1
     local selected
 
+    if [[ $component == wallpapers ]]; then
+        $install_wallpapers
+        return
+    fi
+
+    # SwayNC supplies notifications for the shipped Hyprland/Waybar desktop.
+    if [[ $component == swaync ]] && { is_selected hypr || is_selected waybar; }; then
+        return 0
+    fi
+
     # Hyprland includes Waybar unless the alternative desktop shell is selected.
     if [[ $component == waybar ]] && ! is_selected kairo-shell && is_selected hypr; then
         return 0
@@ -576,6 +593,11 @@ collect_missing_packages() {
             package_is_installed "$package" || record_unique missing_official_packages "$package"
         done
     fi
+    if is_selected swaync; then
+        for package in libnotify util-linux; do
+            package_is_installed "$package" || record_unique missing_official_packages "$package"
+        done
+    fi
     if is_selected zsh; then
         for package in zsh-autosuggestions zsh-syntax-highlighting zsh-completions zsh-history-substring-search fzf; do
             package_is_installed "$package" || record_unique missing_official_packages "$package"
@@ -598,6 +620,9 @@ collect_missing_packages() {
     if is_selected wezterm; then
         package_is_installed zsh zsh || record_unique missing_official_packages zsh
         package_is_installed ttf-jetbrains-mono-nerd || record_unique missing_official_packages ttf-jetbrains-mono-nerd
+    fi
+    if $install_wallpapers; then
+        package_is_installed git git || record_unique missing_official_packages git
     fi
     if is_selected nvim; then
         package_is_installed git git || record_unique missing_official_packages git
@@ -846,6 +871,9 @@ install_kairo_shell() {
 
 preflight_desktop() {
     local module file
+    if $install_wallpapers; then
+        assert_safe_destination "$HOME/Pictures/Wallpapers/CozyPixels"
+    fi
     for module in hypr waybar; do
         is_selected "$module" || continue
         [[ $module != waybar ]] || ! is_selected kairo-shell || continue
@@ -861,7 +889,7 @@ preflight_desktop() {
         done < <(find "$source_config_root/$module" -type f \( -name '*.sh' -o -name '*.lua' \) -print0)
     done
     if is_selected hypr; then
-        for module in hyprlock swaync rofi; do
+        for module in hyprlock rofi; do
             [[ -d $source_config_root/$module ]] || {
                 printf 'Missing desktop payload: %s\n' "$module" >&2; return 1;
             }
@@ -869,6 +897,20 @@ preflight_desktop() {
         done
         [[ -f $source_config_root/hypr/hyprland.lua &&
            -f $source_config_root/hypr/hyprpaper.conf ]] || return 1
+    fi
+    if is_selected swaync; then
+        for file in config.json style.css; do
+            [[ -f $source_config_root/swaync/$file ]] || {
+                printf 'Missing SwayNC payload: %s\n' "$file" >&2; return 1;
+            }
+            assert_safe_destination "$config_root/swaync/$file"
+        done
+        assert_safe_destination "$HOME/.local/bin/battery-guardian"
+        [[ -x $repo_root/.local/bin/battery-guardian ]] || return 1
+        bash -n "$repo_root/.local/bin/battery-guardian"
+        if command -v python3 >/dev/null 2>&1; then
+            python3 -m json.tool "$source_config_root/swaync/config.json" >/dev/null
+        fi
     fi
     if is_selected waybar && ! is_selected kairo-shell; then
         [[ -f $source_config_root/waybar/config.jsonc &&
@@ -880,6 +922,49 @@ preflight_desktop() {
             python3 -m json.tool "$source_config_root/waybar/config.jsonc" >/dev/null
         fi
     fi
+}
+
+install_optional_wallpapers() {
+    $install_wallpapers || return 0
+
+    local wallpaper_root="$HOME/Pictures/Wallpapers"
+    local destination="$wallpaper_root/CozyPixels"
+    local repo="https://github.com/SleepyCatHey/CozyPixels.git"
+
+    assert_safe_destination "$destination"
+
+    if [[ -d $destination/.git ]]; then
+        describe "CozyPixels wallpapers already installed -> $destination"
+        return 0
+    fi
+
+    if [[ -e $destination || -L $destination ]]; then
+        warnings+=("Wallpaper destination already exists and is not a CozyPixels Git checkout: $destination")
+        return 0
+    fi
+
+    if $dry_run; then
+        describe "Clone CozyPixels wallpapers -> $destination"
+        return 0
+    fi
+
+    command -v git >/dev/null 2>&1 || {
+        warnings+=("Git is unavailable; CozyPixels wallpapers were not installed")
+        return 0
+    }
+
+    ensure_external_root
+    local checkout="$external_root/CozyPixels"
+
+    if $interactive && declare -F ui_run_spinner >/dev/null; then
+        ui_run_spinner "Installing CozyPixels wallpapers" \
+            git clone --depth=1 "$repo" "$checkout"
+    else
+        git clone --depth=1 "$repo" "$checkout"
+    fi
+
+    install_item wallpapers "$checkout" "$destination"
+    describe "Installed CozyPixels wallpapers -> $destination"
 }
 
 install_hypr_desktop() {
@@ -899,14 +984,13 @@ install_hypr_desktop() {
     if [[ -n $wallpaper ]]; then
         describe "Preserve/seed wallpaper -> $wallpaper"
     else
-        warnings+=('No wallpaper found: add images to ~/Pictures/wallpapers/catppuccin and press Super+Alt+Space')
+        warnings+=('No wallpaper found: add images to ~/Pictures/Wallpapers/CozyPixels/Catppuccin/Space & Cosmic and press Super+Alt+Space')
     fi
     if is_selected kairo-shell; then
         describe "Configure Hyprland startup -> $kairo_shell_bin/kairod start"
         describe 'Skip Waybar deployment because Kairo Shell is selected'
     fi
     install_item hypr "$source_config_root/hyprlock" "$config_root/hyprlock"
-    install_item hypr "$source_config_root/swaync" "$config_root/swaync"
     # Required by the existing keybinds; preserve a user's custom Rofi setup.
     if ! is_selected rofi; then
         install_seed_item hypr "$source_config_root/rofi" "$config_root/rofi"
@@ -933,6 +1017,20 @@ install_hypr_desktop() {
         printf 'return "%s"\n' "$command" > "$temp_hypr/config/bar.lua"
     fi
     install_item hypr "$temp_hypr" "$config_root/hypr"
+}
+
+install_kitty() {
+    is_selected kitty || return 0
+    local payload="$source_config_root/kitty"
+    if ! $dry_run; then
+        ensure_external_root
+        payload="$external_root/kitty"
+        cp -a -- "$source_config_root/kitty" "$payload"
+        if [[ -e $config_root/kitty/user.conf || -L $config_root/kitty/user.conf ]]; then
+            cp -a -- "$config_root/kitty/user.conf" "$payload/user.conf"
+        fi
+    fi
+    install_item kitty "$payload" "$config_root/kitty"
 }
 
 install_waybar() {
@@ -1267,13 +1365,13 @@ configure_default_shell() {
     shell_path=$(realpath -- "$shell_path")
     account=$(id -un)
     current_shell=$(getent passwd "$account" | cut -d: -f7)
-    if [[ ${current_shell##*/} == ${shell_path##*/} && $(realpath -m -- "$current_shell") == "$shell_path" ]]; then
+    if [[ ${current_shell##*/} == "${shell_path##*/}" && $(realpath -m -- "$current_shell") == "$shell_path" ]]; then
         describe "$default_shell is already the default shell"
         return 0
     fi
     while IFS= read -r allowed; do
         [[ $allowed == /* && -x $allowed ]] || continue
-        if [[ ${allowed##*/} == ${shell_path##*/} && $(realpath -- "$allowed") == "$shell_path" ]]; then
+        if [[ ${allowed##*/} == "${shell_path##*/}" && $(realpath -- "$allowed") == "$shell_path" ]]; then
             registered=true
             shell_path=$allowed
             break
@@ -1307,6 +1405,10 @@ validate_installed_configs() {
                 done
                 ;;
             ssh) [[ -f $HOME/.ssh/config.d/dotfiles.conf ]] || return 1 ;;
+            swaync)
+                [[ -f $config_root/swaync/config.json && -f $config_root/swaync/style.css &&
+                   -x $HOME/.local/bin/battery-guardian ]] || return 1
+                ;;
             hypr)
                 [[ -f $config_root/hypr/hyprland.lua && -f $config_root/hypr/hyprpaper.conf ]] || return 1
                 ;;
@@ -1357,6 +1459,14 @@ interactive_prepare() {
     ui_heading
     $dry_run && ui_status warn 'DRY RUN · no persistent changes will be made'
     ui_card 'Welcome to Kairo' 'A safe, transactional setup for your Arch Linux CLI and Hyprland workstation.'
+
+    ui_heading
+    ui_section 'Wallpapers'
+    printf '\n  Kairo can optionally download the CozyPixels wallpaper collection.\n'
+    printf '  Destination: %s\n\n' "$HOME/Pictures/Wallpapers/CozyPixels"
+    if ! $install_wallpapers; then
+        ui_confirm 'Install additional CozyPixels wallpapers?' && install_wallpapers=true
+    fi
     if $no_backup; then
         ui_status warn 'Backups disabled; transactional rollback remains enabled'
     else
@@ -1436,7 +1546,10 @@ interactive_prepare() {
     ui_section 'Optional binary repository'
     printf '\n  Chaotic-AUR distributes third-party prebuilt AUR packages.\n'
     printf '  Enabling it imports its signing key and modifies /etc/pacman.conf.\n\n'
-    ui_confirm 'Enable Chaotic-AUR? This changes system package trust.' && enable_chaotic_aur=true
+    if ! $enable_chaotic_aur; then
+        ui_confirm 'Enable Chaotic-AUR? This changes system package trust.' && enable_chaotic_aur=true
+    fi
+    if $enable_chaotic_aur || ((${#profiles[@]})); then install_packages=true; fi
 
     for index in "${only[@]}"; do
         selected_list+="  • $(module_label "$index")"$'\n'
@@ -1459,12 +1572,13 @@ interactive_prepare() {
             bash) [[ -e $HOME/.bashrc ]] && replacement_list+="  $HOME/.bashrc"$'\n' ;;
             zsh) [[ -e $HOME/.zshrc ]] && replacement_list+="  $HOME/.zshrc"$'\n' ;;
             hypr)
-                for target in hypr hyprlock swaync; do
+                for target in hypr hyprlock; do
                     if [[ -e $config_root/$target || -L $config_root/$target ]]; then
                         replacement_list+="  $config_root/$target"$'\n'
                     fi
                 done
                 ;;
+            swaync) ;; # Managed files are listed below, including implicit selection.
             waybar) ;; # Includes fonts; listed together below.
             kairo-shell)
                 replacement_list+="  $kairo_shell_target"$'\n'"  $kairo_shell_bin/{kairo,kairod}"$'\n'
@@ -1476,6 +1590,12 @@ interactive_prepare() {
             *) [[ -e $config_root/$index ]] && replacement_list+="  $config_root/$index"$'\n' ;;
         esac
     done
+    if is_selected swaync; then
+        selected_list+="$(ui_swaync_summary)"$'\n'
+        for target in "$config_root/swaync/config.json" "$config_root/swaync/style.css" "$HOME/.local/bin/battery-guardian"; do
+            if [[ -e $target || -L $target ]]; then replacement_list+="  $target"$'\n'; fi
+        done
+    fi
     if is_selected waybar && ! is_selected kairo-shell; then
         for target in "$config_root/waybar" "$kairo_shell_data/fonts/archnemesis"; do
             if [[ -e $target || -L $target ]]; then replacement_list+="  $target"$'\n'; fi
@@ -1483,23 +1603,17 @@ interactive_prepare() {
     fi
     [[ -n $replacement_list ]] || replacement_list='  none'
 
-    ui_heading
-    ui_section 'Review installation'
-    printf '\n%sSelected modules%s\n%s\n' "$UI_CYAN" "$UI_RESET" "$selected_list"
-    ui_rule
-    printf '%sMissing packages%s\n%s\n\n' "$UI_CYAN" "$UI_RESET" "$missing_list"
-    printf '%sManaged targets being replaced%s\n%s\n\n' "$UI_CYAN" "$UI_RESET" "$replacement_list"
-    ui_rule
-    ui_kv 'Backups' "$($no_backup && printf disabled || printf enabled)"
-    ui_kv 'Config root' "$config_root"
-    ui_kv 'Login shell' "$default_shell"
-    ui_kv 'AUR helper' "$aur_helper"
-    ui_kv 'Chaotic-AUR' "$($enable_chaotic_aur && printf enabled || printf disabled)"
-    $dry_run && ui_kv 'Mode' "${UI_YELLOW}DRY RUN${UI_RESET}"
     if ! $install_packages && ((${#missing_official_packages[@]} || ${#missing_aur_packages[@]})); then
+        ui_heading
         ui_confirm 'Install missing packages?' && install_packages=true
     fi
-    ui_wait_for_enter || exit 130
+    local review
+    printf -v review 'Selected modules\n%s\nMissing packages\n%s\n\nManaged targets being replaced\n%s\n\nBackups: %s\nConfig root: %s\nLogin shell: %s\nAUR helper: %s\nInstall packages: %s\nChaotic-AUR: %s\nWallpapers: %s\nDry run: %s' \
+        "$selected_list" "$missing_list" "$replacement_list" \
+        "$($no_backup && printf disabled || printf enabled)" "$config_root" \
+        "$default_shell" "$aur_helper" "$install_packages" "$enable_chaotic_aur" \
+        "$install_wallpapers" "$dry_run"
+    ui_review "$review" || exit 130
 }
 
 detect_gpu_drivers
@@ -1560,14 +1674,18 @@ install_item bat "$source_config_root/bat/themes" "$config_root/bat/themes"
 install_item cava "$source_config_root/cava/config" "$config_root/cava/config"
 install_item ssh "$source_config_root/ssh/config" "$HOME/.ssh/config.d/dotfiles.conf"
 install_include_line ssh "$HOME/.ssh/config" 'Include ~/.ssh/config.d/*.conf'
-install_item kitty "$source_config_root/kitty" "$config_root/kitty"
+install_kitty
 if is_selected wezterm && [[ -e $HOME/.wezterm.lua || -L $HOME/.wezterm.lua ]]; then
     skipped+=(wezterm)
     warnings+=('WezTerm deployment skipped: move ~/.wezterm.lua aside before installing the XDG configuration')
 else
     install_item wezterm "$source_config_root/wezterm" "$config_root/wezterm"
 fi
+install_item swaync "$source_config_root/swaync/config.json" "$config_root/swaync/config.json"
+install_item swaync "$source_config_root/swaync/style.css" "$config_root/swaync/style.css"
+install_item swaync "$repo_root/.local/bin/battery-guardian" "$HOME/.local/bin/battery-guardian"
 install_hypr_desktop
+install_optional_wallpapers
 install_waybar
 install_item rofi "$source_config_root/rofi" "$config_root/rofi"
 install_kairo_shell
@@ -1630,7 +1748,7 @@ if ((${#warnings[@]})); then
 fi
 printf 'Done. Restart your shell and configured applications.\n'
 if $interactive && declare -F ui_success >/dev/null; then
-    success_details="  Installed       ${installed[*]:-nothing}"
+    success_details="  $summary_label       ${installed[*]:-nothing}"
     if ((${#already_current[@]})); then success_details+=$'\n'"  Already current ${already_current[*]}"; fi
     if ((${#skipped[@]})); then success_details+=$'\n'"  Skipped         ${skipped[*]}"; fi
     if [[ -n $backup_root ]]; then success_details+=$'\n'"  Backups         $backup_root"; fi

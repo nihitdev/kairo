@@ -1,51 +1,78 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WALLDIR="$HOME/Pictures/wallpapers/catppuccin"
+WALLDIR="$HOME/Pictures/Wallpapers/CozyPixels/Catppuccin/Space & Cosmic"
+CACHE="$HOME/.cache/current-wallpaper"
+CURRENT="$HOME/.config/hypr/current-wallpaper"
+THEME="$HOME/.config/rofi/wallpaper/wallpaper.rasi"
 
-# Build Rofi entries:
-# filename + thumbnail using Rofi's icon metadata.
-selection="$(
+[[ -d "$WALLDIR" ]] || {
+    notify-send -a Hyprpaper "Wallpaper directory not found" "$WALLDIR"
+    exit 1
+}
+
+# Build the wallpaper list once.
+mapfile -d '' -t walls < <(
     find "$WALLDIR" -type f \
-        \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) \
-        -print0 |
-    while IFS= read -r -d '' img; do
-        name="$(basename "$img")"
-        printf '%s\0icon\x1f%s\n' "$name" "$img"
+        \( -iname '*.png' \
+        -o -iname '*.jpg' \
+        -o -iname '*.jpeg' \
+        -o -iname '*.webp' \) \
+        -print0
+)
+
+((${#walls[@]} > 0)) || {
+    notify-send -a Hyprpaper "No wallpapers found" "$WALLDIR"
+    exit 1
+}
+
+# Display filenames while passing the full image path as the Rofi icon.
+selection="$(
+    for wall in "${walls[@]}"; do
+        printf '%s\0icon\x1f%s\n' "$(basename "$wall")" "$wall"
     done |
-    rofi -dmenu \
-        -i \
-        -show-icons \
-        -p "󰸉  Wallpaper" \
-        -theme "$HOME/.config/rofi/wallpaper/wallpaper.rasi"
+        rofi -dmenu \
+            -i \
+            -show-icons \
+            -p "󰸉  Wallpaper" \
+            -theme "$THEME"
 )" || exit 0
 
-[[ -z "$selection" ]] && exit 0
+[[ -n "$selection" ]] || exit 0
 
-# Find selected image.
-wall="$(
-    find "$WALLDIR" -type f \
-        \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) \
-        -name "$selection" -print -quit
-)"
+wall=""
 
-[[ -z "$wall" ]] && exit 1
+for candidate in "${walls[@]}"; do
+    if [[ "$(basename "$candidate")" == "$selection" ]]; then
+        wall="$candidate"
+        break
+    fi
+done
 
-# Hyprpaper IPC.
-# Apply to every connected monitor instead of assuming a laptop output name.
-mapfile -t monitors < <(hyprctl -j monitors | jq -r '.[].name')
-(( ${#monitors[@]} > 0 )) || exit 1
+[[ -n "$wall" ]] || exit 1
+
+# Apply to every connected monitor.
+mapfile -t monitors < <(
+    hyprctl -j monitors | jq -r '.[].name'
+)
+
+((${#monitors[@]} > 0)) || exit 1
+
 for monitor in "${monitors[@]}"; do
-    result=$(hyprctl hyprpaper wallpaper "$monitor, $wall, cover")
+    result="$(
+        hyprctl hyprpaper wallpaper "$monitor, $wall, cover"
+    )"
+
     if [[ "$result" == *error* || "$result" == *Error* ]]; then
-        notify-send -a Hyprpaper 'Could not apply wallpaper' "$result"
+        notify-send -a Hyprpaper \
+            "Could not apply wallpaper" \
+            "$result"
         exit 1
     fi
 done
 
-# Hyprpaper reads this link at the next login.
-ln -sfn -- "$wall" "$HOME/.config/hypr/current-wallpaper"
+# Persistent wallpaper for future sessions / lock screen.
+ln -sfn -- "$wall" "$CURRENT"
 
-# Remember current wallpaper.
-mkdir -p "$HOME/.cache"
-printf '%s\n' "$wall" > "$HOME/.cache/current-wallpaper"
+mkdir -p "$(dirname "$CACHE")"
+printf '%s\n' "$wall" > "$CACHE"

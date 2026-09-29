@@ -1,6 +1,10 @@
+-- ╭──────────────────────────────────────────────╮
+-- │ Programs                                     │
+-- ╰──────────────────────────────────────────────╯
+
 P = {
     terminal    = "kitty",
-    browser     = "librewolf",
+    browser     = "helium-browser",
     fileManager = "dolphin",
     launcher    = "\"" .. os.getenv("HOME") .. "/.config/rofi/launchers/launcher.sh\"",
     editor      = "kitty nvim",

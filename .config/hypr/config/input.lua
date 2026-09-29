@@ -1,3 +1,7 @@
+-- ╭──────────────────────────────────────────────╮
+-- │ Input                                        │
+-- ╰──────────────────────────────────────────────╯
+
 hl.config({
     input = {
         kb_layout = "us",
@@ -10,6 +14,7 @@ hl.config({
     },
 })
 
+-- Three-finger horizontal workspace swipe.
 hl.gesture({
     fingers = 3,
     direction = "horizontal",

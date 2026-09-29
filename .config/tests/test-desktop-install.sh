@@ -24,6 +24,9 @@ run_install "$target" --only hypr > "$test_root/first"
 [[ $(cat "$target/.config/rofi/sentinel") == 'custom launcher' ]] || fail 'custom Rofi was overwritten'
 [[ -f $target/.local/share/fonts/archnemesis/Waycat.ttf ]] || fail 'Waycat font missing'
 [[ -f $target/.local/share/fonts/archnemesis/Skulltype.ttf ]] || fail 'Skulltype font missing'
+[[ -x $target/.local/bin/battery-guardian ]] || fail 'battery guardian missing'
+cmp "$repo_root/.config/swaync/config.json" "$target/.config/swaync/config.json"
+cmp "$repo_root/.config/swaync/style.css" "$target/.config/swaync/style.css"
 cmp "$repo_root/.config/waybar/config.jsonc" "$target/.config/waybar/config.jsonc"
 run_install "$target" --only hypr > "$test_root/repeat"
 ! grep -q 'Replace ' "$test_root/repeat" || fail 'desktop reinstall replaced unchanged files'
@@ -60,4 +63,30 @@ rm "$target/.cache/current-wallpaper" "$target/.config/hypr/current-wallpaper"
 HOME="$target" XDG_CONFIG_HOME="$target/.config" PATH="$test_root/mock-bin:$PATH" \
     bash "$target/.config/hypr/scripts/lock.sh"
 grep -q 'color = rgba(25, 23, 36, 1.0)' "$target/.config/hyprlock/hyprlock.conf" || fail 'lock fallback missing'
+# Wallpaper downloads use a staged checkout and participate in config rollback.
+cat > "$test_root/mock-bin/git" <<'MOCK'
+#!/usr/bin/env bash
+set -eu
+[[ $1 == clone ]] || exit 1
+mkdir -p "${@: -1}/.git"
+printf 'wallpaper fixture\n' > "${@: -1}/wallpaper.png"
+[[ ${FAIL_WALLPAPER_CLONE:-false} != true ]]
+MOCK
+printf '#!/usr/bin/env bash\nexit 1\n' > "$test_root/mock-bin/bat"
+chmod +x "$test_root/mock-bin/git" "$test_root/mock-bin/bat"
+for scenario in success clone-failure rollback; do
+    target="$test_root/wallpapers-$scenario"
+    mkdir -p "$target"
+    args=(--only kitty --install-wallpapers)
+    [[ $scenario != rollback ]] || args+=(--only bat)
+    if PATH="$test_root/mock-bin:$PATH" FAIL_WALLPAPER_CLONE="$([[ $scenario == clone-failure ]] && echo true || echo false)" \
+        run_install "$target" "${args[@]}" > "$test_root/wallpapers-$scenario.log" 2>&1; then
+        [[ $scenario == success ]] || fail "$scenario unexpectedly succeeded"
+        [[ -f $target/Pictures/Wallpapers/CozyPixels/wallpaper.png ]] || fail 'wallpapers missing'
+    else
+        [[ $scenario != success ]] || fail 'wallpaper installation failed'
+        [[ ! -e $target/Pictures/Wallpapers/CozyPixels ]] || fail 'partial wallpaper checkout remained'
+        [[ ! -e $target/.config/kitty ]] || fail 'wallpaper failure did not roll back configs'
+    fi
+done
 printf 'Desktop installer tests passed.\n'
