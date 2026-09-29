@@ -128,3 +128,20 @@ opt.listchars = {
   trail = "·",
   nbsp = "␣",
 }
+
+-- Quiet chrome; native borders also cover LSP floats without plugin overrides.
+opt.winborder = "rounded"
+opt.fillchars:append({
+  eob = " ",
+  vert = "│",
+  horiz = "─",
+  horizup = "┴",
+  horizdown = "┬",
+  vertleft = "┤",
+  vertright = "├",
+  verthoriz = "┼",
+})
+opt.pumheight = 10
+opt.title = true
+opt.titlestring = "%t — ARCHNEMESIS // KAIRO"
+vim.g.trouble_lualine = false

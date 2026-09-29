@@ -7,11 +7,7 @@ return {
   -- ==========================================================================
   -- 🤖 Auto pairs
   -- ==========================================================================
-  {
-    "windwp/nvim-autopairs",
-    event = "InsertEnter",
-    config = true,
-  },
+  { "windwp/nvim-autopairs", enabled = false }, -- mini.pairs owns pairing
 
   -- ==========================================================================
   -- 🏷️ Highlight TODO / FIXME / HACK / NOTE
@@ -132,7 +128,7 @@ return {
         function()
           require("gitsigns").nav_hunk("next")
         end,
-        desc = "🔥 Next Git hunk",
+        desc = "Next Git hunk",
       },
 
       {
@@ -140,7 +136,7 @@ return {
         function()
           require("gitsigns").nav_hunk("prev")
         end,
-        desc = "🔥 Previous Git hunk",
+        desc = "Previous Git hunk",
       },
 
       {
@@ -148,7 +144,7 @@ return {
         function()
           require("gitsigns").preview_hunk()
         end,
-        desc = "👀 Preview Git hunk",
+        desc = "Preview Git hunk",
       },
 
       {
@@ -156,7 +152,7 @@ return {
         function()
           require("gitsigns").blame_line()
         end,
-        desc = "🕵️ Git blame",
+        desc = "Git blame",
       },
     },
   },
@@ -184,41 +180,12 @@ return {
   --
   -- Put cursor on variable → other uses become highlighted.
   -- ==========================================================================
-  {
-    "RRethy/vim-illuminate",
-
-    event = { "BufReadPost", "BufNewFile" },
-
-    opts = {
-      delay = 150,
-      large_file_cutoff = 2000,
-    },
-
-    config = function(_, opts)
-      require("illuminate").configure(opts)
-    end,
-  },
+  { "RRethy/vim-illuminate", enabled = false }, -- Snacks.words owns references
 
   -- ==========================================================================
   -- 📐 Indentation guides
   -- ==========================================================================
-  {
-    "lukas-reineke/indent-blankline.nvim",
-
-    main = "ibl",
-
-    opts = {
-      indent = {
-        char = "│",
-      },
-
-      scope = {
-        enabled = true,
-        show_start = false,
-        show_end = false,
-      },
-    },
-  },
+  { "lukas-reineke/indent-blankline.nvim", enabled = false }, -- Snacks.indent owns guides
 
   -- ==========================================================================
   -- 🧭 Breadcrumbs

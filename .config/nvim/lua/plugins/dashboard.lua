@@ -9,16 +9,10 @@ return {
           end,
 
           header = [[
-
-        ███╗   ██╗██╗   ██╗██╗███╗   ███╗
-        ████╗  ██║██║   ██║██║████╗ ████║
-        ██╔██╗ ██║██║   ██║██║██╔████╔██║
-        ██║╚██╗██║╚██╗ ██╔╝██║██║╚██╔╝██║
-        ██║ ╚████║ ╚████╔╝ ██║██║ ╚═╝ ██║
-        ╚═╝  ╚═══╝  ╚═══╝  ╚═╝╚═╝     ╚═╝
-
-              ⚡ edit fast. ship faster. ⚡
-
+        ╭──────────────────────────╮
+        │   A R C H N E M E S I S  │
+        │      NEOVIM // KAIRO     │
+        ╰──────────────────────────╯
           ]],
 
           keys = {
@@ -81,7 +75,7 @@ return {
 
         sections = {
           { section = "header" },
-          { section = "keys", gap = 1, padding = 1 },
+          { section = "keys", gap = 0, padding = 1 },
           { section = "startup" },
         },
       },

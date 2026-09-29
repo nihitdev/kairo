@@ -35,6 +35,7 @@ require("lazy").setup({
   install = {
     colorscheme = { "tokyonight", "habamax" },
   },
+  ui = { border = "rounded" },
   checker = {
     enabled = true,
     notify = false,
