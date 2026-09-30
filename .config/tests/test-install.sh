@@ -82,6 +82,9 @@ run_nvim_payload_test() {
     [[ -f $home/.config/nvim/lua/plugins/editor.lua ]] || fail 'Neovim editor module missing'
     [[ -f $home/.config/nvim/lua/plugins/lsp.lua ]] || fail 'Neovim LSP module missing'
     [[ -f $home/.config/nvim/lua/plugins/ui.lua ]] || fail 'Neovim UI module missing'
+    [[ -f $home/.config/nvim/lua/plugins/archnemesis-v2.lua ]] || fail 'Neovim development module missing'
+    [[ -f $home/.config/nvim/lua/plugins/power.lua ]] || fail 'Neovim power module missing'
+    diff -qr "$repo_root/.config/nvim" "$home/.config/nvim" >/dev/null || fail 'Neovim payload differs from repository'
     [[ ! -e $home/.config/nvim/lua/plugins/cord.lua ]] || fail 'obsolete Neovim Cord plugin remained'
 }
 
@@ -431,6 +434,27 @@ run_wezterm_payload_test() {
     assert_file_contains "$legacy_home/.wezterm.lua" 'return {}'
 }
 
+run_nvim_dependency_test() {
+    local home="$test_root/nvim-dependencies" mock_bin="$test_root/nvim-bin" plan package
+    mkdir -p "$home" "$mock_bin"
+    printf '#!/usr/bin/env bash\nexit 0\n' > "$mock_bin/pacman"
+    chmod +x "$mock_bin/pacman"
+    # Treat the fixture as a fresh Arch machine, regardless of host packages.
+    command() {
+        if [[ $1 == -v && $2 == rust-analyzer ]]; then return 1; fi
+        builtin command "$@"
+    }
+    export -f command
+    plan=$(HOME="$home" XDG_CONFIG_HOME="$home/.config" PATH="$mock_bin:$PATH" CI=true \
+        "$repo_root/install.sh" --dry-run --no-backup --install-packages --only nvim)
+    unset -f command
+    for package in curl unzip tar gzip gcc make ripgrep fd nodejs npm go zig prettier ruff taplo-cli rust-analyzer; do
+        [[ $plan =~ (^|[[:space:]])$package($|[[:space:]]) ]] || fail "Neovim dependency missing: $package"
+    done
+    [[ ! -e $home/.config/nvim ]] || fail 'Neovim package preview deployed configs'
+    [[ ! -e $home/.dotfiles-backup ]] || fail 'Neovim package preview created backups'
+}
+
 run_kitty_override_test() {
     local home="$test_root/kitty-overrides"
     mkdir -p "$home/.config/kitty"
@@ -449,6 +473,7 @@ run_kitty_override_test
 run_wezterm_payload_test
 run_normal_install_test
 run_nvim_payload_test
+run_nvim_dependency_test
 run_preservation_test
 run_traversal_test
 run_symlink_escape_test

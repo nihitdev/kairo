@@ -131,7 +131,7 @@ return {
       },
 
       {
-        "<leader>tt",
+        "<leader>`",
         function()
           Snacks.terminal()
         end,
@@ -376,9 +376,7 @@ return {
         mappings = true,
       },
 
-      spec = {
-        { "<leader>t", group = "Terminal" },
-      },
+      spec = {},
     },
   },
   {

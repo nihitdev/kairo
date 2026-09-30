@@ -19,3 +19,55 @@ vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter", "WinLeave" }, {
     vim.wo.cursorline = event.event ~= "WinLeave" and vim.bo.buftype == ""
   end,
 })
+
+-- ARCHNEMESIS V2 START
+local function archnemesis_dev_highlights()
+  local links = {
+    -- DAP
+    DapBreakpoint = "DiagnosticError",
+    DapBreakpointCondition = "DiagnosticWarn",
+    DapBreakpointRejected = "DiagnosticHint",
+    DapLogPoint = "DiagnosticInfo",
+    DapStopped = "Visual",
+
+    -- Neotest
+    NeotestPassed = "DiagnosticOk",
+    NeotestFailed = "DiagnosticError",
+    NeotestRunning = "DiagnosticWarn",
+    NeotestSkipped = "Comment",
+    NeotestTest = "Normal",
+    NeotestNamespace = "Directory",
+    NeotestFile = "Directory",
+    NeotestDir = "Directory",
+
+    -- Overseer
+    OverseerRUNNING = "DiagnosticWarn",
+    OverseerSUCCESS = "DiagnosticOk",
+    OverseerFAILURE = "DiagnosticError",
+    OverseerCANCELED = "Comment",
+
+    -- Diffview
+    DiffviewFilePanelTitle = "Title",
+    DiffviewFilePanelCounter = "Comment",
+    DiffviewStatusAdded = "GitSignsAdd",
+    DiffviewStatusModified = "GitSignsChange",
+    DiffviewStatusDeleted = "GitSignsDelete",
+  }
+
+  for group, target in pairs(links) do
+    vim.api.nvim_set_hl(0, group, {
+      link = target,
+      default = false,
+    })
+  end
+end
+
+local archnemesis_dev_group = vim.api.nvim_create_augroup("ArchNemesisDevHighlights", { clear = true })
+
+vim.api.nvim_create_autocmd("ColorScheme", {
+  group = archnemesis_dev_group,
+  callback = archnemesis_dev_highlights,
+})
+
+vim.schedule(archnemesis_dev_highlights)
+-- ARCHNEMESIS V2 END

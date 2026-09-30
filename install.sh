@@ -626,6 +626,15 @@ collect_missing_packages() {
     fi
     if is_selected nvim; then
         package_is_installed git git || record_unique missing_official_packages git
+        # Language extras need runtimes for tests/DAP and Mason's installers.
+        # Mason owns LSPs/debug adapters and stylua/shfmt/goimports/gofumpt;
+        # these formatter fallbacks are explicitly configured but not Mason-managed.
+        for package in curl unzip tar gzip gcc make ripgrep fd nodejs npm go zig prettier ruff taplo-cli; do
+            package_is_installed "$package" || record_unique missing_official_packages "$package"
+        done
+        # rustaceanvim disables mason-lspconfig's rust_analyzer installation.
+        # Arch's rust-analyzer pulls rust-src and a Rust provider (including rustfmt).
+        package_is_installed rust-analyzer rust-analyzer || record_unique missing_official_packages rust-analyzer
     fi
     for profile in "${profiles[@]}"; do
         for package in ${profile_packages[$profile]}; do
