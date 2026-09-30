@@ -607,9 +607,11 @@ collect_missing_packages() {
     if is_selected bash || is_selected fish || is_selected nushell; then
         package_is_installed zoxide zoxide || record_unique missing_official_packages zoxide
     fi
-    if is_selected fish; then
-        package_is_installed fzf fzf || record_unique missing_official_packages fzf
-        package_is_installed curl curl || record_unique missing_official_packages curl
+    if is_selected zsh || is_selected fish; then
+        # Shared interactive tools, previews, editor defaults, and integrations.
+        for package in git fzf fd eza bat neovim yazi lazygit btop starship zoxide mise direnv; do
+            package_is_installed "$package" || record_unique missing_official_packages "$package"
+        done
     fi
     if is_selected kairo-shell; then
         for package in "${kairo_shell_packages[@]}"; do
@@ -1272,42 +1274,40 @@ install_zsh_integrations() {
     install_item zsh "$external_root/oh-my-zsh" "$zsh_root/oh-my-zsh"
 }
 
-install_fish_integrations() {
-    local plugin_manifest="$config_root/fish/fish_plugins"
-    is_selected fish || return 0
-    $dry_run && plugin_manifest="$source_config_root/fish/fish_plugins"
-    [[ -f $plugin_manifest ]] || {
-        warnings+=('Fish plugin manifest is missing; skipped Fisher plugins')
-        return 0
-    }
-    if ! $install_packages; then
-        warnings+=('Fish plugins were not synced; rerun with --install-packages to install Fisher and plugins')
-        return 0
-    fi
-    if $dry_run; then
-        describe "Install Fisher and sync plugins from $plugin_manifest"
-        return 0
-    fi
-    command -v fish >/dev/null 2>&1 || {
-        warnings+=('Fish is unavailable; skipped Fisher plugin installation')
-        return 0
-    }
-    if ! fish -c 'type -q fisher'; then
-        local fisher_source
-        ensure_external_root
-        fisher_source="$external_root/fisher.fish"
-        if command -v curl >/dev/null 2>&1; then
-            curl -fsSL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish -o "$fisher_source"
-        elif command -v wget >/dev/null 2>&1; then
-            wget -qO "$fisher_source" https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish
-        else
-            printf 'curl or wget is required to install Fisher.\n' >&2
-            return 1
+install_zsh_plugins() {
+    is_selected zsh || return 0
+    # These paths match the live modular plugin loader. Preserve existing installs.
+    local root="$HOME/.local/share/zsh/plugins" index target checkout
+    local -a names=(fzf-tab zsh-autopair zsh-you-should-use forgit)
+    local -a repos=(Aloxaf/fzf-tab hlissner/zsh-autopair MichaelAquilina/zsh-you-should-use wfxr/forgit)
+    local -a files=(fzf-tab.plugin.zsh autopair.zsh you-should-use.plugin.zsh forgit.plugin.zsh)
+    # Reproduce the plugin revisions used by the working live configuration.
+    local -a commits=(
+        24105b15714bfec37989ed5c5b6e60f572253019
+        449a7c3d095bc8f3d78cf37b9549f8bb4c383f3d
+        5f3d129864ee4505043d88c3486224f1d75b692e
+        3cd8dd081f988046dd2148e5002fedd08da514e3
+    )
+    for index in "${!names[@]}"; do
+        target="$root/${names[index]}"
+        [[ ! -r $target/${files[index]} && ! -r /usr/share/zsh/plugins/${names[index]}/${files[index]} ]] || continue
+        assert_safe_destination "$target"
+        if ! $install_packages; then
+            warnings+=("${names[index]} is missing; rerun with --install-packages to install it")
+            continue
         fi
-        fish -c "source '$fisher_source'; and fisher install jorgebucaran/fisher"
-    fi
-    fish -c 'fisher update'
-    describe "Synced Fish plugins from $config_root/fish/fish_plugins"
+        if $dry_run; then
+            describe "Install Zsh plugin ${names[index]} (${commits[index]}) -> $target"
+            continue
+        fi
+        ensure_external_root
+        checkout="$external_root/${names[index]}"
+        git clone --filter=blob:none --no-checkout "https://github.com/${repos[index]}.git" "$checkout"
+        # Reset only the new staging checkout; retain its tracking branch for rice-update.
+        git -C "$checkout" reset --hard "${commits[index]}"
+        [[ -r $checkout/${files[index]} ]] || return 1
+        install_item zsh "$checkout" "$target"
+    done
 }
 
 install_lazyvim_plugins() {
@@ -1657,6 +1657,7 @@ elif is_selected bash; then
 fi
 install_item zsh "$source_config_root/zsh/.zshrc" "$HOME/.zshrc"
 install_item zsh "$source_config_root/zsh" "$config_root/zsh"
+install_seed_item zsh "$source_config_root/starship/zsh.toml" "$config_root/starship/zsh.toml"
 install_item nushell "$source_config_root/nushell/config.nu" "$config_root/nushell/config.nu"
 install_seed_item nushell "$source_config_root/nushell/dotfiles-init/starship.nu" "$config_root/nushell/dotfiles-init/starship.nu"
 install_seed_item nushell "$source_config_root/nushell/dotfiles-init/zoxide.nu" "$config_root/nushell/dotfiles-init/zoxide.nu"
@@ -1700,13 +1701,14 @@ install_item rofi "$source_config_root/rofi" "$config_root/rofi"
 install_kairo_shell
 if [[ -d $source_config_root/fish ]]; then
     install_item fish "$source_config_root/fish" "$config_root/fish"
+    install_seed_item fish "$source_config_root/starship/fish.toml" "$config_root/starship/fish.toml"
 elif is_selected fish; then
     skipped+=(fish)
 fi
 
 if $interactive; then ui_stage 5 7 'Configuring shells'; else describe '[5/7] Configuring shells'; fi
 install_zsh_integrations
-install_fish_integrations
+install_zsh_plugins
 
 if is_selected git && ! $dry_run && command -v git >/dev/null 2>&1; then
     # Enforce the repository's Linux line-ending policy.

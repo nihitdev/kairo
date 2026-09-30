@@ -1,30 +1,37 @@
-# Zsh Rice
+# ARCHNEMESIS // ZSH
 
-Prompt: `~/.config/starship/zsh.toml`
-Shell config: `~/.config/zsh/config.zsh`
+## Files
 
-Oh My Zsh provides the base plugin set: git, sudo, extract, copypath, copyfile,
-dirhistory, colored-man-pages, command-not-found, history, jsontools, urltools.
+- `config.zsh` — module loader
+- `env.zsh` — environment and default applications
+- `options.zsh` — history and shell behavior
+- `completion.zsh` — completion configuration
+- `plugins.zsh` — Oh My Zsh and external plugins
+- `keybinds.zsh` — Emacs-style keybindings
+- `aliases.zsh` — command shortcuts
+- `functions.zsh` — shell functions
+- `integrations.zsh` — mise, zoxide, direnv and Starship
+- `highlighting.zsh` — syntax highlighting loaded last
 
-Standalone plugins are loaded when present. Arch packages cover
-zsh-completions, zsh-autosuggestions, zsh-history-substring-search, and
-zsh-syntax-highlighting; fzf-tab is used when a local checkout exists.
+## Editing and plugins
 
-Keys:
-- Tab: completion menu, with fzf-tab when available
-- Right arrow or Ctrl+Space: accept autosuggestion
-- Up / Down: search matching history
-- Ctrl+R: fuzzy command history
-- Ctrl+T: fuzzy file search
-- Alt+C: fuzzy directory search
-- Alt+Left / Alt+Right: previous / next directory
-- Escape twice: prepend sudo
-- Ctrl+Left / Ctrl+Right: move by word
+Zsh uses Emacs-style editing (`bindkey -e`). Ctrl+Left/Right moves by word,
+Up/Down searches matching history, and Ctrl+Space accepts autosuggestions.
+FZF supplies its own history/file/directory bindings when available.
 
-Commands:
-- `z NAME` / `zi`: smart directory jumps
-- `y`: Yazi file manager, exiting into the selected directory
-- `ls` / `ll` / `la` / `lt`: eza-powered file lists and tree
-- `mkcd DIR`: create and enter a directory
-- `rice-update`: update local plugin repositories
-- `reload`: restart Zsh
+Oh My Zsh supplies the base plugin set. External plugins provide fzf-tab,
+autosuggestions, history substring search, autopair, alias suggestions, and
+Forgit. Forgit keeps `FORGIT_NO_ALIASES=1`, preserving ARCHNEMESIS Git shortcuts.
+Syntax highlighting is sourced last, after all integrations and widgets.
+
+All editor environment variables use Neovim. The prompt remains the existing
+`starship/zsh.toml`; Fastfetch is available through aliases only.
+
+## Useful extras
+
+- `vf` — fuzzy-find a file and open it in Neovim
+- `cdf` — fuzzy-find a directory and enter it
+- `y` — Yazi with cwd handoff
+- `mkcd DIR` — create and enter a directory
+- `rice-update` — update Oh My Zsh and local Zsh plugins
+- `rice-help` — show this file

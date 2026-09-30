@@ -176,21 +176,22 @@ run_fish_payload_test() {
         "$repo_root/install.sh" --only fish >/dev/null
     [[ -f $home/.config/fish/config.fish ]] || fail 'Fish config missing'
     [[ -f $home/.config/fish/README.md ]] || fail 'Fish README missing'
-    [[ -f $home/.config/fish/conf.d/rashin.fish ]] || fail 'Fish conf.d payload missing'
-    [[ -f $home/.config/fish/fish_plugins ]] || fail 'Fish plugin manifest missing'
+    [[ -f $home/.config/fish/conf.d/00-env.fish ]] || fail 'Fish environment module missing'
+    [[ -f $home/.config/fish/conf.d/90-integrations.fish ]] || fail 'Fish integrations missing'
+    diff -qr "$repo_root/.config/fish" "$home/.config/fish" >/dev/null || fail 'Fish payload differs from live sync'
+    [[ ! -e $home/.config/fish/fish_plugins ]] || fail 'obsolete Fish plugins were installed'
+    [[ -f $home/.config/starship/fish.toml ]] || fail 'Fish prompt was not seeded'
     [[ ! -e $home/.config/fish/fish_variables ]] || fail 'Machine-specific Fish variables were installed'
 }
 
-run_fisher_dry_run_test() {
-    local home="$test_root/fisher-dry-run" plan
+run_fish_native_dry_run_test() {
+    local home="$test_root/fish-native-dry-run" plan
     mkdir -p "$home"
     plan=$(HOME="$home" XDG_CONFIG_HOME="$home/.config" CI=true \
-        "$repo_root/install.sh" --dry-run --install-packages --only fish)
-    [[ $plan == *'Install Fisher and sync plugins'* ]] || fail 'Fisher dry-run plan missing'
-    [[ ! -e $home/.config/fish ]] || fail 'Fisher dry-run changed the filesystem'
-    assert_file_contains "$repo_root/.config/fish/fish_plugins" 'patrickf1/fzf.fish'
-    assert_file_contains "$repo_root/.config/fish/fish_plugins" 'jorgebucaran/autopair.fish'
-    assert_file_contains "$repo_root/.config/fish/fish_plugins" 'gazorby/fish-abbreviation-tips'
+        "$repo_root/install.sh" --dry-run --no-backup --install-packages --only fish)
+    [[ $plan == *'Install fish'* ]] || fail 'Fish dry-run payload missing'
+    [[ $plan != *Fisher* && $plan != *'Set default shell'* ]] || fail 'Fish requested plugins or a login-shell change'
+    [[ ! -e $home/.config/fish ]] || fail 'Fish dry-run changed the filesystem'
 }
 
 run_lazyvim_dry_run_test() {
@@ -334,9 +335,9 @@ run_missing_optional_source_test() {
 
 run_shell_starship_reference_test() {
     assert_file_contains "$repo_root/.config/bash/.bashrc" '$HOME/.config/starship/bash.toml'
-    assert_file_contains "$repo_root/.config/fish/config.fish" '$HOME/.config/starship/fish.toml'
+    assert_file_contains "$repo_root/.config/fish/conf.d/00-env.fish" '$HOME/.config/starship/fish.toml'
     assert_file_contains "$repo_root/.config/nushell/config.nu" '/starship/nushell.toml'
-    assert_file_contains "$repo_root/.config/zsh/config.zsh" '$HOME/.config/starship/zsh.toml'
+    assert_file_contains "$repo_root/.config/zsh/env.zsh" '$XDG_CONFIG_HOME/starship/zsh.toml'
     if grep -R -E --exclude-dir=.git '(\.config/starship\.toml|starship/starship\.toml)' "$repo_root" >/dev/null; then
         fail 'stale single-file Starship path remains'
     fi
@@ -482,7 +483,7 @@ run_bash_payload_test
 run_nushell_payload_test
 run_kitty_payload_test
 run_fish_payload_test
-run_fisher_dry_run_test
+run_fish_native_dry_run_test
 run_lazyvim_dry_run_test
 run_starship_payload_test
 run_dry_run_immutability_test
@@ -503,4 +504,5 @@ bash "$repo_root/.config/tests/test-kairo-shell.sh"
 bash "$repo_root/.config/tests/test-desktop-install.sh"
 bash "$repo_root/.config/tests/test-default-shell.sh"
 python3 "$repo_root/.config/tests/test-swaync.py"
+python3 "$repo_root/.config/tests/test-shell-configs.py"
 printf 'Linux installer safety tests passed.\n'

@@ -322,7 +322,18 @@ Package installation is opt-in through `--install-packages` or the interactive r
 - A missing helper can be bootstrapped from its official AUR PKGBUILD.
 - Kairo does not perform a surprise full-system upgrade.
 
-When Fish and package installation are selected, Kairo installs Fisher when required and synchronizes the plugins declared in `.config/fish/fish_plugins`: `fzf.fish`, `autopair.fish`, and `fish-abbreviation-tips`. Fish provides autosuggestions, syntax highlighting, completions, and history search natively. Generated functions and machine-specific `fish_variables` stay outside version control.
+Zsh uses the modular ARCHNEMESIS configuration, with syntax highlighting loaded
+last and Forgit configured to preserve existing aliases. With package installation
+enabled, missing fzf-tab, autopair, You Should Use, and Forgit plugins are installed
+at the pinned revisions from the working setup. Existing plugin installations are
+preserved.
+
+Fish is an optional interactive shell alongside Zsh. Its ARCHNEMESIS environment,
+aliases, helper functions, colors, and mise/zoxide/direnv/Starship integrations use
+Fish-native suggestions, syntax highlighting, and completions; no Fisher plugins
+are installed. Selecting Fish does not change the login shell. Scoped Zsh/Fish
+installs seed their existing Starship prompt configuration only when absent.
+Both shells expose Fastfetch through aliases, without running it during startup.
 
 For Neovim, Kairo can bootstrap `lazy.nvim` and perform a headless LazyVim sync using the tracked `lazy-lock.json`. Without package installation, LazyVim performs its normal bootstrap when Neovim first starts.
 

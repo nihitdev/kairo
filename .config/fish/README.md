@@ -1,26 +1,21 @@
-# Fish Rice
+# ARCHNEMESIS // FISH
 
-Prompt: `~/.config/starship/fish.toml`
-Shell config: `~/.config/fish/config.fish`
+Fish-native shell configuration.
 
-Plugins managed by Fisher: fzf.fish, autopair.fish, fish-abbreviation-tips.
-Fish provides autosuggestions, syntax highlighting, completions, and history
-search natively.
+## Layout
 
-Keys:
-- Ctrl+R: fuzzy history
-- Ctrl+T: fuzzy file search with previews
-- Ctrl+Alt+L: Git log search
-- Ctrl+Alt+S: Git status search
-- Ctrl+Alt+P: process search
-- Ctrl+Alt+V: variable search
-- Right arrow: accept autosuggestion
-- Tab: Fish completion menu
+- config.fish — interactive entrypoint
+- conf.d/00-env.fish — environment and applications
+- conf.d/10-options.fish — Fish UI and colors
+- conf.d/20-aliases.fish — aliases
+- conf.d/90-integrations.fish — mise, zoxide, direnv, Starship
+- functions/y.fish — Yazi cwd handoff
+- functions/mkcd.fish — create + enter directory
+- functions/vf.fish — fuzzy file -> Neovim
+- functions/cdf.fish — fuzzy directory jump
 
-Commands:
-- `z` / `zi`: smart directory jumps
-- `y`: Yazi file manager, exiting into the selected directory
-- `ls` / `ll` / `la` / `lt`: eza-powered file lists and tree
-- `mkcd DIR`: create and enter a directory
-- `rice-update`: update Fisher plugins
-- `reload`: restart Fish
+Fish already provides autosuggestions and completions natively.
+
+Fish is an optional interactive shell alongside Zsh. Installing it does not
+change the login shell. No plugin manager is needed for its native suggestions,
+syntax highlighting, and completions. Fastfetch is available through aliases only.
