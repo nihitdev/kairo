@@ -108,27 +108,20 @@ run_install "$home" --only kairo-shell > "$test_root/shell-only.log"
 [[ ! -e $home/config/hypr && -f $home/config/kairo/settings.json ]] || fail 'shell-only selection changed Hyprland or omitted settings'
 # Exercise actual startup code, not merely the generated override file.
 if command -v lua >/dev/null 2>&1; then
-    lua - "$repo_root/.config/hypr/config/autostart.lua" <<'LUA'
-local path = arg[1]
-for _, custom in ipairs({false, true}) do
-    local calls = {}
-    package.loaded["config.bar"] = nil
-    package.preload["config.bar"] = custom and function() return "custom-kairod start" end or nil
-    hl = {
-        on = function(_, callback) callback() end,
-        exec_cmd = function(command) table.insert(calls, command) end,
-    }
-    dofile(path)
-    local commands = table.concat(calls, "\n")
-    assert(commands:find("cliphist store", 1, true), "clipboard watchers missing")
-    assert(commands:find("swaync", 1, true), "notification daemon missing")
-    if custom then
-        assert(commands:find("custom-kairod start", 1, true), "bar override ignored")
-        assert(not commands:find("waybar", 1, true), "both desktop shells started")
-    else
-        assert(commands:find("waybar", 1, true), "default Waybar startup missing")
-    end
-end
+    # Test the installed integration rather than the unmodified live source.
+    lua - "$test_root/home with ' quote/config/hypr/config/autostart.lua" <<'LUA'
+local calls = {}
+package.preload["config.bar"] = function() return "custom-kairod start" end
+hl = {
+    on = function(_, callback) callback() end,
+    exec_cmd = function(command) table.insert(calls, command) end,
+}
+dofile(arg[1])
+local commands = table.concat(calls, "\n")
+assert(commands:find("cliphist store", 1, true), "clipboard watchers missing")
+assert(commands:find("swaync", 1, true), "notification daemon missing")
+assert(commands:find("custom-kairod start", 1, true), "bar override ignored")
+assert(not commands:find("waybar", 1, true), "both desktop shells started")
 LUA
 fi
 printf 'Kairo Shell integration tests passed.\n'

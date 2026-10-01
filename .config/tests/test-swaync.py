@@ -100,6 +100,7 @@ class SwayNCTest(unittest.TestCase):
 
     @unittest.skipUnless(shutil.which('lua'), 'Lua is unavailable')
     def test_autostart_and_existing_blur_rules(self):
+        self.install('--only', 'hypr')
         script = '''
 local commands, namespaces = {}, {}
 hl = {
@@ -113,16 +114,17 @@ hl = {
 }
 dofile(arg[1])
 dofile(arg[2])
-local guardians, swaync = 0, 0
+local guardians, swaync, waybar = 0, 0, 0
 for _, command in ipairs(commands) do
     if command:find('battery-guardian', 1, true) then guardians = guardians + 1 end
     if command:find('-x swaync', 1, true) then swaync = swaync + 1 end
+    if command:find('-x waybar', 1, true) then waybar = waybar + 1 end
 end
-assert(guardians == 1 and swaync == 1)
+assert(guardians == 1 and swaync == 1 and waybar == 1)
 assert(namespaces['^swaync-control-center$'] == 1)
 assert(namespaces['^swaync-notification-window$'] == 1)
 '''
-        subprocess.run(['lua', '-', str(ROOT / '.config/hypr/config/autostart.lua'),
+        subprocess.run(['lua', '-', str(self.home / 'config/hypr/config/autostart.lua'),
                         str(ROOT / '.config/hypr/config/layers.lua')],
                        input=script, text=True, check=True, capture_output=True, timeout=5)
 

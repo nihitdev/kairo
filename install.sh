@@ -1013,6 +1013,10 @@ install_hypr_desktop() {
     ensure_external_root
     temp_hypr="$external_root/hypr"
     cp -a -- "$hypr_source" "$temp_hypr"
+    # Keep the live config as the source; add Kairo's notification startup on deploy.
+    if ! grep -q '"swaync"' "$temp_hypr/config/autostart.lua"; then
+        sed -i '/^[[:space:]]*"waybar",[[:space:]]*$/i\        "swaync",' "$temp_hypr/config/autostart.lua"
+    fi
     if [[ -n $wallpaper ]]; then
         if [[ $wallpaper == "$config_root/hypr/"* ]]; then
             cp -L -- "$wallpaper" "$temp_hypr/current-wallpaper"
@@ -1026,6 +1030,9 @@ install_hypr_desktop() {
         command=${command//\\/\\\\}
         command=${command//\"/\\\"}
         printf 'return "%s"\n' "$command" > "$temp_hypr/config/bar.lua"
+        # The current live config starts Waybar directly; replace only that entry.
+        sed -i '/^[[:space:]]*"waybar",[[:space:]]*$/d' "$temp_hypr/config/autostart.lua"
+        sed -i '/    -- Session daemons\./i\    hl.exec_cmd(require("config.bar"))\n' "$temp_hypr/config/autostart.lua"
     fi
     install_item hypr "$temp_hypr" "$config_root/hypr"
 }
