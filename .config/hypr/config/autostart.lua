@@ -3,8 +3,8 @@
 -- ╰──────────────────────────────────────────────╯
 
 hl.on("hyprland.start", function()
-    hl.exec_cmd('pgrep -f "wl-paste --type text --watch cliphist store" >/dev/null || wl-paste --type text --watch cliphist store')
-    hl.exec_cmd('pgrep -f "wl-paste --type image --watch cliphist store" >/dev/null || wl-paste --type image --watch cliphist store')
+   hl.exec_cmd([[sh -c 'pgrep -f "[w]l-paste --type text --watch cliphist store" >/dev/null || exec wl-paste --type text --watch cliphist store']])
+   hl.exec_cmd([[sh -c 'pgrep -f "[w]l-paste --type image --watch cliphist store" >/dev/null || exec wl-paste --type image --watch cliphist store']])
     -- Export the Wayland session for D-Bus activated applications.
     hl.exec_cmd(
         "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
