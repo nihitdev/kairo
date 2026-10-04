@@ -68,17 +68,33 @@ Want to inspect everything before Kairo writes anything?
 
 ## Screenshots
 
-### ARCHNEMESIS desktop
+Captured from the live **ARCHNEMESIS Hyprland** setup.
 
-![ARCHNEMESIS Hyprland desktop with Kitty and Waybar](screenshots/archnemesis-desktop.png)
+### Desktop
 
-The existing Hyprland setup: dark Rosé Pine colors, compact borders, Kitty, and the skull/cat Waybar. This capture uses a personal wallpaper; wallpapers are not part of the installer payload.
+![ARCHNEMESIS Hyprland desktop](screenshots/desktop.png)
 
-### Installer preview
+Dark wallpaper, compact spacing, and the Rosé Pine Waybar.
 
-![Kairo interactive installer in dry-run mode](screenshots/installer-dry-run.png)
+### Neovim
 
-The actual installer welcome screen, captured with `./install.sh --dry-run` in Kitty on MangoWC. No packages or configuration changes were applied.
+![ARCHNEMESIS Neovim startup dashboard in Kitty](screenshots/neovim.png)
+
+The ARCHNEMESIS dashboard shown when launching `nvim` without opening a file.
+
+### Waybar
+
+![Hyprland Waybar with workspaces, Dwindle indicator, animated artwork, and system controls](screenshots/waybar.png)
+
+Workspaces, layout indicator, skull/cat artwork, hardware controls, notifications, and the power menu.
+
+### Lock screen
+
+![ARCHNEMESIS Hyprlock screen](screenshots/lockscreen.png)
+
+Wallpaper-aware Hyprlock with a blurred background, clock, and matching accents.
+
+The wallpaper shown is personal artwork and is not included in the installer payload.
 
 ---
 
