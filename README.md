@@ -11,7 +11,7 @@
 [![Shell](https://img.shields.io/badge/Installer-Bash-a6e3a1?logo=gnubash&logoColor=11111b)](install.sh)
 [![License](https://img.shields.io/github/license/nihitdev/kairo)](LICENSE)
 
-[Website](https://get-kairo.vercel.app) · [Quick start](#quick-start) · [Features](#features) · [Modules](#included-configurations) · [Safety](#safety-first)
+[Website](https://get-kairo.vercel.app) · [Quick start](#quick-start) · [Screenshots](#screenshots) · [Features](#features) · [Modules](#included-configurations) · [Safety](#safety-first)
 
 </div>
 
@@ -63,6 +63,24 @@ Want to inspect everything before Kairo writes anything?
 ```sh
 ./install.sh --dry-run
 ```
+
+---
+
+## Screenshots
+
+### ARCHNEMESIS desktop
+
+![ARCHNEMESIS Hyprland desktop with Kitty and Waybar](screenshots/archnemesis-desktop.png)
+
+The existing Hyprland setup: dark Rosé Pine colors, compact borders, Kitty, and the skull/cat Waybar. This capture uses a personal wallpaper; wallpapers are not part of the installer payload.
+
+### Installer preview
+
+![Kairo interactive installer in dry-run mode](screenshots/installer-dry-run.png)
+
+The actual installer welcome screen, captured with `./install.sh --dry-run` in Kitty on MangoWC. No packages or configuration changes were applied.
+
+---
 
 ## Installer flow
 
