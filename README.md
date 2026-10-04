@@ -68,33 +68,80 @@ Want to inspect everything before Kairo writes anything?
 
 ## Screenshots
 
-Captured from the live **ARCHNEMESIS Hyprland** setup.
+**ARCHNEMESIS on Hyprland** — nine captures of the desktop and its daily workflows. Click a section to expand or collapse it.
 
-### Desktop
+<details open>
+<summary><b>Desktop — the full setup</b></summary>
 
 ![ARCHNEMESIS Hyprland desktop](screenshots/desktop.png)
 
 Dark wallpaper, compact spacing, and the Rosé Pine Waybar.
 
-### Neovim
+</details>
+
+<details>
+<summary><b>Neovim — startup dashboard & editor</b></summary>
+
+**Startup dashboard** · What you see when running `nvim` without a file.
 
 ![ARCHNEMESIS Neovim startup dashboard in Kitty](screenshots/neovim.png)
 
-The ARCHNEMESIS dashboard shown when launching `nvim` without opening a file.
+**Editor** · Lua syntax highlighting, Snacks explorer, and the matching status line.
 
-### Waybar
+![ARCHNEMESIS Neovim editor with Snacks explorer](screenshots/neovim-editor.png)
 
-![Hyprland Waybar with workspaces, Dwindle indicator, animated artwork, and system controls](screenshots/waybar.png)
+</details>
 
-Workspaces, layout indicator, skull/cat artwork, hardware controls, notifications, and the power menu.
+<details>
+<summary><b>Waybar — workspaces & desktop controls</b></summary>
 
-### Lock screen
+![Hyprland Waybar with workspaces, layout, artwork, and system controls](screenshots/waybar.png)
+
+Workspaces, layout indicator, skull/cat artwork, hardware controls, notifications, and power.
+
+</details>
+
+<details>
+<summary><b>Rofi — application launcher</b></summary>
+
+![ARCHNEMESIS Rofi application launcher](screenshots/rofi-launcher.png)
+
+**Super + Space** opens the compact application launcher.
+
+</details>
+
+<details>
+<summary><b>Wallpaper picker — thumbnail gallery</b></summary>
+
+![ARCHNEMESIS Rofi wallpaper gallery](screenshots/wallpaper-picker.png)
+
+**Super + Alt + Space** opens the wallpaper picker with image previews.
+
+</details>
+
+<details>
+<summary><b>Notifications — SwayNC panel</b></summary>
+
+![ARCHNEMESIS SwayNC notification panel](screenshots/notifications.png)
+
+Notification history and Do Not Disturb, opened from Waybar.
+
+</details>
+
+<details>
+<summary><b>Session — power menu & lock screen</b></summary>
+
+**Power menu** · Lock, suspend, logout, reboot, and shutdown.
+
+![ARCHNEMESIS Rofi power menu](screenshots/power-menu.png)
+
+**Lock screen** · Wallpaper-aware Hyprlock, clock, and matching accents.
 
 ![ARCHNEMESIS Hyprlock screen](screenshots/lockscreen.png)
 
-Wallpaper-aware Hyprlock with a blurred background, clock, and matching accents.
+</details>
 
-The wallpaper shown is personal artwork and is not included in the installer payload.
+Wallpaper images shown in these captures belong to the personal collection and are not included in the installer payload.
 
 ---
 
