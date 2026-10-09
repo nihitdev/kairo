@@ -9,6 +9,8 @@ license=('GPL-3.0-only' 'MIT')
 depends=(bash git)
 optdepends=(
   'hyprland: Hyprland compositor configuration'
+  'sddm: optional ARCHNEMESIS login screen'
+  'qt6-declarative: ARCHNEMESIS Qt Quick theme runtime'
   'kitty: terminal configuration'
   'wezterm: modular terminal configuration'
   'zsh: WezTerm default shell'

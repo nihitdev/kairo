@@ -59,6 +59,13 @@ jobs:
           PATH="$fake_bin:$PATH" ./.config/tests/test-install.sh
           python3 .config/tests/test-install-ui.py
 
+      - name: Check SDDM theme installer
+        run: |
+          bash -n .local/share/sddm/themes/archnemesis/install.sh
+          bash -n .local/share/sddm/themes/archnemesis/rollback.sh
+          bash -n .local/share/sddm/themes/archnemesis/preview.sh
+          bash .config/tests/test-sddm-install.sh
+
       - name: Check Nushell portability guards
         run: |
           grep -Fq 'source $STARSHIP_CACHE' .config/nushell/config.nu

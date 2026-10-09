@@ -62,15 +62,33 @@ run_preservation_test() {
 
 run_normal_install_test() {
     local home="$test_root/normal"
-    mkdir -p "$home"
+    local fixture="$test_root/default-repo" mock_bin="$test_root/default-bin"
+    mkdir -p "$home" "$fixture" "$mock_bin"
+    cp "$repo_root/install.sh" "$fixture/install.sh"
+    cp -a "$repo_root/.config" "$repo_root/.local" "$fixture/"
+    # Run the real default selection with only privileged SDDM operations mocked.
+    cat > "$fixture/.local/share/sddm/themes/archnemesis/install.sh" <<'MOCK'
+#!/usr/bin/env bash
+set -eu
+[[ $# == 0 ]]
+printf 'selected\n' > "$HOME/sddm-selected"
+MOCK
+    printf '#!/usr/bin/env bash\n[[ $* == -v ]]\n' > "$mock_bin/sudo"
+    chmod +x "$mock_bin/sudo"
     HOME="$home" XDG_CONFIG_HOME="$home/.config" XDG_CACHE_HOME="$home/.cache" CI=true \
-        "$repo_root/install.sh" >/dev/null
+        PATH="$mock_bin:$PATH" "$fixture/install.sh" >/dev/null
     [[ -f $home/.bashrc ]] || fail 'normal install omitted Bash'
     [[ -f $home/.config/fish/config.fish ]] || fail 'normal install omitted Fish'
     [[ -f $home/.config/nvim/init.lua ]] || fail 'normal install omitted Neovim'
     [[ -f $home/.config/wezterm/wezterm.lua ]] || fail 'normal install omitted WezTerm'
     [[ -f $home/.config/starship/zsh.toml ]] || fail 'normal install omitted Starship'
-    [[ ! -e $home/.config/hypr ]] || fail 'normal install unexpectedly selected opt-in Hyprland'
+    [[ -f $home/.config/hypr/hyprland.lua ]] || fail 'default install omitted Hyprland'
+    [[ -f $home/.config/waybar/style.css ]] || fail 'default install omitted Waybar'
+    [[ -d $home/.config/rofi && -d $home/.config/oh-my-posh ]] || fail 'default install omitted Rofi or Oh My Posh'
+    cmp "$repo_root/.config/swaync/config.json" "$home/.config/swaync/config.json"
+    [[ -x $home/.local/bin/battery-guardian ]] || fail 'default install omitted battery alerts'
+    [[ -f $home/sddm-selected ]] || fail 'default install omitted SDDM'
+    [[ ! -e $home/.local/share/kairo ]] || fail 'default install selected Kairo Shell'
 }
 
 run_nvim_payload_test() {

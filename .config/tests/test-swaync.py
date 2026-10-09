@@ -43,9 +43,12 @@ class SwayNCTest(unittest.TestCase):
         self.assertTrue(os.access(installed, os.X_OK))
         self.assertFalse((self.home / '.dotfiles-backup').exists())
 
-    def test_normal_install_includes_swaync(self):
-        self.install()
-        self.assert_payload()
+    def test_default_plan_includes_swaync(self):
+        # Defaults include system-wide SDDM; preview selection without sudo writes.
+        plan = self.install('--dry-run').stdout
+        self.assertIn('Install swaync', plan)
+        self.assertIn('battery-guardian', plan)
+        self.assertEqual(list(self.home.iterdir()), [])
 
     def test_scoped_install_preserves_unrelated_files_and_repeats(self):
         config = self.home / 'config/swaync'

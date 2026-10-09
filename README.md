@@ -223,13 +223,44 @@ Run `./install.sh --help` for the authoritative list of options, modules, and pr
 | Development | [Git](.config/git/), [Neovim](.config/nvim/), [SSH](.config/ssh/) |
 | Desktop | [WezTerm](.config/wezterm/), [Kitty](.config/kitty/), [Hyprland](.config/hypr/), [Waybar](.config/waybar/), [Kairo Shell](#kairo-shell) |
 
-Hyprland is deliberately opt-in because replacing compositor configuration can disrupt an active session:
+Every module is selected by default except **Kairo Shell**. This applies to both
+the interactive module picker and CLI runs without `--only`. Deselect modules in
+the menu or use `--only NAME` for a scoped installation. Preview changes first,
+especially when replacing compositor configuration:
 
 ```sh
 ./install.sh --dry-run --only hypr
 ```
 
 Third-party snapshots and intentionally duplicated assets are documented in [VENDORED.md](VENDORED.md).
+
+### ARCHNEMESIS SDDM login theme
+
+The matching [SDDM theme](.local/share/sddm/themes/archnemesis/README.md) includes
+Rosé Pine colors, Iosevka, the black-hole wallpaper, a user dropdown, a session
+picker, and power controls. Assets are bundled so the greeter does not need access
+to your home directory.
+
+![ARCHNEMESIS login screen](.local/share/sddm/themes/archnemesis/preview.png)
+
+```bash
+# Select SDDM from the interactive module menu, or use the CLI
+./install.sh --dry-run --only sddm
+./install.sh --only sddm --install-packages
+
+# Preview without logging out, then inspect and install system-wide
+./.local/share/sddm/themes/archnemesis/preview.sh
+./.local/share/sddm/themes/archnemesis/install.sh --dry-run
+./.local/share/sddm/themes/archnemesis/install.sh
+```
+
+SDDM is selected by default and can be deselected in the interactive
+menu or installed separately with `--only sddm`. Usernames come from SDDM’s system account model, not
+a configured username. The module saves the previous theme and SDDM settings
+and prints a rollback command. Its system backup is kept even with `--no-backup`.
+It does not enable SDDM,
+change your display-manager service, or restart your session. If SDDM is already
+your display manager, the theme appears the next time its greeter starts.
 
 ### ARCHNEMESIS desktop installation
 

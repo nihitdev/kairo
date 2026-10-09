@@ -47,6 +47,15 @@ Deploy with `./install.sh --only wezterm`. Kairo uses its transactional copy
 workflow and respects `XDG_CONFIG_HOME`. If `~/.wezterm.lua` exists, deployment
 is skipped with a warning so a competing configuration is not created.
 
+## SDDM wallpaper
+
+`.local/share/sddm/themes/archnemesis/background.png` is a copy of
+`Catppuccin/Space & Cosmic/minimalist-black-hole.png` from
+[CozyPixels](https://github.com/SleepyCatHey/CozyPixels). The bundled preview also
+contains this artwork. Original artwork rights and attribution remain with the
+respective creator; these images are not claimed as original dotfiles artwork.
+The theme's QML and scripts follow this repository's license.
+
 ## Update checks
 
 Run:
