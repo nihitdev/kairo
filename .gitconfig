@@ -1,0 +1,156 @@
+# ==============================================================================
+# ARCHNEMESIS // GIT CONFIGURATION
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Identity
+# ------------------------------------------------------------------------------
+
+[user]
+    name = nihitdev
+    email = nihit429@gmail.com
+
+# ------------------------------------------------------------------------------
+# Core
+# ------------------------------------------------------------------------------
+
+[core]
+    editor = nvim
+    pager = delta
+    autocrlf = input
+    whitespace = trailing-space,space-before-tab
+
+[sequence]
+    editor = nvim
+
+# ------------------------------------------------------------------------------
+# Delta // Beautiful Diffs
+# ------------------------------------------------------------------------------
+
+[delta]
+    navigate = true
+    side-by-side = true
+    line-numbers = true
+    hyperlinks = true
+    syntax-theme = Dracula
+    dark = true
+
+[interactive]
+    diffFilter = delta --color-only
+
+[merge]
+    conflictstyle = zdiff3
+
+[diff]
+    colorMoved = default
+    algorithm = histogram
+    renames = true
+
+# ------------------------------------------------------------------------------
+# Colors
+# ------------------------------------------------------------------------------
+
+[color]
+    ui = auto
+
+[color "branch"]
+    current = yellow reverse
+    local = green
+    remote = cyan
+
+[color "status"]
+    added = green
+    changed = yellow
+    untracked = red
+
+# ------------------------------------------------------------------------------
+# Better Defaults
+# ------------------------------------------------------------------------------
+
+[init]
+    defaultBranch = main
+
+[fetch]
+    prune = true
+
+[push]
+    default = simple
+    autoSetupRemote = true
+    followTags = true
+
+[pull]
+    ff = only
+
+[rebase]
+    autoStash = true
+    updateRefs = true
+
+[rerere]
+    enabled = true
+
+[help]
+    autocorrect = prompt
+
+[commit]
+    verbose = true
+
+# ------------------------------------------------------------------------------
+# GitHub CLI Authentication
+# ------------------------------------------------------------------------------
+
+[credential "https://github.com"]
+    helper =
+    helper = !gh auth git-credential
+
+[credential "https://gist.github.com"]
+    helper =
+    helper = !gh auth git-credential
+
+# ------------------------------------------------------------------------------
+# SSH Commit Verification
+# ------------------------------------------------------------------------------
+
+[gpg "ssh"]
+    allowedSignersFile = ~/.config/git/allowed_signers
+
+# ------------------------------------------------------------------------------
+# ARCHNEMESIS // Aliases
+# ------------------------------------------------------------------------------
+
+[alias]
+    st = status -sb
+    s = status --short
+    aa = add --all
+    ap = add --patch
+    unstage = restore --staged
+    discard = restore --worktree
+    last = log -1 --stat
+    amend = commit --amend
+    fixup = commit --fixup
+
+    br = branch
+    branches = branch -avv
+    sw = switch
+    new = switch -c
+    del = branch -d
+
+    lg = log --graph --decorate --oneline --all
+    ll = log --graph --decorate --date=short --pretty=format:'%C(bold cyan)%h%C(reset) %C(bold yellow)%ad%C(reset) %C(white)%s%C(reset) %C(bold green)(%an)%C(reset) %C(auto)%d%C(reset)'
+    history = log --graph --all --decorate --stat
+    contributors = shortlog -sne --all
+
+    df = diff
+    ds = diff --staged
+    dw = diff --word-diff
+    showlast = show --stat HEAD
+
+    aliases = config --get-regexp ^alias\\.
+    root = rev-parse --show-toplevel
+    remotes = remote -v
+    tracked = ls-files
+    ignored = ls-files --others --ignored --exclude-standard
+
+    undo = reset --soft HEAD~1
+    safe-push = push --force-with-lease
+    sync = pull --ff-only
+    cleanup = remote prune origin
