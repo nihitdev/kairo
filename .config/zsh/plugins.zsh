@@ -53,8 +53,8 @@ fi
 # ── fzf-tab ────────────────────────────────────────────────────────────────────
 
 _source_first \
-  "$HOME/.local/share/zsh/plugins/fzf-tab/fzf-tab.plugin.zsh" \
-  /usr/share/zsh/plugins/fzf-tab/fzf-tab.plugin.zsh
+  "$ZSH_PLUGIN_DIR/fzf-tab/fzf-tab.plugin.zsh" \
+  "$ZSH_SYSTEM_PLUGIN_DIR/fzf-tab/fzf-tab.plugin.zsh"
 
 # ── Autosuggestions ────────────────────────────────────────────────────────────
 
@@ -63,30 +63,20 @@ ZSH_AUTOSUGGEST_USE_ASYNC=1
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#6c7086'
 
 _source_first \
-  "$HOME/.local/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" \
-  /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+  "$ZSH_PLUGIN_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+  "$ZSH_SYSTEM_PLUGIN_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 # ── History substring search ───────────────────────────────────────────────────
 
 _source_first \
-  "$HOME/.local/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh" \
-  /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
+  "$ZSH_PLUGIN_DIR/zsh-history-substring-search/zsh-history-substring-search.zsh" \
+  "$ZSH_SYSTEM_PLUGIN_DIR/zsh-history-substring-search/zsh-history-substring-search.zsh"
 
 # ── Auto pairs ─────────────────────────────────────────────────────────────────
 
 _source_first \
-  "$HOME/.local/share/zsh/plugins/zsh-autopair/autopair.zsh" \
-  /usr/share/zsh/plugins/zsh-autopair/autopair.zsh
-
-# ── You Should Use ─────────────────────────────────────────────────────────────
-
-export YSU_MESSAGE_POSITION="after"
-export YSU_MODE="ALL"
-
-_source_first \
-  "$HOME/.local/share/zsh/plugins/zsh-you-should-use/you-should-use.plugin.zsh" \
-  /usr/share/zsh/plugins/zsh-you-should-use/you-should-use.plugin.zsh
-
+  "$ZSH_PLUGIN_DIR/zsh-autopair/autopair.zsh" \
+  "$ZSH_SYSTEM_PLUGIN_DIR/zsh-autopair/autopair.zsh"
 
 # ── Forgit ─────────────────────────────────────────────────────────────────────
 
@@ -95,6 +85,6 @@ _source_first \
 export FORGIT_NO_ALIASES=1
 
 _source_first \
-  "$HOME/.local/share/zsh/plugins/forgit/forgit.plugin.zsh" \
-  /usr/share/zsh/plugins/forgit/forgit.plugin.zsh
+  "$ZSH_PLUGIN_DIR/forgit/forgit.plugin.zsh" \
+  "$ZSH_SYSTEM_PLUGIN_DIR/forgit/forgit.plugin.zsh"
 

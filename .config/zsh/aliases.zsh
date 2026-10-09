@@ -27,10 +27,12 @@ fi
 
 # ── Editors ────────────────────────────────────────────────────────────────────
 
-alias v='nvim'
-alias nv='nvim'
-alias vi='nvim'
-alias vim='nvim'
+alias v='edit'
+if (( $+commands[nvim] )); then
+  alias nv='nvim'
+  alias vi='nvim'
+  alias vim='nvim'
+fi
 
 alias se='sudoedit'
 alias svi='sudoedit'
@@ -114,7 +116,11 @@ alias disks='lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINTS,MODEL'
 
 # ── Utilities ──────────────────────────────────────────────────────────────────
 
-alias top='btop'
+if (( $+commands[btop] )); then
+  alias top='btop'
+elif (( $+commands[htop] )); then
+  alias top='htop'
+fi
 alias ff='fastfetch'
 
 if (( $+commands[duf] )); then

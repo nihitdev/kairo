@@ -55,3 +55,6 @@ sudo pacman -S starship
 
 * Starship
 * Nerd Font for icons and symbols
+
+The Zsh prompt shows the last command duration on the right, including
+milliseconds for short commands. Configure `[cmd_duration]` in `zsh.toml`.

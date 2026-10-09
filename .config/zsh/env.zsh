@@ -2,8 +2,9 @@
 # ARCHNEMESIS // ENVIRONMENT
 # ==============================================================================
 
-[[ -r /usr/share/omarchy/default/bash/envs ]] \
-  && source /usr/share/omarchy/default/bash/envs
+# Optional distribution environment: opt in with a readable file path.
+[[ -n ${ZSH_EXTRA_ENV_FILE:-} && -r $ZSH_EXTRA_ENV_FILE ]] \
+  && source "$ZSH_EXTRA_ENV_FILE"
 
 # ── XDG ────────────────────────────────────────────────────────────────────────
 
@@ -22,47 +23,68 @@ path=(
 
 # ── Default applications ───────────────────────────────────────────────────────
 
-export TERMINAL="kitty"
-
-export EDITOR="nvim"
-export VISUAL="nvim"
-export SUDO_EDITOR="nvim"
-export GIT_EDITOR="nvim"
-export GIT_SEQUENCE_EDITOR="nvim"
-export SYSTEMD_EDITOR="nvim"
-export FCEDIT="nvim"
+# Respect explicit choices; otherwise select an installed application.
+if [[ -z ${EDITOR:-} ]]; then
+  for candidate in nvim vim nano vi; do
+    if (( $+commands[$candidate] )); then
+      export EDITOR="$candidate"
+      break
+    fi
+  done
+fi
+export VISUAL="${VISUAL:-${EDITOR:-vi}}"
+export SUDO_EDITOR="${SUDO_EDITOR:-${EDITOR:-vi}}"
+export GIT_EDITOR="${GIT_EDITOR:-${EDITOR:-vi}}"
+export GIT_SEQUENCE_EDITOR="${GIT_SEQUENCE_EDITOR:-${EDITOR:-vi}}"
+export SYSTEMD_EDITOR="${SYSTEMD_EDITOR:-${EDITOR:-vi}}"
+export FCEDIT="${FCEDIT:-${EDITOR:-vi}}"
+if [[ -z ${TERMINAL:-} ]]; then
+  for candidate in kitty foot wezterm alacritty xterm; do
+    if (( $+commands[$candidate] )); then
+      export TERMINAL="$candidate"
+      break
+    fi
+  done
+fi
+unset candidate
 
 # ── Pager ──────────────────────────────────────────────────────────────────────
 
-export PAGER="less"
-export LESS="-R -F -X"
+export PAGER="${PAGER:-less}"
+export LESS="${LESS:--R -F -X}"
 
 # ── Zsh ────────────────────────────────────────────────────────────────────────
 
 export ZSH="${ZSH:-$XDG_DATA_HOME/zsh/oh-my-zsh}"
-export ZSH_CACHE_DIR="$XDG_CACHE_HOME/zsh"
-export ZSH_COMPDUMP="$ZSH_CACHE_DIR/zcompdump-$ZSH_VERSION"
+export ZSH_CACHE_DIR="${ZSH_CACHE_DIR:-$XDG_CACHE_HOME/zsh}"
+export ZSH_PLUGIN_DIR="${ZSH_PLUGIN_DIR:-$XDG_DATA_HOME/zsh/plugins}"
+export ZSH_SYSTEM_PLUGIN_DIR="${ZSH_SYSTEM_PLUGIN_DIR:-/usr/share/zsh/plugins}"
+export ZSH_COMPDUMP="${ZSH_COMPDUMP:-$ZSH_CACHE_DIR/zcompdump-$ZSH_VERSION}"
 
 mkdir -p "$ZSH_CACHE_DIR" "$XDG_STATE_HOME/zsh"
 
 # ── Starship ───────────────────────────────────────────────────────────────────
 
-export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/zsh.toml"
+export STARSHIP_CONFIG="${STARSHIP_CONFIG:-$XDG_CONFIG_HOME/starship/zsh.toml}"
 
 # ── FZF ────────────────────────────────────────────────────────────────────────
 
-export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-export FZF_ALT_C_COMMAND='fd --type d --hidden --exclude .git'
+if (( $+commands[fd] )); then
+  export FZF_DEFAULT_COMMAND="${FZF_DEFAULT_COMMAND:-fd --type f --hidden --exclude .git}"
+  export FZF_ALT_C_COMMAND="${FZF_ALT_C_COMMAND:-fd --type d --hidden --exclude .git}"
+else
+  export FZF_DEFAULT_COMMAND="${FZF_DEFAULT_COMMAND:-find . -name .git -prune -o -type f -print}"
+  export FZF_ALT_C_COMMAND="${FZF_ALT_C_COMMAND:-find . -name .git -prune -o -type d -print}"
+fi
+export FZF_CTRL_T_COMMAND="${FZF_CTRL_T_COMMAND:-$FZF_DEFAULT_COMMAND}"
+if (( $+commands[bat] )) && [[ -z ${FZF_CTRL_T_OPTS:-} ]]; then
+  export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers --line-range=:200 -- {}'"
+fi
+if (( $+commands[eza] )) && [[ -z ${FZF_ALT_C_OPTS:-} ]]; then
+  export FZF_ALT_C_OPTS="--preview 'eza --tree --level=2 --color=always --icons -- {}'"
+fi
 
-export FZF_CTRL_T_OPTS="
-  --preview 'bat --color=always --style=numbers --line-range=:200 -- {}'
-"
-
-export FZF_ALT_C_OPTS="
-  --preview 'eza --tree --level=2 --color=always --icons -- {}'
-"
-
+if [[ -z ${FZF_DEFAULT_OPTS:-} ]]; then
 export FZF_DEFAULT_OPTS="
   --height=45%
   --layout=reverse
@@ -83,3 +105,5 @@ export FZF_DEFAULT_OPTS="
   --color=spinner:#f5c2e7
   --color=header:#89b4fa
 "
+
+fi

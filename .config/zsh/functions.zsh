@@ -10,11 +10,12 @@ y() {
     return 127
   }
 
-  local tmp cwd
+  local tmp cwd yazi_result
 
   tmp=$(mktemp -t yazi-cwd.XXXXXX) || return
 
-  yazi "$@" --cwd-file="$tmp"
+  command yazi "$@" --cwd-file="$tmp"
+  yazi_result=$?
 
   if [[ -s "$tmp" ]]; then
     IFS= read -r cwd < "$tmp"
@@ -23,7 +24,8 @@ y() {
       && builtin cd -- "$cwd"
   fi
 
-  rm -f -- "$tmp"
+  command rm -f -- "$tmp"
+  return "$yazi_result"
 }
 
 # ── Create + enter directory ───────────────────────────────────────────────────
@@ -39,52 +41,39 @@ mkcd() {
 
 # ── FZF file editor ────────────────────────────────────────────────────────────
 
+# Split editor arguments without evaluating shell code.
+edit() {
+  local -a editor_command
+  editor_command=( ${(z)${VISUAL:-${EDITOR:-vi}}} )
+  "${(@Q)editor_command}" "$@"
+}
+
 vf() {
-  (( $+commands[fzf] )) || {
-    print 'fzf is not installed'
-    return 127
-  }
-
+  (( $+commands[fzf] )) || { print -u2 'fzf is not installed'; return 127; }
   local file
-
+  local -a picker=(--read0 --print0)
+  (( $+commands[bat] )) && picker+=(--preview 'bat --color=always --style=numbers --line-range=:250 -- {}')
   if (( $+commands[fd] )); then
-    file=$(
-      fd --type f --hidden --exclude .git |
-        fzf --preview 'bat --color=always --style=numbers --line-range=:250 -- {}'
-    )
+    IFS= read -r -d '' file < <(command fd --type f --hidden --exclude .git --print0 | command fzf "${picker[@]}") || return 0
   else
-    file=$(
-      find . -type f |
-        fzf
-    )
+    IFS= read -r -d '' file < <(command find . -name .git -prune -o -type f -print0 | command fzf "${picker[@]}") || return 0
   fi
-
-  [[ -n "$file" ]] && nvim -- "$file"
+  [[ -n $file ]] && edit -- "$file"
 }
 
 # ── FZF directory jump ─────────────────────────────────────────────────────────
 
 cdf() {
-  (( $+commands[fzf] )) || {
-    print 'fzf is not installed'
-    return 127
-  }
-
+  (( $+commands[fzf] )) || { print -u2 'fzf is not installed'; return 127; }
   local dir
-
+  local -a picker=(--read0 --print0)
+  (( $+commands[eza] )) && picker+=(--preview 'eza --tree --level=2 --icons --color=always -- {}')
   if (( $+commands[fd] )); then
-    dir=$(
-      fd --type d --hidden --exclude .git |
-        fzf --preview 'eza --tree --level=2 --icons --color=always -- {}'
-    )
+    IFS= read -r -d '' dir < <(command fd --type d --hidden --exclude .git --print0 | command fzf "${picker[@]}") || return 0
   else
-    dir=$(
-      find . -type d |
-        fzf
-    )
+    IFS= read -r -d '' dir < <(command find . -name .git -prune -o -type d -print0 | command fzf "${picker[@]}") || return 0
   fi
-
-  [[ -n "$dir" ]] && builtin cd -- "$dir"
+  [[ -n $dir ]] && builtin cd -- "$dir"
 }
 
 # ── Rice help ──────────────────────────────────────────────────────────────────
@@ -102,9 +91,10 @@ rice-help() {
 # ── Update shell plugins ───────────────────────────────────────────────────────
 
 rice-update() {
+  (( $+commands[git] )) || { print -u2 'git is not installed'; return 127; }
   local repo
 
-  for repo in "$ZSH" "$HOME"/.local/share/zsh/plugins/*; do
+  for repo in "$ZSH" "$ZSH_PLUGIN_DIR"/*(N/); do
     [[ -d "$repo/.git" ]] || continue
 
     print -P "%F{magenta}Updating ${repo:t}%f"

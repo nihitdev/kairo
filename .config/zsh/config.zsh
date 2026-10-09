@@ -2,7 +2,7 @@
 # ARCHNEMESIS // ZSH
 # ==============================================================================
 
-typeset -r ZSH_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/zsh"
+typeset -g ZSH_CONFIG_DIR="${ZSH_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/zsh}"
 
 for module in \
   env \

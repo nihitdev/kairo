@@ -5,8 +5,8 @@
 typeset -gaU fpath
 
 for completions_dir in \
-  "$HOME/.local/share/zsh/plugins/zsh-completions/src" \
-  /usr/share/zsh/plugins/zsh-completions/src
+  "$ZSH_PLUGIN_DIR/zsh-completions/src" \
+  "$ZSH_SYSTEM_PLUGIN_DIR/zsh-completions/src"
 do
   [[ -d "$completions_dir" ]] \
     && fpath=("$completions_dir" $fpath)
@@ -31,5 +31,9 @@ zstyle ':completion:*:warnings' format 'no matches: %d'
 
 zstyle ':fzf-tab:*' switch-group '<' '>'
 
-zstyle ':fzf-tab:complete:cd:*' \
-  fzf-preview 'eza --color=always --icons --group-directories-first -- "$realpath"'
+if (( $+commands[eza] )); then
+  zstyle ':fzf-tab:complete:cd:*' \
+    fzf-preview 'eza --color=always --icons --group-directories-first -- "$realpath"'
+else
+  zstyle ':fzf-tab:complete:cd:*' fzf-preview 'command ls -A -- "$realpath"'
+fi

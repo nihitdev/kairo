@@ -4,9 +4,9 @@
 
 # ── History ────────────────────────────────────────────────────────────────────
 
-HISTFILE="$XDG_STATE_HOME/zsh/history"
-HISTSIZE=100000
-SAVEHIST=100000
+HISTFILE="${HISTFILE:-$XDG_STATE_HOME/zsh/history}"
+HISTSIZE=${ZSH_HISTORY_SIZE:-100000}
+SAVEHIST=${ZSH_SAVEHIST:-$HISTSIZE}
 
 setopt APPEND_HISTORY
 setopt EXTENDED_HISTORY

@@ -1,5 +1,8 @@
 add_newline = true
 
+# Last command duration at the right edge of the input line.
+right_format = "$cmd_duration"
+
 format = """
 [╭─    ](bold cyan)$directory$git_branch$git_status
 [╰─](bold cyan)$character"""
@@ -23,3 +26,9 @@ format = " [$all_status$ahead_behind]($style)"
 success_symbol = "[ζ](bold green) "
 error_symbol = "[ζ](bold red) "
 vimcmd_symbol = "[ζ](bold yellow) "
+
+[cmd_duration]
+min_time = 0
+show_milliseconds = true
+format = "[󰔛 $duration]($style)"
+style = "bold purple"
