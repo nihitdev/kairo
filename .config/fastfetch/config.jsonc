@@ -1,93 +1,89 @@
 {
-  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
-  "logo": {
-    "source": "~/.config/images/arch.txt",
-    "color": {
-      "1": "#C4A7E7"
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo": {
+        "type": "data",
+        "source": "   ╭──────────────────────────────╮\n   │                              │\n   │   A R C H N E M E S I S      │\n   │                              │\n   │        /\\                    │\n   │       /  \\     ARCH LINUX    │\n   │      / /\\ \\                  │\n   │     / ____ \\   HYPRLAND      │\n   │    /_/    \\_\\                │\n   │                              │\n   ╰──────────────────────────────╯\n",
+        "color": {
+            "1": "magenta"
+        },
+        "padding": {
+            "right": 3
+        }
     },
-    "padding": {
-      "top": 2,
-      "right": 6,
-      "left": 2
-    }
-  },
-  "display": {
-    "separator": " "
-  },
-  "modules": [
-    "break",
-    "break",
-    {
-      "type": "title",
-      "keyWidth": 10,
-      "color": "#C4A7E7"
+    "display": {
+        "separator": " "
     },
-    "break",
-    {
-      "type": "os",
-      "key": " ",
-      "keyColor": "#c4a7e7",
-      "color": "#e0def4",
-      "format": "Arch (Btw)"
-    },
-    {
-      "type": "host",
-      "key": "🖥 ",
-      "keyColor": "#c4a7e7",
-      "color": "#e0def4",
-      "format": "Zei-PC"
-    },
-    {
-      "type": "shell",
-      "format": "Pain in my ahh",
-      "key": ">_",
-      "keyColor": "#c4a7e7",
-      "color": "#e0def4"
-    },
-    {
-      "type": "terminal",
-      "key": " ",
-      "keyColor": "#c4a7e7",
-      "color": "#e0def4"
-    },
-    {
-      "type": "wm",
-      "format": "{} (wayland)",
-      "key": " ",
-      "keyColor": "#c4a7e7",
-      "color": "#e0def4"
-    },
-    {
-      "type": "cpu",
-      "key": "󰍛 ",
-      "keyColor": "#c4a7e7",
-      "color": "#e0def4",
-      "format": "Intel i5337u"
-    },
-    {
-      "type": "gpu",
-      "key": "󰢮 ",
-      "keyColor": "#c4a7e7",
-      "color": "#e0def4",
-      "format": "Intel HD 4000"
-    },
-    {
-      "type": "memory",
-      "key": "🎟 ",
-      "keyColor": "#c4a7e7",
-      "color": "#e0def4",
-      "format": "{} {}"
-    },
-    
-    {
-      "type": "uptime",
-      "key": " ",
-      "keyColor": "#c4a7e7",
-      "color": "#e0def4"
-    },
-    
-    "break",
-    "break",
-    "break"
-  ]
+    "modules": [
+        "break",
+        "break",
+        {
+            "type": "title",
+            "keyWidth": 10,
+            "color": "#C4A7E7"
+        },
+        "break",
+        {
+            "type": "os",
+            "key": " ",
+            "keyColor": "#c4a7e7",
+            "color": "#e0def4",
+            "format": "Arch (Btw)"
+        },
+        {
+            "type": "host",
+            "key": "🖥 ",
+            "keyColor": "#c4a7e7",
+            "color": "#e0def4"
+        },
+        {
+            "type": "shell",
+            "format": "Pain in my ahh",
+            "key": ">_",
+            "keyColor": "#c4a7e7",
+            "color": "#e0def4"
+        },
+        {
+            "type": "terminal",
+            "key": " ",
+            "keyColor": "#c4a7e7",
+            "color": "#e0def4"
+        },
+        {
+            "type": "wm",
+            "format": "{} (wayland)",
+            "key": " ",
+            "keyColor": "#c4a7e7",
+            "color": "#e0def4"
+        },
+        {
+            "type": "cpu",
+            "key": "󰍛 ",
+            "keyColor": "#c4a7e7",
+            "color": "#e0def4",
+            "format": "Intel i5337u"
+        },
+        {
+            "type": "gpu",
+            "key": "󰢮 ",
+            "keyColor": "#c4a7e7",
+            "color": "#e0def4",
+            "format": "Intel HD 4000"
+        },
+        {
+            "type": "memory",
+            "key": "🎟 ",
+            "keyColor": "#c4a7e7",
+            "color": "#e0def4",
+            "format": "{} {}"
+        },
+        {
+            "type": "uptime",
+            "key": " ",
+            "keyColor": "#c4a7e7",
+            "color": "#e0def4"
+        },
+        "break",
+        "break",
+        "break"
+    ]
 }

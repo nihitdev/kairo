@@ -61,7 +61,7 @@ declare -a hypr_packages=(
     hyprland hyprpaper hypridle hyprlock swaync network-manager-applet
     kitty rofi cliphist wl-clipboard jq libnotify brightnessctl playerctl
     wireplumber xdg-desktop-portal-hyprland qt5-wayland qt6-wayland qt6ct kvantum
-    grim slurp procps-ng util-linux
+    grim slurp procps-ng util-linux ffmpeg
 )
 declare -a waybar_packages=(
     waybar python jq swaync kitty wireplumber brightnessctl playerctl
@@ -69,34 +69,34 @@ declare -a waybar_packages=(
 )
 
 declare -a module_names=(
-    bash fish nushell zsh starship atuin bat broot yazi lazygit fastfetch
+    bash fish nushell zsh starship atuin bat broot yazi lazygit fastfetch btop
     git nvim kitty cava ssh oh-my-posh hypr kairo-shell rofi wezterm waybar swaync sddm
 )
 declare -a module_labels=(
-    Bash Fish Nushell Zsh Starship Atuin Bat Broot Yazi LazyGit Fastfetch
+    Bash Fish Nushell Zsh Starship Atuin Bat Broot Yazi LazyGit Fastfetch Btop
     Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland 'Kairo Shell' Rofi WezTerm Waybar 'SwayNC + battery alerts' 'SDDM login theme'
 )
 declare -a module_categories=(
-    Shells Shells Shells Shells Shells CLI CLI CLI CLI CLI CLI
+    Shells Shells Shells Shells Shells CLI CLI CLI CLI CLI CLI CLI
     Development Development Desktop Desktop System Shells Desktop Desktop Desktop Desktop Desktop Desktop System
 )
 declare -A module_default=(
     [bash]=true [fish]=true [nushell]=true [zsh]=true [starship]=true
     [atuin]=true [bat]=true [broot]=true [yazi]=true [lazygit]=true
-    [fastfetch]=true [git]=true [nvim]=true [kitty]=true [cava]=true
+    [btop]=true [fastfetch]=true [git]=true [nvim]=true [kitty]=true [cava]=true
     [ssh]=true [oh-my-posh]=true [hypr]=true [kairo-shell]=false [rofi]=true [wezterm]=true [waybar]=true [swaync]=true [sddm]=true
 )
 declare -A module_package=(
     [bash]=bash [fish]=fish [nushell]=nushell [zsh]=zsh [starship]=starship
     [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
-    [fastfetch]=fastfetch [git]=git [nvim]=neovim [kitty]=kitty [cava]=cava [wezterm]=wezterm
+    [btop]=btop [fastfetch]=fastfetch [git]=git [nvim]=neovim [kitty]=kitty [cava]=cava [wezterm]=wezterm
     [ssh]=openssh [hypr]=hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync [sddm]=sddm
 )
 declare -A module_aur_package=([oh-my-posh]=oh-my-posh-bin)
 declare -A module_command=(
     [bash]=bash [fish]=fish [nushell]=nu [zsh]=zsh [starship]=starship
     [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
-    [fastfetch]=fastfetch [git]=git [nvim]=nvim [kitty]=kitty [cava]=cava [wezterm]=wezterm
+    [btop]=btop [fastfetch]=fastfetch [git]=git [nvim]=nvim [kitty]=kitty [cava]=cava [wezterm]=wezterm
     [ssh]=ssh [oh-my-posh]=oh-my-posh [hypr]=Hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync [sddm]=sddm-greeter-qt6
 )
 declare -A installed_package_cache=()
@@ -140,7 +140,7 @@ Options:
   -h, --help         Show this help
 
 Components:
-  bash zsh nushell git lazygit broot nvim yazi fastfetch oh-my-posh
+  bash zsh nushell git lazygit broot nvim yazi fastfetch btop oh-my-posh
   starship atuin bat cava ssh kitty fish hypr kairo-shell rofi wezterm waybar swaync sddm all
 EOF
 }
@@ -589,6 +589,7 @@ collect_missing_packages() {
         done
     fi
     if is_selected hypr; then
+        package_is_installed mpvpaper || record_unique missing_aur_packages mpvpaper
         for package in "${hypr_packages[@]}"; do
             package_is_installed "$package" || record_unique missing_official_packages "$package"
         done
@@ -953,7 +954,7 @@ preflight_desktop() {
 install_optional_wallpapers() {
     $install_wallpapers || return 0
 
-    local wallpaper_root="$HOME/Pictures/Wallpapers"
+    local wallpaper_root="$HOME/Pictures"
     local destination="$wallpaper_root/CozyPixels"
     local repo="https://github.com/SleepyCatHey/CozyPixels.git"
 
@@ -1010,7 +1011,7 @@ install_hypr_desktop() {
     if [[ -n $wallpaper ]]; then
         describe "Preserve/seed wallpaper -> $wallpaper"
     else
-        warnings+=('No wallpaper found: add images to ~/Pictures/Wallpapers/CozyPixels/Catppuccin/Space & Cosmic and press Super+Alt+Space')
+        warnings+=('No wallpaper found: add images to ~/Pictures/CozyPixels/Catppuccin/Space & Cosmic and press Super+Alt+Space')
     fi
     if is_selected kairo-shell; then
         describe "Configure Hyprland startup -> $kairo_shell_bin/kairod start"
@@ -1037,6 +1038,16 @@ install_hypr_desktop() {
             cp -L -- "$wallpaper" "$temp_hypr/current-wallpaper"
         else
             ln -sfn -- "$wallpaper" "$temp_hypr/current-wallpaper"
+        fi
+    fi
+    # Keep saved live-wallpaper state across replacement of the Hyprland tree.
+    if [[ -f $config_root/hypr/current-live-wallpaper ]]; then
+        local live_wallpaper
+        live_wallpaper=$(realpath -- "$config_root/hypr/current-live-wallpaper")
+        if [[ $live_wallpaper == "$config_root/hypr/"* ]]; then
+            cp -L -- "$live_wallpaper" "$temp_hypr/current-live-wallpaper"
+        else
+            ln -sfn -- "$live_wallpaper" "$temp_hypr/current-live-wallpaper"
         fi
     fi
     if is_selected kairo-shell; then
@@ -1698,6 +1709,7 @@ install_item broot "$source_config_root/broot" "$config_root/broot"
 install_item nvim "$source_config_root/nvim" "$config_root/nvim"
 install_item yazi "$source_config_root/yazi" "$config_root/yazi"
 install_item fastfetch "$source_config_root/fastfetch" "$config_root/fastfetch"
+install_item btop "$source_config_root/btop" "$config_root/btop"
 install_item oh-my-posh "$source_config_root/oh-my-posh/amro.omp.json" "$config_root/oh-my-posh/amro.omp.json"
 if [[ -f $source_config_root/starship/bash.toml &&
       -f $source_config_root/starship/fish.toml &&

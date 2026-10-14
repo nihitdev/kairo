@@ -1,19 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WALLDIR="$HOME/Pictures/Wallpapers/CozyPixels/Catppuccin/Space & Cosmic"
+WALLDIR="$HOME/Pictures/CozyPixels/Catppuccin/Space & Cosmic"
+LIVE_WALLDIR="$HOME/Pictures/CozyPixels/Live Wallpapers/Wallpapers"
 CACHE="$HOME/.cache/current-wallpaper"
 CURRENT="$HOME/.config/hypr/current-wallpaper"
 THEME="$HOME/.config/rofi/wallpaper/wallpaper.rasi"
 
-[[ -d "$WALLDIR" ]] || {
+[[ -d "$WALLDIR" || -d "$LIVE_WALLDIR" ]] || {
     notify-send -a Hyprpaper "Wallpaper directory not found" "$WALLDIR"
     exit 1
 }
 
 # Build the wallpaper list once.
 mapfile -d '' -t walls < <(
-    find "$WALLDIR" -type f \
+    directories=()
+    for directory in "$WALLDIR" "$LIVE_WALLDIR"; do
+        [[ ! -d "$directory" ]] || directories+=("$directory")
+    done
+    find "${directories[@]}" -type f \
         \( -iname '*.png' \
         -o -iname '*.jpg' \
         -o -iname '*.jpeg' \
@@ -50,6 +55,14 @@ for candidate in "${walls[@]}"; do
 done
 
 [[ -n "$wall" ]] || exit 1
+
+# Switch from live wallpaper mode to static mode.
+pkill -u "$(id -u)" -x mpvpaper 2>/dev/null || true
+rm -f -- "$HOME/.config/hypr/current-live-wallpaper"
+if ! pgrep -u "$(id -u)" -x hyprpaper >/dev/null; then
+    hyprpaper >/dev/null 2>&1 &
+fi
+sleep 0.5
 
 # Apply to every connected monitor.
 mapfile -t monitors < <(

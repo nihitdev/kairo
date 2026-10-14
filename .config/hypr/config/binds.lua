@@ -159,3 +159,7 @@ hl.bind(
     M .. " + ALT + L",
     hl.dsp.exec_cmd(SCRIPTS .. "lock.sh")
 )
+
+-- Live wallpaper picker.
+
+hl.bind(M .. " + CTRL + Space", hl.dsp.exec_cmd(SCRIPTS .. "live-wallpaper.sh"))

@@ -32,6 +32,16 @@ run_install "$target" --only hypr > "$test_root/repeat"
 ! grep -q 'Replace ' "$test_root/repeat" || fail 'desktop reinstall replaced unchanged files'
 [[ ! -e $target/.dotfiles-backup ]] || fail '--no-backup created backups'
 
+# A selected live wallpaper must survive reinstall, including embedded media.
+printf 'video fixture\n' > "$target/Pictures/live.mp4"
+ln -s "$target/Pictures/live.mp4" "$target/.config/hypr/current-live-wallpaper"
+run_install "$target" --only hypr >/dev/null
+[[ $(readlink "$target/.config/hypr/current-live-wallpaper") == "$target/Pictures/live.mp4" ]] || fail 'live wallpaper link lost'
+rm "$target/.config/hypr/current-live-wallpaper"
+printf 'embedded video\n' > "$target/.config/hypr/current-live-wallpaper"
+run_install "$target" --only hypr >/dev/null
+[[ $(cat "$target/.config/hypr/current-live-wallpaper") == 'embedded video' ]] || fail 'embedded live wallpaper lost'
+
 # Also preserve wallpaper data stored directly inside the replaced Hyprland tree.
 rm "$target/.config/hypr/current-wallpaper"
 printf 'embedded image\n' > "$target/.config/hypr/current-wallpaper"
@@ -82,10 +92,10 @@ for scenario in success clone-failure rollback; do
     if PATH="$test_root/mock-bin:$PATH" FAIL_WALLPAPER_CLONE="$([[ $scenario == clone-failure ]] && echo true || echo false)" \
         run_install "$target" "${args[@]}" > "$test_root/wallpapers-$scenario.log" 2>&1; then
         [[ $scenario == success ]] || fail "$scenario unexpectedly succeeded"
-        [[ -f $target/Pictures/Wallpapers/CozyPixels/wallpaper.png ]] || fail 'wallpapers missing'
+        [[ -f $target/Pictures/CozyPixels/wallpaper.png ]] || fail 'wallpapers missing'
     else
         [[ $scenario != success ]] || fail 'wallpaper installation failed'
-        [[ ! -e $target/Pictures/Wallpapers/CozyPixels ]] || fail 'partial wallpaper checkout remained'
+        [[ ! -e $target/Pictures/CozyPixels ]] || fail 'partial wallpaper checkout remained'
         [[ ! -e $target/.config/kitty ]] || fail 'wallpaper failure did not roll back configs'
     fi
 done

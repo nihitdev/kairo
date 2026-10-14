@@ -17,6 +17,7 @@ site/dist/
 
 # Per-machine desktop state (never publish wallpaper links or generated locks)
 .config/hypr/current-wallpaper
+.config/hypr/current-live-wallpaper
 .config/hypr/config/bar.lua
 .config/hyprlock/hyprlock.conf
 

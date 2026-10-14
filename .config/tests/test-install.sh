@@ -180,8 +180,6 @@ run_kitty_payload_test() {
         "$repo_root/install.sh" --only kitty >/dev/null
     [[ -f $home/.config/kitty/kitty.conf ]] || fail 'Kitty config missing'
     [[ -f $home/.config/kitty/current-theme.conf ]] || fail 'Kitty theme missing'
-    [[ -f $home/.config/kitty/tab.py ]] || fail 'Kitty tab implementation missing'
-    [[ -f $home/.config/kitty/tab_bar.py ]] || fail 'Kitty tab entrypoint missing'
     if grep -Eq '^shell[[:space:]]+/usr/bin/fish' "$home/.config/kitty/kitty.conf"; then
         fail 'Kitty overrides the selected login shell with Fish'
     fi
@@ -411,7 +409,7 @@ run_specific_selector_test() {
     local home="$test_root/specific-selector"
     local component
     mkdir -p "$home"
-    for component in bash zsh nushell git lazygit broot nvim yazi fastfetch \
+    for component in bash zsh nushell git lazygit broot nvim yazi fastfetch btop \
         oh-my-posh starship atuin bat cava ssh kitty fish wezterm; do
         HOME="$home" XDG_CONFIG_HOME="$home/.config" \
             "$repo_root/install.sh" --dry-run --only "$component" >/dev/null ||

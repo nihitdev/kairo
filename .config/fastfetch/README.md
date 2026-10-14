@@ -1,5 +1,7 @@
 # Fastfetch
 
-System-information layout, colors, modules, and custom ASCII artwork.
+System-information layout, colors, modules, and ARCHNEMESIS ASCII artwork.
 
-Copy this directory to `${XDG_CONFIG_HOME:-~/.config}/fastfetch` or use `install.sh --only fastfetch`. The shell profiles pass the installed `ascii.txt` path explicitly so custom XDG roots work. Preview it with `fastfetch --config <config-path> --file <config-directory>/ascii.txt`.
+Copy this directory to `${XDG_CONFIG_HOME:-~/.config}/fastfetch` or use `install.sh --only fastfetch`. Preview it with `fastfetch --config <config-path>`.
+
+The logo is embedded in `config.jsonc` so it works with any home directory or XDG config root. `archnemesis.txt` holds the same artwork for standalone use; update both when changing the logo. Host information is detected automatically.

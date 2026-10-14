@@ -219,7 +219,7 @@ Run `./install.sh --help` for the authoritative list of options, modules, and pr
 | --- | --- |
 | Shells | [Bash](.config/bash/), [Fish](.config/fish/), [Nushell](.config/nushell/), [Zsh + Oh My Zsh](.config/zsh/) |
 | Prompt & history | [Starship](.config/starship/), [Atuin](.config/atuin/), [Oh My Posh](.config/oh-my-posh/) |
-| CLI workflow | [Bat](.config/bat/), [Broot](.config/broot/), [Yazi](.config/yazi/), [LazyGit](.config/lazygit/), [Fastfetch](.config/fastfetch/), [Cava](.config/cava/) |
+| CLI workflow | [Bat](.config/bat/), [Broot](.config/broot/), [Yazi](.config/yazi/), [LazyGit](.config/lazygit/), [Fastfetch](.config/fastfetch/), [Btop](.config/btop/), [Cava](.config/cava/) |
 | Development | [Git](.config/git/), [Neovim](.config/nvim/), [SSH](.config/ssh/) |
 | Desktop | [WezTerm](.config/wezterm/), [Kitty](.config/kitty/), [Hyprland](.config/hypr/), [Waybar](.config/waybar/), [Kairo Shell](#kairo-shell) |
 
@@ -313,8 +313,11 @@ not automatically install every application mentioned in personal keybinds.
 Wallpaper images and machine-specific wallpaper links are not included in Git.
 An install preserves the target user's existing wallpaper link or saved selection,
 then falls back to the installed Hyprland wallpaper if available. Add your images
-to `~/Pictures/Wallpapers/CozyPixels/Catppuccin/Space & Cosmic` and use
-**Super+Alt+Space** to choose one. Pass `--install-wallpapers` to download the
+to `~/Pictures/CozyPixels/Catppuccin/Space & Cosmic` and use
+**Super+Alt+Space** to choose one. **Super+Ctrl+Space** opens the live-wallpaper
+picker for videos in `~/Pictures/CozyPixels/Live Wallpapers/Wallpapers`. Hyprland
+restores the selected wallpaper backend at startup; `--install-packages` includes
+FFmpeg and the AUR package `mpvpaper`. Pass `--install-wallpapers` to download the
 optional CozyPixels collection; failed installations roll back a newly downloaded
 collection along with the configuration changes.
 The picker updates Hyprpaper's persistent selection. Locking falls back to a solid

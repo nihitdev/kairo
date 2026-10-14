@@ -10,9 +10,11 @@ hl.on("hyprland.start", function()
         "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP"
     )
 
+    -- Start the selected wallpaper backend.
+    hl.exec_cmd([[sh -c 'if [ -f "$HOME/.config/hypr/current-live-wallpaper" ]; then bash "$HOME/.config/hypr/scripts/live-wallpaper.sh" --restore; else pgrep -u "$(id -u)" -x hyprpaper >/dev/null || hyprpaper; fi']])
+
     -- Session daemons.
     for _, daemon in ipairs({
-        "hyprpaper",
         "hypridle",
         "waybar",
         "nm-applet",
