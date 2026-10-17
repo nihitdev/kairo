@@ -334,6 +334,78 @@ sudo, or changing `~/kairo`. Use an existing checkout for the detailed install p
 Kitty seeds `user.conf` on first installation and preserves existing overrides
 on subsequent installs. It loads those overrides after the managed settings.
 
+## Kitty Smooth
+
+**Kitty Smooth** is selected by default in the Desktop module group. Deselect it
+to skip the patched build, or install it separately with:
+
+```sh
+./install.sh --dry-run --only kitty-smooth
+./install.sh --only kitty-smooth --install-packages --no-backup
+# Also deploy the modular Hyprland shortcuts:
+./install.sh --only kitty-smooth --only hypr --install-packages --no-backup
+```
+
+This optional component builds [SunqdXX/kitty-smooth-cursor](https://github.com/SunqdXX/kitty-smooth-cursor)
+and leaves pacman's Kitty intact. It installs the patched build to
+`~/.local/kitty-smooth`, its launcher to `~/.local/bin/kitty-smooth`, and a
+**Kitty Smooth** desktop entry in `${XDG_DATA_HOME:-~/.local/share}/applications`.
+It includes the normal Kitty config module. Existing `user.conf` preferences
+are preserved except for the six cursor settings below; themes, fonts,
+transparency, splits, and other keybindings remain unchanged.
+
+```conf
+cursor_trail 0
+cursor_smooth_motion yes
+cursor_smooth_motion_factor 0.2
+cursor_smooth_motion_spring 0.8
+cursor_smooth_motion_max_stretch 3 2
+cursor_smooth_motion_antijitter 50
+```
+
+The shared `kitty.conf` also disables `cursor_trail`. Stock Kitty ignores the
+patch-specific options (it may log unknown-key warnings). Hyprland's Lua
+`programs.lua` uses the launcher when present and otherwise uses `kitty`;
+`SUPER+Return` and `SUPER+N` still use `P.terminal` and `P.editor`. The launcher
+itself falls back to stock Kitty if the patched binary has been removed. Reload
+Hyprland after installing or removing the launcher so Lua selects it again.
+
+Kairo does **not** run upstream's installer. It pins Kitty **v0.49.2** at
+`b2cb871254fbdac19a085188813c8dfb258b95cd` and the patch at
+`7a12c832f11bdf10edd4280f1e4f3cd750210a0e`, verifies the source commit and patch
+SHA-256, checks patch application, and builds in a temporary directory before
+transactional deployment. `--install-packages` supplies the build libraries,
+Go, Python, compiler, `shader-slang`, and `ttf-nerd-fonts-symbols-mono` through
+Arch's package manager. Go may fetch the source's checksum-verified module
+dependencies. No compiler or font archives are fetched by Kairo. The build
+needs network access, several minutes, and sufficient disk space and memory.
+HTML/man documentation generation is skipped, as in upstream's installer.
+
+**Updating:** pull Kairo updates and rerun the install command. This rebuilds the
+reviewed pinned version; it does not silently track the newest Kitty release.
+Maintainers updating the pins in `install.sh` must review the patch, update its
+SHA-256, and validate the build before publishing the change. Distribution
+library upgrades may also require rebuilding. `--no-backup` avoids permanent
+backups while retaining automatic rollback of failed configuration deployment.
+
+**Uninstalling:** remove only the patched build and its launcher/menu entry:
+
+```sh
+rm -rf -- "$HOME/.local/kitty-smooth"
+rm -f -- "$HOME/.local/bin/kitty-smooth"
+rm -f -- "${XDG_DATA_HOME:-$HOME/.local/share}/applications/kitty-smooth.desktop"
+```
+
+Reload Hyprland to select stock Kitty. You may remove the five
+`cursor_smooth_motion*` lines from your Kitty `user.conf` to silence stock-Kitty
+warnings. Keep `cursor_trail 0` or restore your preferred stock trail setting.
+The shared Kitty configuration and pacman package are retained.
+
+Validation: `python3 .config/tests/test-kitty-smooth.py` exercises staged builds
+with mocked upstream tools, failure recovery, preference preservation, desktop
+entry generation, and both fallback paths. A complete source build and visual
+cursor/Rofi checks still need testing on the target Arch desktop.
+
 ## WezTerm
 
 WezTerm is selected by default and is available in the interactive module picker

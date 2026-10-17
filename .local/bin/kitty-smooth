@@ -1,0 +1,6 @@
+#!/bin/sh
+# Kairo launcher: keep the package-manager Kitty available as a fallback.
+if [ -x "$HOME/.local/kitty-smooth/bin/kitty" ]; then
+    exec "$HOME/.local/kitty-smooth/bin/kitty" -o cursor_trail=0 -o cursor_smooth_motion=yes "$@"
+fi
+exec kitty "$@"

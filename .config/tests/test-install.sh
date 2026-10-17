@@ -66,12 +66,36 @@ run_normal_install_test() {
     mkdir -p "$home" "$fixture" "$mock_bin"
     cp "$repo_root/install.sh" "$fixture/install.sh"
     cp -a "$repo_root/.config" "$repo_root/.local" "$fixture/"
-    # Run the real default selection with only privileged SDDM operations mocked.
+    # Keep default-selection tests offline: mock the optional source build.
+    python3 - "$fixture/install.sh" <<'PYMOCK'
+from pathlib import Path
+import sys
+p = Path(sys.argv[1])
+mock = '''
+install_kitty_smooth() {
+    mkdir -p "$HOME/.local/kitty-smooth/bin" "$HOME/.local/bin" "$kairo_shell_data/applications"
+    printf '#!/bin/sh\nexit 0\n' > "$HOME/.local/kitty-smooth/bin/kitty"
+    cp "$repo_root/.local/bin/kitty-smooth" "$HOME/.local/bin/kitty-smooth"
+    chmod +x "$HOME/.local/kitty-smooth/bin/kitty"
+    touch "$kairo_shell_data/applications/kitty-smooth.desktop"
+    record_installed kitty-smooth
+}
+unused_install_kitty_smooth() {
+'''
+p.write_text(p.read_text().replace('install_kitty_smooth() {', mock))
+PYMOCK
+    # Mock privileged system-theme operations as well.
     cat > "$fixture/.local/share/sddm/themes/archnemesis/install.sh" <<'MOCK'
 #!/usr/bin/env bash
 set -eu
 [[ $# == 0 ]]
 printf 'selected\n' > "$HOME/sddm-selected"
+MOCK
+    cat > "$fixture/.local/share/plymouth/install.sh" <<'MOCK'
+#!/usr/bin/env bash
+set -eu
+[[ ${1:-} == --dry-run ]] && exit 0
+printf 'selected\n' > "$HOME/plymouth-selected"
 MOCK
     printf '#!/usr/bin/env bash\n[[ $* == -v ]]\n' > "$mock_bin/sudo"
     chmod +x "$mock_bin/sudo"
@@ -522,4 +546,5 @@ bash "$repo_root/.config/tests/test-plymouth-install.sh"
 bash "$repo_root/.config/tests/test-default-shell.sh"
 python3 "$repo_root/.config/tests/test-swaync.py"
 python3 "$repo_root/.config/tests/test-shell-configs.py"
+python3 "$repo_root/.config/tests/test-kitty-smooth.py"
 printf 'Linux installer safety tests passed.\n'

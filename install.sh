@@ -70,34 +70,34 @@ declare -a waybar_packages=(
 
 declare -a module_names=(
     bash fish nushell zsh starship atuin bat broot yazi lazygit fastfetch btop
-    git nvim kitty cava ssh oh-my-posh hypr kairo-shell rofi wezterm waybar swaync sddm plymouth
+    git nvim kitty cava ssh oh-my-posh hypr kairo-shell rofi wezterm waybar swaync sddm plymouth kitty-smooth
 )
 declare -a module_labels=(
     Bash Fish Nushell Zsh Starship Atuin Bat Broot Yazi LazyGit Fastfetch Btop
-    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland 'Kairo Shell' Rofi WezTerm Waybar 'SwayNC + battery alerts' 'SDDM login theme' 'Plymouth Lone'
+    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland 'Kairo Shell' Rofi WezTerm Waybar 'SwayNC + battery alerts' 'SDDM login theme' 'Plymouth Lone' 'Kitty Smooth'
 )
 declare -a module_categories=(
     Shells Shells Shells Shells Shells CLI CLI CLI CLI CLI CLI CLI
-    Development Development Desktop Desktop System Shells Desktop Desktop Desktop Desktop Desktop Desktop System System
+    Development Development Desktop Desktop System Shells Desktop Desktop Desktop Desktop Desktop Desktop System System Desktop
 )
 declare -A module_default=(
     [bash]=true [fish]=true [nushell]=true [zsh]=true [starship]=true
     [atuin]=true [bat]=true [broot]=true [yazi]=true [lazygit]=true
     [btop]=true [fastfetch]=true [git]=true [nvim]=true [kitty]=true [cava]=true
-    [ssh]=true [oh-my-posh]=true [hypr]=true [kairo-shell]=false [rofi]=true [wezterm]=true [waybar]=true [swaync]=true [sddm]=true [plymouth]=true
+    [ssh]=true [oh-my-posh]=true [hypr]=true [kairo-shell]=false [rofi]=true [wezterm]=true [waybar]=true [swaync]=true [sddm]=true [plymouth]=true [kitty-smooth]=true
 )
 declare -A module_package=(
     [bash]=bash [fish]=fish [nushell]=nushell [zsh]=zsh [starship]=starship
     [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
     [btop]=btop [fastfetch]=fastfetch [git]=git [nvim]=neovim [kitty]=kitty [cava]=cava [wezterm]=wezterm
-    [ssh]=openssh [hypr]=hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync [sddm]=sddm [plymouth]=plymouth
+    [ssh]=openssh [hypr]=hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync [sddm]=sddm [plymouth]=plymouth [kitty-smooth]=kitty
 )
 declare -A module_aur_package=([oh-my-posh]=oh-my-posh-bin)
 declare -A module_command=(
     [bash]=bash [fish]=fish [nushell]=nu [zsh]=zsh [starship]=starship
     [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
     [btop]=btop [fastfetch]=fastfetch [git]=git [nvim]=nvim [kitty]=kitty [cava]=cava [wezterm]=wezterm
-    [ssh]=ssh [oh-my-posh]=oh-my-posh [hypr]=Hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync [sddm]=sddm-greeter-qt6 [plymouth]=plymouth-set-default-theme
+    [ssh]=ssh [oh-my-posh]=oh-my-posh [hypr]=Hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync [sddm]=sddm-greeter-qt6 [plymouth]=plymouth-set-default-theme [kitty-smooth]=kitty
 )
 declare -A installed_package_cache=()
 package_cache_loaded=false
@@ -141,7 +141,7 @@ Options:
 
 Components:
   bash zsh nushell git lazygit broot nvim yazi fastfetch btop oh-my-posh
-  starship atuin bat cava ssh kitty fish hypr kairo-shell rofi wezterm waybar swaync sddm plymouth all
+  starship atuin bat cava ssh kitty fish hypr kairo-shell rofi wezterm waybar swaync sddm plymouth kitty-smooth all
 EOF
 }
 
@@ -455,6 +455,8 @@ is_selected() {
         return
     fi
 
+    if [[ $component == kitty ]] && is_selected kitty-smooth; then return 0; fi
+
     # SwayNC supplies notifications for the shipped Hyprland/Waybar desktop.
     if [[ $component == swaync ]] && { is_selected hypr || is_selected waybar; }; then
         return 0
@@ -582,6 +584,11 @@ collect_missing_packages() {
     if [[ $default_shell != keep ]]; then
         package_is_installed "$default_shell" "${module_command[$default_shell]}" ||
             record_unique missing_official_packages "$default_shell"
+    fi
+    if is_selected kitty-smooth; then
+        for package in "${kitty_smooth_packages[@]}"; do
+            package_is_installed "$package" || record_unique missing_official_packages "$package"
+        done
     fi
     if is_selected plymouth; then
         package_is_installed python || record_unique missing_official_packages python
@@ -893,6 +900,7 @@ install_kairo_shell() {
 
 preflight_desktop() {
     local module file
+    preflight_kitty_smooth
     if is_selected plymouth; then
         bash "$repo_root/.local/share/plymouth/install.sh" --dry-run >/dev/null
     fi
@@ -1078,7 +1086,13 @@ install_kitty() {
         payload="$external_root/kitty"
         cp -a -- "$source_config_root/kitty" "$payload"
         if [[ -e $config_root/kitty/user.conf || -L $config_root/kitty/user.conf ]]; then
-            cp -a -- "$config_root/kitty/user.conf" "$payload/user.conf"
+            if is_selected kitty-smooth; then
+                rm -f -- "$payload/user.conf"
+                cp -L -- "$config_root/kitty/user.conf" "$payload/user.conf"
+                python3 "$repo_root/.config/scripts/kitty-smooth-config.py" "$payload/user.conf"
+            else
+                cp -a -- "$config_root/kitty/user.conf" "$payload/user.conf"
+            fi
         fi
     fi
     install_item kitty "$payload" "$config_root/kitty"
@@ -1471,6 +1485,10 @@ validate_installed_configs() {
                    -L $kairo_shell_bin/kairo && -L $kairo_shell_bin/kairod &&
                    -f $config_root/kairo/settings.json ]] || return 1
                 ;;
+            kitty-smooth)
+                [[ -x $HOME/.local/kitty-smooth/bin/kitty && -x $HOME/.local/bin/kitty-smooth &&
+                   -f $kairo_shell_data/applications/kitty-smooth.desktop ]] || return 1
+                ;;
             wezterm)
                 [[ -f $config_root/wezterm/wezterm.lua ]] || return 1
                 for config in config colors events utils; do
@@ -1627,6 +1645,10 @@ interactive_prepare() {
                     fi
                 done
                 ;;
+            kitty-smooth)
+                replacement_list+="  $HOME/.local/kitty-smooth"$'\n'"  $HOME/.local/bin/kitty-smooth"$'\n'
+                replacement_list+="  $kairo_shell_data/applications/kitty-smooth.desktop"$'\n'
+                ;;
             plymouth)
                 replacement_list+=$'  /usr/share/plymouth/themes/lone\n  /etc/plymouth/plymouthd.conf\n  initramfs (mkinitcpio, if available)\n'
                 ;;
@@ -1675,6 +1697,101 @@ interactive_prepare() {
         "$install_wallpapers" "$dry_run"
     ui_review "$review" || exit 130
 }
+
+# Reviewed patch and Kitty base; updates must explicitly change these pins.
+kitty_smooth_patch_commit='7a12c832f11bdf10edd4280f1e4f3cd750210a0e'
+kitty_smooth_patch_sha256='9932e8542edf5421ef326b9ba9434e925141cb38ab92e98386cb05f1ffd9411d'
+kitty_smooth_kitty_tag='v0.49.2'
+kitty_smooth_kitty_commit='b2cb871254fbdac19a085188813c8dfb258b95cd'
+declare -a kitty_smooth_packages=(
+    kitty git python go gcc pkgconf curl openssl xxhash libpng lcms2 cairo harfbuzz
+    libglvnd libx11 libxrandr libxinerama libxcursor libxkbcommon libxkbcommon-x11
+    dbus wayland wayland-protocols simde shader-slang ttf-nerd-fonts-symbols-mono
+    fontconfig ncurses
+)
+
+preflight_kitty_smooth() {
+    is_selected kitty-smooth || return 0
+    local target
+    for target in "$HOME/.local/kitty-smooth" "$HOME/.local/bin/kitty-smooth" \
+        "$kairo_shell_data/applications/kitty-smooth.desktop" "$config_root/kitty"; do
+        assert_safe_destination "$target"
+    done
+    [[ -x $repo_root/.local/bin/kitty-smooth && -f $repo_root/.config/scripts/kitty-smooth-config.py ]]
+}
+
+install_kitty_smooth() {
+    is_selected kitty-smooth || return 0
+    local checkout payload patch tool desktop
+    if $dry_run; then
+        describe "Build Kitty Smooth: Kitty $kitty_smooth_kitty_tag ($kitty_smooth_kitty_commit), patch $kitty_smooth_patch_commit"
+        describe "Install kitty-smooth transactionally -> $HOME/.local/kitty-smooth"
+        describe "Install launcher -> $HOME/.local/bin/kitty-smooth (stock Kitty fallback)"
+        describe "Install desktop entry -> $kairo_shell_data/applications/kitty-smooth.desktop"
+        record_installed kitty-smooth
+        return 0
+    fi
+    for tool in git python3 go cc pkg-config curl slangc fc-list tic; do
+        command -v "$tool" >/dev/null || {
+            printf 'Kitty Smooth requires %s; rerun with --install-packages.\n' "$tool" >&2; return 1;
+        }
+    done
+    pkg-config --exists libcrypto libxxhash libpng lcms2 cairo-fc harfbuzz gl x11 x11-xcb \
+        xrandr xinerama xcursor xkbcommon xkbcommon-x11 dbus-1 wayland-client \
+        wayland-cursor wayland-scanner wayland-protocols || {
+        echo 'Missing Kitty build libraries; rerun with --install-packages.' >&2; return 1;
+    }
+    printf '#include <simde/x86/sse4.2.h>\n' | cc -E -x c - >/dev/null || {
+        echo 'Missing simde headers; rerun with --install-packages.' >&2; return 1;
+    }
+    ensure_external_root
+    checkout="$external_root/kitty-smooth-source"
+    payload="$external_root/kitty-smooth-payload"
+    patch="$external_root/kitty-smooth.patch"
+    describe "Building Kitty Smooth $kitty_smooth_kitty_tag; this may take several minutes"
+    git clone --depth 1 --branch "$kitty_smooth_kitty_tag" https://github.com/kovidgoyal/kitty.git "$checkout"
+    [[ $(git -C "$checkout" rev-parse HEAD) == "$kitty_smooth_kitty_commit" ]] || {
+        printf 'Kitty source does not match the reviewed commit.\n' >&2; return 1;
+    }
+    curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+        "https://raw.githubusercontent.com/SunqdXX/kitty-smooth-cursor/$kitty_smooth_patch_commit/kitty-smooth-cursor.patch" -o "$patch"
+    [[ $(sha256sum "$patch" | cut -d ' ' -f 1) == "$kitty_smooth_patch_sha256" ]] || {
+        printf 'Kitty Smooth patch checksum mismatch.\n' >&2; return 1;
+    }
+    git -C "$checkout" apply --check "$patch"
+    git -C "$checkout" apply "$patch"
+    # The source package looks up SymbolsNFM through fontconfig. No remote fonts
+    # or compiler binaries are downloaded; Arch packages supply those inputs.
+    mkdir -p "$checkout/docs/_build/html" "$checkout/docs/_build/man"
+    (
+        cd -- "$checkout"
+        python3 setup.py linux-package --prefix "$payload" --update-check-interval=0
+    )
+    [[ -x $payload/bin/kitty ]] || { echo 'Kitty Smooth build produced no executable.' >&2; return 1; }
+    "$payload/bin/kitty" --version
+    printf 'kitty=%s\npatch=%s\n' "$kitty_smooth_kitty_commit" "$kitty_smooth_patch_commit" > "$payload/.kairo-build"
+    desktop="$external_root/kitty-smooth.desktop"
+    python3 - "$HOME/.local/bin/kitty-smooth" "$desktop" <<'PY'
+from pathlib import Path
+import sys
+# Desktop Exec is not shell syntax; quote reserved characters, then escape
+# backslashes for the desktop-file string parser. Percent signs are field codes.
+arg = sys.argv[1].replace('%', '%%')
+for char in ('\\', '"', '`', '$'):
+    arg = arg.replace(char, '\\' + char)
+arg = arg.replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r')
+Path(sys.argv[2]).write_text(
+    '[Desktop Entry]\nType=Application\nName=Kitty Smooth\n'
+    'GenericName=Terminal emulator\nComment=Kitty with smooth cursor motion\n'
+    f'Exec="{arg}"\nIcon=kitty\nTerminal=false\nCategories=System;TerminalEmulator;\n'
+)
+PY
+    # Only deploy after source validation, patching and compilation succeed.
+    install_item kitty-smooth "$payload" "$HOME/.local/kitty-smooth"
+    install_item kitty-smooth "$repo_root/.local/bin/kitty-smooth" "$HOME/.local/bin/kitty-smooth"
+    install_item kitty-smooth "$desktop" "$kairo_shell_data/applications/kitty-smooth.desktop"
+}
+
 
 detect_gpu_drivers
 if $interactive; then
@@ -1736,6 +1853,7 @@ install_item bat "$source_config_root/bat/themes" "$config_root/bat/themes"
 install_item cava "$source_config_root/cava/config" "$config_root/cava/config"
 install_item ssh "$source_config_root/ssh/config" "$HOME/.ssh/config.d/dotfiles.conf"
 install_include_line ssh "$HOME/.ssh/config" 'Include ~/.ssh/config.d/*.conf'
+install_kitty_smooth
 install_kitty
 if is_selected wezterm && [[ -e $HOME/.wezterm.lua || -L $HOME/.wezterm.lua ]]; then
     skipped+=(wezterm)
