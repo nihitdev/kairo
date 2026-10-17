@@ -518,6 +518,7 @@ run_specific_selector_test
 run_hypr_rice_payload_test
 bash "$repo_root/.config/tests/test-kairo-shell.sh"
 bash "$repo_root/.config/tests/test-desktop-install.sh"
+bash "$repo_root/.config/tests/test-plymouth-install.sh"
 bash "$repo_root/.config/tests/test-default-shell.sh"
 python3 "$repo_root/.config/tests/test-swaync.py"
 python3 "$repo_root/.config/tests/test-shell-configs.py"

@@ -597,3 +597,10 @@ community expectations.
 ## License
 
 Released under the terms of [LICENSE](LICENSE).
+
+### Plymouth boot theme
+
+The optional **Plymouth Lone** System module installs the bundled Lone boot
+animation. Select it in the module picker or use
+`./install.sh --only plymouth --install-packages`. See the
+[Plymouth setup notes](.local/share/plymouth/README.md) for boot prerequisites.

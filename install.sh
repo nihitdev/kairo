@@ -70,34 +70,34 @@ declare -a waybar_packages=(
 
 declare -a module_names=(
     bash fish nushell zsh starship atuin bat broot yazi lazygit fastfetch btop
-    git nvim kitty cava ssh oh-my-posh hypr kairo-shell rofi wezterm waybar swaync sddm
+    git nvim kitty cava ssh oh-my-posh hypr kairo-shell rofi wezterm waybar swaync sddm plymouth
 )
 declare -a module_labels=(
     Bash Fish Nushell Zsh Starship Atuin Bat Broot Yazi LazyGit Fastfetch Btop
-    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland 'Kairo Shell' Rofi WezTerm Waybar 'SwayNC + battery alerts' 'SDDM login theme'
+    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland 'Kairo Shell' Rofi WezTerm Waybar 'SwayNC + battery alerts' 'SDDM login theme' 'Plymouth Lone'
 )
 declare -a module_categories=(
     Shells Shells Shells Shells Shells CLI CLI CLI CLI CLI CLI CLI
-    Development Development Desktop Desktop System Shells Desktop Desktop Desktop Desktop Desktop Desktop System
+    Development Development Desktop Desktop System Shells Desktop Desktop Desktop Desktop Desktop Desktop System System
 )
 declare -A module_default=(
     [bash]=true [fish]=true [nushell]=true [zsh]=true [starship]=true
     [atuin]=true [bat]=true [broot]=true [yazi]=true [lazygit]=true
     [btop]=true [fastfetch]=true [git]=true [nvim]=true [kitty]=true [cava]=true
-    [ssh]=true [oh-my-posh]=true [hypr]=true [kairo-shell]=false [rofi]=true [wezterm]=true [waybar]=true [swaync]=true [sddm]=true
+    [ssh]=true [oh-my-posh]=true [hypr]=true [kairo-shell]=false [rofi]=true [wezterm]=true [waybar]=true [swaync]=true [sddm]=true [plymouth]=true
 )
 declare -A module_package=(
     [bash]=bash [fish]=fish [nushell]=nushell [zsh]=zsh [starship]=starship
     [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
     [btop]=btop [fastfetch]=fastfetch [git]=git [nvim]=neovim [kitty]=kitty [cava]=cava [wezterm]=wezterm
-    [ssh]=openssh [hypr]=hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync [sddm]=sddm
+    [ssh]=openssh [hypr]=hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync [sddm]=sddm [plymouth]=plymouth
 )
 declare -A module_aur_package=([oh-my-posh]=oh-my-posh-bin)
 declare -A module_command=(
     [bash]=bash [fish]=fish [nushell]=nu [zsh]=zsh [starship]=starship
     [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
     [btop]=btop [fastfetch]=fastfetch [git]=git [nvim]=nvim [kitty]=kitty [cava]=cava [wezterm]=wezterm
-    [ssh]=ssh [oh-my-posh]=oh-my-posh [hypr]=Hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync [sddm]=sddm-greeter-qt6
+    [ssh]=ssh [oh-my-posh]=oh-my-posh [hypr]=Hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync [sddm]=sddm-greeter-qt6 [plymouth]=plymouth-set-default-theme
 )
 declare -A installed_package_cache=()
 package_cache_loaded=false
@@ -141,7 +141,7 @@ Options:
 
 Components:
   bash zsh nushell git lazygit broot nvim yazi fastfetch btop oh-my-posh
-  starship atuin bat cava ssh kitty fish hypr kairo-shell rofi wezterm waybar swaync sddm all
+  starship atuin bat cava ssh kitty fish hypr kairo-shell rofi wezterm waybar swaync sddm plymouth all
 EOF
 }
 
@@ -583,6 +583,9 @@ collect_missing_packages() {
         package_is_installed "$default_shell" "${module_command[$default_shell]}" ||
             record_unique missing_official_packages "$default_shell"
     fi
+    if is_selected plymouth; then
+        package_is_installed python || record_unique missing_official_packages python
+    fi
     if is_selected sddm; then
         for package in qt6-declarative ttf-iosevka-nerd python; do
             package_is_installed "$package" || record_unique missing_official_packages "$package"
@@ -700,6 +703,7 @@ acquire_privileges() {
     ((${#missing_official_packages[@]})) && $install_packages && needs_root=true
     $enable_chaotic_aur && needs_root=true
     is_selected sddm && needs_root=true
+    is_selected plymouth && needs_root=true
     $needs_root || return 0
     if ((EUID == 0)); then
         warnings+=('Kairo is running as root; AUR builds remain disabled for safety')
@@ -889,6 +893,9 @@ install_kairo_shell() {
 
 preflight_desktop() {
     local module file
+    if is_selected plymouth; then
+        bash "$repo_root/.local/share/plymouth/install.sh" --dry-run >/dev/null
+    fi
     if is_selected sddm; then
         for file in Main.qml metadata.desktop theme.conf background.png preview.png install.sh rollback.sh; do
             [[ -r "$repo_root/.local/share/sddm/themes/archnemesis/$file" ]] || {
@@ -1620,6 +1627,9 @@ interactive_prepare() {
                     fi
                 done
                 ;;
+            plymouth)
+                replacement_list+=$'  /usr/share/plymouth/themes/lone\n  /etc/plymouth/plymouthd.conf\n  initramfs (mkinitcpio, if available)\n'
+                ;;
             sddm)
                 replacement_list+=$'  /usr/share/sddm/themes/archnemesis\n  /etc/sddm.conf.d/zz-archnemesis.conf\n'
                 [[ ! -f /etc/sddm.conf ]] || replacement_list+=$'  /etc/sddm.conf [Theme]\n'
@@ -1776,12 +1786,19 @@ install_lazyvim_plugins
 if $interactive; then ui_stage 7 7 'Validating installation'; else describe '[7/7] Validating'; fi
 if ! $dry_run; then validate_installed_configs; fi
 
-# Apply the separately backed-up system theme only after home configurations validate.
+# Apply system themes only after home configurations validate.
 if is_selected sddm; then
     sddm_args=()
     $dry_run && sddm_args+=(--dry-run)
     bash "$repo_root/.local/share/sddm/themes/archnemesis/install.sh" "${sddm_args[@]}"
     record_installed sddm
+fi
+
+if is_selected plymouth; then
+    plymouth_args=()
+    $dry_run && plymouth_args+=(--dry-run)
+    bash "$repo_root/.local/share/plymouth/install.sh" "${plymouth_args[@]}"
+    record_installed plymouth
 fi
 
 if ! $dry_run; then
