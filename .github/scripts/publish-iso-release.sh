@@ -78,6 +78,19 @@ fi
 if $release_exists; then
     gh release upload "$tag" "$ISO_PATH" "$CHECKSUM_PATH" --clobber
 else
+    if [[ $RELEASE_MODE == rolling ]]; then
+        ref_url="repos/$GITHUB_REPOSITORY/git/ref/tags/$tag"
+        if gh api "$ref_url" >/dev/null 2>&1; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag" \
+                -f "sha=$GITHUB_SHA" \
+                -F force=true
+        else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+                -f "ref=refs/tags/$tag" \
+                -f "sha=$GITHUB_SHA"
+        fi
+    fi
+
     create_args=(
         gh release create "$tag"
         "$ISO_PATH"
@@ -85,11 +98,9 @@ else
         --target "$GITHUB_SHA"
         --title "$title"
         --notes-file "$RELEASE_NOTES_PATH"
-        --draft
+        --verify-tag
     )
-    if [[ $RELEASE_MODE == versioned ]]; then
-        create_args+=(--verify-tag)
-    else
+    if [[ $RELEASE_MODE == rolling ]]; then
         create_args+=(--latest=false)
     fi
     "${create_args[@]}"

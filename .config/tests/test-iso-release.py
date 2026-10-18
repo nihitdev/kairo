@@ -38,6 +38,9 @@ if [[ $1 == release ]]; then
     esac
 elif [[ $1 == api ]]; then
     case "$*" in
+        *git/ref/tags/rolling)
+            [[ ${GH_TAG_EXISTS:-false} == true ]]
+            ;;
         *actions/workflows/build-iso.yml/runs*)
             if [[ ${GH_PENDING_ONCE:-false} == true && ! -e "$GH_TEST_LOG.pending" ]]; then
                 touch "$GH_TEST_LOG.pending"
@@ -102,18 +105,19 @@ fi
         self.assertTrue(any('.run_number < 9' in call and '\\\"' not in call for call in requests))
         self.assertIn('Waiting for earlier main ISO run', result.stdout)
 
-    def test_first_rolling_release_is_created_once_as_draft_then_published(self):
+    def test_first_rolling_release_creates_tag_before_publishing(self):
         self.env['GH_RELEASE_EXISTS'] = 'false'
         self.env['GH_ASSETS'] = '\\t'.join(('11', self.image.name, str(self.image.stat().st_size))) + '\\n'
         self.env['GH_ASSETS'] += '\\t'.join(('12', self.checksum.name, str(self.checksum.stat().st_size))) + '\\n'
-        calls = self.calls()
         self.run_publisher()
         calls = self.calls()
         self.assertEqual(sum(call.startswith('release create rolling ') for call in calls), 1)
         create = next(call for call in calls if call.startswith('release create rolling '))
-        self.assertIn('--draft', create)
+        self.assertIn('--verify-tag', create)
+        self.assertNotIn('--draft', create)
         self.assertIn('--target ' + self.env['GITHUB_SHA'], create)
-        self.assertTrue(any('--draft=false' in call for call in calls if call.startswith('release edit rolling ')))
+        self.assertTrue(any(call.startswith('api --method POST repos/nihitdev/kairo/git/refs ') for call in calls))
+        self.assertTrue(any(call.startswith('api repos/nihitdev/kairo/git/ref/tags/rolling') for call in calls))
 
     def test_versioned_release_path_is_retained_and_does_not_touch_rolling(self):
         self.env['RELEASE_MODE'] = 'versioned'
