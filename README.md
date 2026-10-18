@@ -66,6 +66,31 @@ Want to inspect everything before Kairo writes anything?
 
 ---
 
+## Bootable Arch USB
+
+Build a USB-flashable **Arch Linux Kairo install medium** from the official Arch
+ISO with `./iso/build.sh`. The image uses the standard `archinstall` guided
+installer and bundles Kairo into the installed system. After reboot, run
+`kairo-setup` as your regular user to select and install the dotfiles and packages.
+Internet access is required. See the [ISO build and USB guide](iso/README.md)
+for dependencies, checksum verification, flashing, and installation steps.
+
+### Automated ISO builds and releases
+
+[![Build Kairo ISO](https://github.com/nihitdev/kairo/actions/workflows/build-iso.yml/badge.svg)](https://github.com/nihitdev/kairo/actions/workflows/build-iso.yml)
+
+Kairo automatically builds bootable Arch Linux ISOs using GitHub Actions.
+
+- Run builds manually from GitHub Actions.
+- Push an `iso-v*` Git tag to create a release.
+- Download the ISO and SHA-256 checksum from [GitHub Releases](https://github.com/nihitdev/kairo/releases).
+- Verify the ISO before flashing it to USB.
+
+After booting the ISO, use `archinstall`, reboot into Arch,
+and run `kairo-setup` as your regular user.
+
+See [ISO installation instructions](iso/README.md).
+
 ## Screenshots
 
 **ARCHNEMESIS on Hyprland** — nine captures of the desktop and its daily workflows. Click a section to expand or collapse it.
@@ -385,7 +410,8 @@ HTML/man documentation generation is skipped, as in upstream's installer.
 reviewed pinned version; it does not silently track the newest Kitty release.
 Maintainers updating the pins in `install.sh` must review the patch, update its
 SHA-256, and validate the build before publishing the change. Distribution
-library upgrades may also require rebuilding. `--no-backup` avoids permanent
+library upgrades may also require rebuilding. Repeat installations reuse a build
+with matching pins; use `--rebuild-kitty-smooth --only kitty-smooth` to force a rebuild. `--no-backup` avoids permanent
 backups while retaining automatic rollback of failed configuration deployment.
 
 **Uninstalling:** remove only the patched build and its launcher/menu entry:

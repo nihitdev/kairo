@@ -1,0 +1,12 @@
+
+  Arch Linux Kairo install medium
+
+  1. Connect to the internet (iwctl for Wi-Fi).
+  2. Run archinstall. Choose your disk, bootloader, and a sudo-enabled user.
+     Select the Hyprland desktop profile and NetworkManager for a desktop install.
+  3. Reboot into the installed system, log in as that user, and run kairo-setup.
+
+  Kairo is bundled at /opt/kairo; package installation needs internet access.
+  Archinstall asks you to review disk changes before installation.
+  Documentation: /opt/kairo/iso/README.md
+

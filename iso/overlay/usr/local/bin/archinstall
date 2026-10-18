@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Keep Arch's guided installer and disk confirmation UI unchanged.
+exec /usr/bin/archinstall --plugin /usr/local/share/kairo/archinstall-plugin.py "$@"

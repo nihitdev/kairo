@@ -1,0 +1,163 @@
+name: Build Kairo ISO
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'iso-v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kairo-iso-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and publish Kairo ISO
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Validate ISO builder
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f iso/build.sh
+          bash -n iso/build.sh
+          df -h .
+
+      - name: Build ISO using Arch Linux
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker run --rm --privileged \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            --workdir /workspace \
+            --env CI=true \
+            archlinux:latest \
+            bash -euo pipefail -c '
+              pacman -Syu --noconfirm --needed \
+                archiso git curl wget rsync sudo
+
+              git config --global \
+                --add safe.directory /workspace
+
+              bash iso/build.sh
+            '
+
+      - name: Prepare ISO and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p release-assets
+
+          mapfile -d '' images < <(
+            find out -maxdepth 1 -type f \
+              -name '*.iso' -print0
+          )
+
+          if (( ${#images[@]} != 1 )); then
+            echo "Expected exactly one ISO in out/" >&2
+            exit 1
+          fi
+
+          image="${images[0]}"
+          name="$(basename "$image")"
+
+          sudo chown "$(id -u):$(id -g)" "$image"
+
+          test -s "$image"
+
+          cp -- "$image" "release-assets/$name"
+
+          cd release-assets
+
+          sha256sum "$name" > "$name.sha256"
+          sha256sum -c "$name.sha256"
+
+          # Keep individual release assets below 2 GiB.
+          limit=$((1900 * 1024 * 1024))
+
+          if (( $(stat -c %s "$name") > limit )); then
+            split \
+              --bytes=1900M \
+              --numeric-suffixes=0 \
+              --suffix-length=3 \
+              -- "$name" "$name.part-"
+
+            sha256sum "$name".part-* \
+              > "$name.parts.sha256"
+
+            rm -- "$name"
+
+            printf '%s\n' \
+              'Download all ISO parts and checksum files.' \
+              'Verify the parts, join them, then verify the ISO.' \
+              > REASSEMBLE.txt
+
+            printf 'sha256sum -c %s.parts.sha256\n' \
+              "$name" >> REASSEMBLE.txt
+
+            printf 'cat %s.part-* > %s\n' \
+              "$name" "$name" >> REASSEMBLE.txt
+
+            printf 'sha256sum -c %s.sha256\n' \
+              "$name" >> REASSEMBLE.txt
+
+            sha256sum -c "$name.parts.sha256"
+          fi
+
+          ls -lh .
+
+      - name: Upload manual build artifacts
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kairo-iso
+          path: release-assets/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/iso-v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          cat > release-notes.md <<'EOF'
+          # Kairo Arch Linux ISO
+
+          Bootable Arch Linux installation medium with Kairo.
+
+          1. Download the ISO and checksum.
+          2. Verify the SHA-256 checksum.
+          3. Flash the ISO to a USB drive.
+          4. Boot and run archinstall.
+          5. Reboot and run kairo-setup.
+
+          If the ISO is split into parts, download every
+          part and follow REASSEMBLE.txt.
+
+          See iso/README.md for installation instructions.
+          EOF
+
+          gh release create "$TAG" \
+            release-assets/* \
+            --verify-tag \
+            --title "Kairo ISO $TAG" \
+            --notes-file release-notes.md

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+if (( EUID == 0 )); then
+    echo 'Log in as your regular sudo-enabled user, then run kairo-setup.' >&2
+    exit 1
+fi
+exec bash /opt/kairo/install.sh --install-packages "$@"
