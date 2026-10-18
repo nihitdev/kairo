@@ -14,12 +14,20 @@ run_install() {
 
 target="$test_root/home with spaces"
 mkdir -p "$target/.config/rofi" "$target/.cache" "$target/Pictures"
+mkdir -p "$target/.config/quickshell/other-shell"
+printf 'unrelated shell\n' > "$target/.config/quickshell/other-shell/sentinel"
 printf 'custom launcher\n' > "$target/.config/rofi/sentinel"
 printf 'wallpaper fixture\n' > "$target/Pictures/space & stars.png"
 printf '%s\n' "$target/Pictures/space & stars.png" > "$target/.cache/current-wallpaper"
 run_install "$target" --dry-run --only hypr > "$test_root/plan"
 [[ ! -e $target/.config/hypr ]] || fail 'desktop dry-run wrote config'
+[[ ! -e $target/.config/quickshell/wallpaper-picker ]] || fail 'dry-run deployed carousel'
 run_install "$target" --only hypr > "$test_root/first"
+[[ $(cat "$target/.config/quickshell/other-shell/sentinel") == 'unrelated shell' ]] || fail 'unrelated Quickshell config overwritten'
+for file in shell.qml backend.py README.md; do
+    cmp "$repo_root/.config/quickshell/wallpaper-picker/$file" "$target/.config/quickshell/wallpaper-picker/$file" || fail 'carousel payload mismatch'
+done
+[[ -x $target/.config/hypr/scripts/wallpaper-picker-rofi.sh ]] || fail 'Rofi fallback missing'
 [[ $(readlink "$target/.config/hypr/current-wallpaper") == "$target/Pictures/space & stars.png" ]] || fail 'saved wallpaper was not preserved'
 [[ $(cat "$target/.config/rofi/sentinel") == 'custom launcher' ]] || fail 'custom Rofi was overwritten'
 [[ -f $target/.local/share/fonts/archnemesis/Waycat.ttf ]] || fail 'Waycat font missing'

@@ -141,7 +141,12 @@ Workspaces, layout indicator, skull/cat artwork, hardware controls, notification
 
 ![ARCHNEMESIS Rofi wallpaper gallery](screenshots/wallpaper-picker.png)
 
-**Super + Alt + Space** opens the wallpaper picker with image previews.
+**Super + Alt + Space** opens the standalone Quickshell wallpaper carousel with
+slanted previews, local search, colour filters, history, and monitor selection.
+Use the arrow keys or scroll to browse, then Enter to apply. The picker closes
+automatically after a successful selection; Escape closes without applying.
+The screenshot above shows the original Rofi gallery, still available with
+`~/.config/hypr/scripts/wallpaper-picker.sh --rofi`.
 
 </details>
 
@@ -339,11 +344,11 @@ not automatically install every application mentioned in personal keybinds.
 Wallpaper images and machine-specific wallpaper links are not included in Git.
 An install preserves the target user's existing wallpaper link or saved selection,
 then falls back to the installed Hyprland wallpaper if available. Add your images
-to `~/Pictures/CozyPixels/Catppuccin/Space & Cosmic` and use
+to `~/Pictures/Wallpapers` and use
 **Super+Alt+Space** to choose one. **Super+Ctrl+Space** opens the live-wallpaper
 picker for videos in `~/Pictures/CozyPixels/Live Wallpapers/Wallpapers`. Hyprland
 restores the selected wallpaper backend at startup; `--install-packages` includes
-FFmpeg and the AUR package `mpvpaper`. Pass `--install-wallpapers` to download the
+Quickshell, Qt Quick, Python Pillow, FFmpeg, and the AUR package `mpvpaper`. Pass `--install-wallpapers` to download the
 optional CozyPixels collection; failed installations roll back a newly downloaded
 collection along with the configuration changes.
 The picker updates Hyprpaper's persistent selection. Locking falls back to a solid

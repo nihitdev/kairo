@@ -61,7 +61,7 @@ declare -a hypr_packages=(
     hyprland hyprpaper hypridle hyprlock swaync network-manager-applet
     kitty rofi cliphist wl-clipboard jq libnotify brightnessctl playerctl
     wireplumber xdg-desktop-portal-hyprland qt5-wayland qt6-wayland qt6ct kvantum
-    grim slurp procps-ng util-linux ffmpeg
+    grim slurp procps-ng util-linux ffmpeg quickshell qt6-declarative python-pillow
 )
 declare -a waybar_packages=(
     waybar python jq swaync kitty wireplumber brightnessctl playerctl
@@ -931,7 +931,7 @@ preflight_desktop() {
         done < <(find "$source_config_root/$module" -type f \( -name '*.sh' -o -name '*.lua' \) -print0)
     done
     if is_selected hypr; then
-        for module in hyprlock rofi; do
+        for module in hyprlock rofi quickshell/wallpaper-picker; do
             [[ -d $source_config_root/$module ]] || {
                 printf 'Missing desktop payload: %s\n' "$module" >&2; return 1;
             }
@@ -1026,12 +1026,13 @@ install_hypr_desktop() {
     if [[ -n $wallpaper ]]; then
         describe "Preserve/seed wallpaper -> $wallpaper"
     else
-        warnings+=('No wallpaper found: add images to ~/Pictures/CozyPixels/Catppuccin/Space & Cosmic and press Super+Alt+Space')
+        warnings+=('No wallpaper found: add images to ~/Pictures/Wallpapers and press Super+Alt+Space')
     fi
     if is_selected kairo-shell; then
         describe "Configure Hyprland startup -> $kairo_shell_bin/kairod start"
         describe 'Skip Waybar deployment because Kairo Shell is selected'
     fi
+    install_item hypr "$source_config_root/quickshell/wallpaper-picker" "$config_root/quickshell/wallpaper-picker"
     install_item hypr "$source_config_root/hyprlock" "$config_root/hyprlock"
     # Required by the existing keybinds; preserve a user's custom Rofi setup.
     if ! is_selected rofi; then
