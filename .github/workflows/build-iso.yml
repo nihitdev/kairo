@@ -48,7 +48,7 @@ jobs:
             archlinux:latest \
             bash -euo pipefail -c '
               pacman -Syu --noconfirm --needed \
-                archiso git curl wget rsync sudo
+                archiso git curl wget rsync sudo libisoburn squashfs-tools fakeroot gnupg mtools python
 
               git config --global \
                 --add safe.directory /workspace
