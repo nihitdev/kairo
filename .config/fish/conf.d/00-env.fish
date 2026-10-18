@@ -4,10 +4,10 @@
 
 # ── XDG ────────────────────────────────────────────────────────────────────────
 
-set -gx XDG_CONFIG_HOME "$HOME/.config"
-set -gx XDG_CACHE_HOME "$HOME/.cache"
-set -gx XDG_DATA_HOME "$HOME/.local/share"
-set -gx XDG_STATE_HOME "$HOME/.local/state"
+set -q XDG_CONFIG_HOME; or set -gx XDG_CONFIG_HOME "$HOME/.config"
+set -q XDG_CACHE_HOME; or set -gx XDG_CACHE_HOME "$HOME/.cache"
+set -q XDG_DATA_HOME; or set -gx XDG_DATA_HOME "$HOME/.local/share"
+set -q XDG_STATE_HOME; or set -gx XDG_STATE_HOME "$HOME/.local/state"
 
 # ── PATH ───────────────────────────────────────────────────────────────────────
 
@@ -32,11 +32,11 @@ set -gx LESS "-R -F -X"
 
 # ── Starship ───────────────────────────────────────────────────────────────────
 
-set -gx STARSHIP_CONFIG "$HOME/.config/starship/fish.toml"
+set -gx STARSHIP_CONFIG "$XDG_CONFIG_HOME/starship/fish.toml"
 
 # Fall back to the existing Zsh Starship config if Fish does not have its own.
 if not test -f "$STARSHIP_CONFIG"
-    set -gx STARSHIP_CONFIG "$HOME/.config/starship/zsh.toml"
+    set -gx STARSHIP_CONFIG "$XDG_CONFIG_HOME/starship/zsh.toml"
 end
 
 # ── FZF ────────────────────────────────────────────────────────────────────────
@@ -50,7 +50,7 @@ set -gx FZF_DEFAULT_OPTS \
     "--layout=reverse" \
     "--border=rounded" \
     "--info=inline" \
-    "--prompt=> " \
+    "--prompt='> '" \
     "--pointer=▌" \
     "--marker=✓" \
     "--color=bg+:#313244" \
@@ -64,3 +64,6 @@ set -gx FZF_DEFAULT_OPTS \
     "--color=marker:#a6e3a1" \
     "--color=spinner:#f5c2e7" \
     "--color=header:#89b4fa"
+
+# Export one option string so quoting is preserved for fzf.
+set -gx FZF_DEFAULT_OPTS (string join " " -- $FZF_DEFAULT_OPTS)

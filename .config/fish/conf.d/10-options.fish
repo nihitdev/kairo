@@ -2,6 +2,9 @@
 # ARCHNEMESIS // FISH UI
 # ==============================================================================
 
+# conf.d files also run in non-interactive shells.
+status is-interactive; or return
+
 # ── Syntax colors ──────────────────────────────────────────────────────────────
 
 set -g fish_color_normal cdd6f4

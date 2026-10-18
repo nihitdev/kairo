@@ -1,14 +1,15 @@
+palette = "prism"
 add_newline = true
 
 # Last command duration at the right edge of the input line.
 right_format = "$cmd_duration"
 
 format = """
-[╭─    ](bold cyan)$directory$git_branch$git_status
-[╰─](bold cyan)$character"""
+[╭─    ](bold accent)$directory$git_branch$git_status
+[╰─](bold accent)$character"""
 
 [directory]
-style = "bold cyan"
+style = "bold accent"
 format = "[$path]($style)"
 truncation_length = 4
 truncate_to_repo = false
@@ -32,3 +33,20 @@ min_time = 0
 show_milliseconds = true
 format = "[󰔛 $duration]($style)"
 style = "bold purple"
+
+[palettes.prism]
+base = "#191724"
+surface = "#26233a"
+text = "#e0def4"
+blue = "#31748f"
+cyan = "#9ccfd8"
+mauve = "#c4a7e7"
+green = "#9ccfd8"
+red = "#eb6f92"
+yellow = "#f6c177"
+peach = "#ebbcba"
+overlay = "#908caa"
+arch = "#ebbcba"
+accent = "#ebbcba"
+purple = "#c4a7e7"
+bright-black = "#908caa"

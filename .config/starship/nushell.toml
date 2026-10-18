@@ -1,17 +1,18 @@
+palette = "prism"
 # ==============================================================================
 # Nushell Starship Prompt
 # ==============================================================================
 
 format = """
-[](#7aa2f7)\
+[](accent)\
 $os\
 $username\
-[](bg:#24283b fg:#7aa2f7)\
+[](bg:surface fg:accent)\
 $directory\
-[](fg:#24283b bg:#1f2335)\
+[](fg:surface bg:base)\
 $git_branch\
 $git_status\
-[](fg:#1f2335)\
+[](fg:base)\
 $fill\
 $cmd_duration\
 $time\
@@ -28,7 +29,7 @@ command_timeout = 1000
 
 [os]
 disabled = false
-style = "bg:#7aa2f7 fg:#1a1b26"
+style = "bg:accent fg:base"
 format = "[$symbol]($style)"
 
 [os.symbols]
@@ -43,8 +44,8 @@ Linux = "  "
 
 [username]
 show_always = true
-style_user = "bold bg:#7aa2f7 fg:#1a1b26"
-style_root = "bold bg:#f7768e fg:#1a1b26"
+style_user = "bold bg:accent fg:base"
+style_root = "bold bg:red fg:base"
 format = "[$user ]($style)"
 
 
@@ -53,7 +54,7 @@ format = "[$user ]($style)"
 # ==============================================================================
 
 [directory]
-style = "bold bg:#24283b fg:#7dcfff"
+style = "bold bg:surface fg:cyan"
 format = "[ 󰉋 $path ]($style)"
 truncation_length = 3
 truncate_to_repo = false
@@ -73,11 +74,11 @@ home_symbol = "~"
 
 [git_branch]
 symbol = " "
-style = "bg:#1f2335 fg:#bb9af7"
+style = "bg:base fg:mauve"
 format = "[ $symbol$branch]($style)"
 
 [git_status]
-style = "bg:#1f2335 fg:#e0af68"
+style = "bg:base fg:yellow"
 format = "[$all_status$ahead_behind ]($style)"
 
 
@@ -90,13 +91,13 @@ symbol = " "
 
 [cmd_duration]
 min_time = 500
-style = "fg:#e0af68"
+style = "fg:yellow"
 format = "[󰔚 $duration ]($style)"
 
 [time]
 disabled = false
 time_format = "%H:%M"
-style = "fg:#565f89"
+style = "fg:overlay"
 format = "[ $time]($style)"
 
 
@@ -105,6 +106,23 @@ format = "[ $time]($style)"
 # ==============================================================================
 
 [character]
-success_symbol = "[╰─](bold #565f89)[❯](bold #9ece6a)"
-error_symbol = "[╰─](bold #565f89)[❯](bold #f7768e)"
-vimcmd_symbol = "[╰─](bold #565f89)[❯](bold #bb9af7)"
+success_symbol = "[╰─](bold overlay)[❯](bold green)"
+error_symbol = "[╰─](bold overlay)[❯](bold red)"
+vimcmd_symbol = "[╰─](bold overlay)[❯](bold mauve)"
+
+[palettes.prism]
+base = "#191724"
+surface = "#26233a"
+text = "#e0def4"
+blue = "#31748f"
+cyan = "#9ccfd8"
+mauve = "#c4a7e7"
+green = "#9ccfd8"
+red = "#eb6f92"
+yellow = "#f6c177"
+peach = "#ebbcba"
+overlay = "#908caa"
+arch = "#ebbcba"
+accent = "#ebbcba"
+purple = "#c4a7e7"
+bright-black = "#908caa"

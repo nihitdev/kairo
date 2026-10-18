@@ -1,8 +1,75 @@
+palette = "prism"
+# Original minimal Fish look with a live working directory.
 add_newline = false
+format = "[ ](bold accent)$directory$character"
+right_format = "$git_branch$git_status$git_state$jobs$cmd_duration"
+continuation_prompt = "[  · ](overlay)"
 
-format = """[  ~](bold blue)$character"""
+
+[directory]
+style = "bold accent"
+home_symbol = " ~"
+truncation_symbol = "…/"
+truncation_length = 3
+truncate_to_repo = true
+read_only = " "
+read_only_style = "red"
+format = "[$path]($style)[$read_only]($read_only_style) "
+
+[git_branch]
+symbol = " "
+style = "mauve"
+format = "[$symbol$branch]($style) "
+truncation_length = 24
+
+[git_status]
+style = "peach"
+format = '([\[$all_status$ahead_behind\]]($style) )'
+
+[git_state]
+style = "yellow"
+format = '([\($state( $progress_current/$progress_total)\)]($style) )'
+
+[username]
+style_user = "mauve"
+style_root = "bold red"
+format = "[$user]($style)@"
+show_always = false
+
+[hostname]
+ssh_only = true
+style = "mauve"
+format = "[$hostname]($style) "
+
+[jobs]
+symbol = "✦ "
+style = "yellow"
+format = "[$symbol$number]($style) "
+number_threshold = 1
+
+[cmd_duration]
+min_time = 2000
+style = "overlay"
+format = "[$duration]($style)"
 
 [character]
-success_symbol = "[](bold green) "
-error_symbol = "[](bold red) "
-vimcmd_symbol = "[](bold yellow) "
+success_symbol = "[](bold green)"
+error_symbol = "[](bold red)"
+vimcmd_symbol = "[](bold yellow)"
+
+[palettes.prism]
+base = "#191724"
+surface = "#26233a"
+text = "#e0def4"
+blue = "#31748f"
+cyan = "#9ccfd8"
+mauve = "#c4a7e7"
+green = "#9ccfd8"
+red = "#eb6f92"
+yellow = "#f6c177"
+peach = "#ebbcba"
+overlay = "#908caa"
+arch = "#ebbcba"
+accent = "#ebbcba"
+purple = "#c4a7e7"
+bright-black = "#908caa"

@@ -1,3 +1,4 @@
+palette = "prism"
 add_newline = true
 
 format = """
@@ -5,7 +6,7 @@ $directory$git_branch$git_status
 $character"""
 
 [directory]
-style = "bold blue"
+style = "bold accent"
 truncation_length = 4
 
 [git_branch]
@@ -18,6 +19,23 @@ style = "bold red"
 format = " [$all_status$ahead_behind]($style)"
 
 [character]
-success_symbol = "[Ω](bold green)"
-error_symbol = "[Ω](bold red)"
-vimcmd_symbol = "[Ω](bold yellow)"
+success_symbol = "[::>](bold green)"
+error_symbol = "[::>](bold red)"
+vimcmd_symbol = "[::>](bold yellow)"
+
+[palettes.prism]
+base = "#191724"
+surface = "#26233a"
+text = "#e0def4"
+blue = "#31748f"
+cyan = "#9ccfd8"
+mauve = "#c4a7e7"
+green = "#9ccfd8"
+red = "#eb6f92"
+yellow = "#f6c177"
+peach = "#ebbcba"
+overlay = "#908caa"
+arch = "#ebbcba"
+accent = "#ebbcba"
+purple = "#c4a7e7"
+bright-black = "#908caa"

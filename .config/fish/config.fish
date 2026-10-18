@@ -3,7 +3,7 @@
 # ==============================================================================
 
 if not status is-interactive
-    exit
+    return
 end
 
 # Keep greeting dead.

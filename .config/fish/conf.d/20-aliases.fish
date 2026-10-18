@@ -2,6 +2,9 @@
 # ARCHNEMESIS // ALIASES
 # ==============================================================================
 
+# conf.d files also run in non-interactive shells.
+status is-interactive; or return
+
 # ── Navigation ─────────────────────────────────────────────────────────────────
 
 alias ..="cd .."

@@ -2,6 +2,9 @@
 # ARCHNEMESIS // INTEGRATIONS
 # ==============================================================================
 
+# conf.d files also run in non-interactive shells.
+status is-interactive; or return
+
 # ── mise ───────────────────────────────────────────────────────────────────────
 
 if type -q mise
