@@ -32,8 +32,9 @@ virtual machine when testing deployment. Keep package installation explicit with
 - Follow the surrounding style and `.editorconfig`.
 - Preserve dry-run immutability, destination checks, backups, repeat-install
   behavior, and rollback when changing the installer.
-- Register a new module in the installer selector, labels, defaults, package
-  mapping, help, deployment, and relevant validation. Update the README and Arch
+- Register a new module in the embedded module registry in `install.sh`, then add
+  its deployment and any additional dependency handling and validation. The
+  selector, help list, and website module count use that registry. Update the README and Arch
   packaging metadata as needed.
 - Keep package installation opt-in and avoid introducing automatic system upgrades.
 - Never include credentials, private keys, personal shell history, machine state,

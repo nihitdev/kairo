@@ -58,14 +58,12 @@ jobs:
 
           PATH="$fake_bin:$PATH" ./.config/tests/test-install.sh
           python3 .config/tests/test-install-ui.py
-
-      - name: Check ISO build and release contract
-        run: |
+          python3 .config/tests/test-iso.py
           python3 .config/tests/test-stage-payload.py
           python3 .config/tests/test-iso-release.py
+          bash -n .github/scripts/publish-iso-release.sh
           bash -n iso/build.sh
           bash -n iso/build-rootfs.sh
-          bash -n .github/scripts/publish-iso-release.sh
 
       - name: Check SDDM theme installer
         run: |
@@ -82,3 +80,16 @@ jobs:
 
       - name: Check whitespace
         run: git diff --check HEAD~1 HEAD
+
+  website:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - run: npm install --global pnpm@10.17.1
+      - run: pnpm install --frozen-lockfile
+        working-directory: site
+      - run: pnpm build
+        working-directory: site

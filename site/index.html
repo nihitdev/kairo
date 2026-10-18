@@ -39,7 +39,7 @@
           <a class="button button-ghost" href="#modules">Explore modules <span>↓</span></a>
         </div>
         <dl class="hero-facts">
-          <div><dt>18</dt><dd>dotfile modules</dd></div>
+          <div><dt>%KAIRO_MODULE_COUNT%</dt><dd>dotfile modules</dd></div>
           <div><dt>8</dt><dd>toolchain profiles</dd></div>
           <div><dt>0</dt><dd>TUI dependencies</dd></div>
         </dl>
@@ -60,14 +60,14 @@
 ██╔═██╗ ██╔══██║██║██╔══██╗██║   ██║
 ██║  ██╗██║  ██║██║██║  ██║╚██████╔╝
 ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝</pre>
-            <div class="terminal-section"><span>◆</span> Choose your modules <b>14 selected</b></div>
+            <div class="terminal-section"><span>◆</span> Choose your modules <b>%KAIRO_DEFAULT_COUNT% selected</b></div>
             <p class="terminal-label">SHELLS</p>
-            <p class="terminal-row active"><span>›</span><i>●</i> Fish <small>default shell</small></p>
+            <p class="terminal-row active"><span>›</span><i>●</i> Fish <small>login shell optional</small></p>
             <p class="terminal-row"><span></span><i>●</i> Nushell</p>
             <p class="terminal-row"><span></span><i>●</i> Zsh + Starship</p>
             <p class="terminal-label">DEVELOPMENT</p>
             <p class="terminal-row"><span></span><i>●</i> Neovim</p>
-            <p class="terminal-row"><span></span><i>○</i> Hyprland <small>opt-in</small></p>
+            <p class="terminal-row"><span></span><i>●</i> Hyprland <small>selected by default</small></p>
             <div class="terminal-footer">↑/↓ move &nbsp; Space toggle &nbsp; Enter review</div>
           </div>
         </div>
@@ -126,7 +126,7 @@
           <button class="filter" data-filter="desktop">Desktop</button>
         </div>
         <div class="module-grid reveal" id="module-grid">
-          <article data-category="shell"><span>01</span><h3>Fish</h3><p>Default login shell, Starship, Atuin, and modern navigation.</p></article>
+          <article data-category="shell"><span>01</span><h3>Fish</h3><p>Fish configuration, Starship, Atuin, and modern navigation.</p></article>
           <article data-category="shell"><span>02</span><h3>Nushell</h3><p>Structured pipelines with generated Starship and Zoxide caches.</p></article>
           <article data-category="shell"><span>03</span><h3>Zsh</h3><p>Oh My Zsh with Arch-packaged plugins and a dedicated prompt.</p></article>
           <article data-category="shell"><span>04</span><h3>Bash</h3><p>A compact interactive baseline—nothing sprawling or magical.</p></article>
@@ -135,7 +135,7 @@
           <article data-category="cli"><span>07</span><h3>Bat + Broot</h3><p>Readable files and fast tree navigation with shared theming.</p></article>
           <article data-category="development"><span>08</span><h3>Neovim</h3><p>LazyVim, pinned plugins, and a focused development surface.</p></article>
           <article data-category="development"><span>09</span><h3>Git + LazyGit</h3><p>Managed includes preserve identity while Delta sharpens diffs.</p></article>
-          <article data-category="desktop"><span>10</span><h3>Hyprland</h3><p>An opt-in Wayland desktop module with explicit replacement review.</p></article>
+          <article data-category="desktop"><span>10</span><h3>Hyprland</h3><p>A Wayland desktop module selected by default, with replacement review.</p></article>
           <article data-category="desktop"><span>11</span><h3>Kitty</h3><p>Fast terminal rendering, tabs, themes, and Fish-first workflow.</p></article>
           <article data-category="cli"><span>12</span><h3>Fastfetch + Cava</h3><p>Arch system identity and a responsive terminal visualizer.</p></article>
         </div>

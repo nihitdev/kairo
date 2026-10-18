@@ -71,7 +71,8 @@ cp -a "$theme" "$fixture/.local/share/sddm/themes/archnemesis"
 cat > "$fixture/.local/share/sddm/themes/archnemesis/install.sh" <<'MOCK'
 #!/usr/bin/env bash
 set -eu
-[[ $# == 0 ]]
+[[ $# == 2 && $1 == --receipt ]]
+[[ -f $2 && -O $2 ]]
 printf 'module called\n' > "$HOME/sddm-invoked"
 MOCK
 mkdir -p "$scratch/module-bin"

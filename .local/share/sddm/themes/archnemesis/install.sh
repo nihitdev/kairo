@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 source_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 dry_run=false
 root=''
+receipt=''
+original_args=("$@")
 while (($#)); do
     case "$1" in
+        --receipt)
+            [[ $# -ge 2 && $2 == /* ]] || { echo 'Use --receipt /absolute/file' >&2; exit 2; }
+            receipt=$2; shift 2 ;;
         --dry-run) dry_run=true; shift ;;
         --destdir)
             [[ $# -ge 2 && $2 == /* && $2 != / ]] || { echo 'Use --destdir /absolute/staging/path' >&2; exit 2; }
@@ -29,7 +34,7 @@ if $dry_run; then
 fi
 if [[ -z $root ]]; then
     command -v sddm-greeter-qt6 >/dev/null || { echo 'Install SDDM with its Qt 6 greeter first. See README.md.' >&2; exit 1; }
-    if (( EUID != 0 )); then exec sudo -- bash "$source_dir/install.sh"; fi
+    if (( EUID != 0 )); then exec sudo -- bash "$source_dir/install.sh" "${original_args[@]}"; fi
 fi
 backup="$root/var/backups/sddm-archnemesis/$(date +%Y%m%d-%H%M%S)-$$"
 install -d -m 755 "$backup" "$root/etc/sddm.conf.d" "$(dirname "$target")"
@@ -38,15 +43,21 @@ if [[ -f "$conf" ]]; then cp -a "$conf" "$backup/theme.conf"; fi
 if [[ -f "$root/etc/sddm.conf" ]]; then cp -a "$root/etc/sddm.conf" "$backup/sddm.conf"; fi
 # Mark a complete snapshot before making any live changes.
 printf 'archnemesis-v1\n' > "$backup/snapshot"
-restore_on_error() {
+restore_on_exit() {
     local status=$?
-    trap - ERR
-    local -a rollback_args=("$backup")
-    if [[ -n $root ]]; then rollback_args+=(--destdir "$root"); fi
-    bash "$source_dir/rollback.sh" "${rollback_args[@]}" || true
+    trap - EXIT INT TERM
+    if ((status != 0)); then
+        local -a rollback_args=("$backup")
+        if [[ -n $root ]]; then rollback_args+=(--destdir "$root"); fi
+        bash "$source_dir/rollback.sh" "${rollback_args[@]}" || {
+            printf 'Automatic SDDM recovery failed; snapshot: %s\n' "$backup" >&2
+        }
+    fi
     exit "$status"
 }
-trap restore_on_error ERR
+trap restore_on_exit EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 install -d -m 755 "$target"
 for file in "${files[@]}"; do install -m 644 "$source_dir/$file" "$target/$file"; done
 if [[ -f "$root/etc/sddm.conf" ]]; then
@@ -73,7 +84,8 @@ PY
 fi
 printf '[Theme]\nCurrent=archnemesis\nThemeDir=/usr/share/sddm/themes\n' > "$conf"
 chmod 644 "$conf"
-trap - ERR
+if [[ -n $receipt ]]; then printf '%s\n' "$backup" > "$receipt"; fi
+trap - EXIT INT TERM
 printf 'Installed ARCHNEMESIS. No services were enabled or restarted.\nBackup: %s\n' "$backup"
 printf 'Rollback: bash %q %q' "$source_dir/rollback.sh" "$backup"
 if [[ -n $root ]]; then printf ' --destdir %q' "$root"; fi

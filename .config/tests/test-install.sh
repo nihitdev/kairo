@@ -88,7 +88,8 @@ PYMOCK
     cat > "$fixture/.local/share/sddm/themes/archnemesis/install.sh" <<'MOCK'
 #!/usr/bin/env bash
 set -eu
-[[ $# == 0 ]]
+[[ $# == 2 && $1 == --receipt ]]
+[[ -f $2 && -O $2 ]]
 printf 'selected\n' > "$HOME/sddm-selected"
 MOCK
     cat > "$fixture/.local/share/plymouth/install.sh" <<'MOCK'
@@ -378,7 +379,7 @@ run_shell_starship_reference_test() {
     assert_file_contains "$repo_root/.config/fish/conf.d/00-env.fish" '$HOME/.config/starship/fish.toml'
     assert_file_contains "$repo_root/.config/nushell/config.nu" '/starship/nushell.toml'
     assert_file_contains "$repo_root/.config/zsh/env.zsh" '$XDG_CONFIG_HOME/starship/zsh.toml'
-    if grep -R -E --exclude-dir=.git '(\.config/starship\.toml|starship/starship\.toml)' "$repo_root" >/dev/null; then
+    if grep -R -E --exclude-dir=.git --exclude-dir=.build --exclude-dir=out --exclude-dir=node_modules --exclude-dir=dist '(\.config/starship\.toml|starship/starship\.toml)' "$repo_root" >/dev/null; then
         fail 'stale single-file Starship path remains'
     fi
 }
@@ -547,4 +548,5 @@ bash "$repo_root/.config/tests/test-default-shell.sh"
 python3 "$repo_root/.config/tests/test-swaync.py"
 python3 "$repo_root/.config/tests/test-shell-configs.py"
 python3 "$repo_root/.config/tests/test-kitty-smooth.py"
+python3 "$repo_root/.config/tests/test-theme-transaction.py"
 printf 'Linux installer safety tests passed.\n'

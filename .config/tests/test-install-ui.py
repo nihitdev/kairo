@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise menu frames without running the installer or changing live configs."""
 import re
+import shlex
 import subprocess
 import unittest
 from pathlib import Path
@@ -9,9 +10,14 @@ ROOT = Path(__file__).resolve().parents[2]
 UI = ROOT / '.config/scripts/install-ui.sh'
 INSTALLER = (ROOT / 'install.sh').read_text()
 ARRAYS = '\n'.join(re.findall(
-    r'declare -a (?:module|profile)_(?:names|labels|categories)=\([\s\S]*?\)',
+    r'declare -a profile_(?:names|labels|categories)=\([\s\S]*?\)',
     INSTALLER,
 ))
+# Consume the public registry instead of matching its implementation syntax.
+MODULES = [row.split('\t') for row in subprocess.check_output(
+    ['bash', str(ROOT / 'install.sh'), '--list-modules'], text=True).splitlines()]
+for index, field in enumerate(('names', 'labels', 'categories')):
+    ARRAYS += '\ndeclare -a module_' + field + '=(' + ' '.join(shlex.quote(row[index]) for row in MODULES) + ')'
 ANSI = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')
 
 

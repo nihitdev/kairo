@@ -93,6 +93,28 @@ p.chmod(0o755)
         result = subprocess.check_output([str(launcher), 'nvim'], env=self.env, text=True)
         self.assertEqual(result.strip(), 'stock:nvim')
 
+    def test_cached_build_skips_network_and_repairs_launcher(self):
+        self.run_install()
+        binary = self.home / '.local/kitty-smooth/bin/kitty'
+        before = binary.stat().st_mtime_ns
+        (self.home / '.local/bin/kitty-smooth').unlink()
+        for name in ('git', 'curl', 'cc', 'pkg-config'):
+            self.write_exe(name, '#!/bin/sh\nexit 97\n')
+        result = self.run_install()
+        self.assertIn('pinned build already current', result.stdout)
+        self.assertEqual(binary.stat().st_mtime_ns, before)
+        self.assertTrue((self.home / '.local/bin/kitty-smooth').is_file())
+        self.assertNotIn('Build Kitty Smooth:', self.run_install('--dry-run').stdout)
+        self.run_install('--rebuild-kitty-smooth', success=False)
+        self.assertEqual(binary.stat().st_mtime_ns, before)
+
+    def test_stale_pin_rebuilds(self):
+        self.run_install()
+        marker = self.home / '.local/kitty-smooth/.kairo-build'
+        marker.write_text('kitty=old\npatch=old\n')
+        self.assertIn('Building Kitty Smooth', self.run_install().stdout)
+        self.assertNotIn('old', marker.read_text())
+
     def test_failures_preserve_existing(self):
         target = self.home / '.local/kitty-smooth/bin/kitty'
         target.parent.mkdir(parents=True)

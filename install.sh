@@ -22,6 +22,8 @@ enable_chaotic_aur=false
 aur_helper=paru
 install_gpu_drivers=false
 install_wallpapers=false
+rebuild_kitty_smooth=false
+sddm_receipt=''
 gpu_description='No supported GPU detected'
 declare -a only=()
 declare -a profiles=()
@@ -68,37 +70,50 @@ declare -a waybar_packages=(
     networkmanager bluetui pulsemixer btop cava calcurse yazi rofi libnotify fontconfig ttf-iosevka-nerd
 )
 
-declare -a module_names=(
-    bash fish nushell zsh starship atuin bat broot yazi lazygit fastfetch btop
-    git nvim kitty cava ssh oh-my-posh hypr kairo-shell rofi wezterm waybar swaync sddm plymouth kitty-smooth
-)
-declare -a module_labels=(
-    Bash Fish Nushell Zsh Starship Atuin Bat Broot Yazi LazyGit Fastfetch Btop
-    Git Neovim Kitty Cava SSH 'Oh My Posh' Hyprland 'Kairo Shell' Rofi WezTerm Waybar 'SwayNC + battery alerts' 'SDDM login theme' 'Plymouth Lone' 'Kitty Smooth'
-)
-declare -a module_categories=(
-    Shells Shells Shells Shells Shells CLI CLI CLI CLI CLI CLI CLI
-    Development Development Desktop Desktop System Shells Desktop Desktop Desktop Desktop Desktop Desktop System System Desktop
-)
-declare -A module_default=(
-    [bash]=true [fish]=true [nushell]=true [zsh]=true [starship]=true
-    [atuin]=true [bat]=true [broot]=true [yazi]=true [lazygit]=true
-    [btop]=true [fastfetch]=true [git]=true [nvim]=true [kitty]=true [cava]=true
-    [ssh]=true [oh-my-posh]=true [hypr]=true [kairo-shell]=false [rofi]=true [wezterm]=true [waybar]=true [swaync]=true [sddm]=true [plymouth]=true [kitty-smooth]=true
-)
-declare -A module_package=(
-    [bash]=bash [fish]=fish [nushell]=nushell [zsh]=zsh [starship]=starship
-    [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
-    [btop]=btop [fastfetch]=fastfetch [git]=git [nvim]=neovim [kitty]=kitty [cava]=cava [wezterm]=wezterm
-    [ssh]=openssh [hypr]=hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync [sddm]=sddm [plymouth]=plymouth [kitty-smooth]=kitty
-)
-declare -A module_aur_package=([oh-my-posh]=oh-my-posh-bin)
-declare -A module_command=(
-    [bash]=bash [fish]=fish [nushell]=nu [zsh]=zsh [starship]=starship
-    [atuin]=atuin [bat]=bat [broot]=broot [yazi]=yazi [lazygit]=lazygit
-    [btop]=btop [fastfetch]=fastfetch [git]=git [nvim]=nvim [kitty]=kitty [cava]=cava [wezterm]=wezterm
-    [ssh]=ssh [oh-my-posh]=oh-my-posh [hypr]=Hyprland [rofi]=rofi [waybar]=waybar [swaync]=swaync [sddm]=sddm-greeter-qt6 [plymouth]=plymouth-set-default-theme [kitty-smooth]=kitty
-)
+# Single module registry: id | label | category | default | package | command | source.
+# Keep this embedded so the remote bootstrap remains a standalone script.
+declare -a module_names=() module_labels=() module_categories=()
+declare -A module_default=() module_package=() module_aur_package=() module_command=()
+while IFS='|' read -r name label category selected package executable source; do
+    module_names+=("$name")
+    module_labels+=("$label")
+    module_categories+=("$category")
+    module_default[$name]=$selected
+    module_command[$name]=$executable
+    if [[ $source == aur ]]; then
+        module_aur_package[$name]=$package
+    else
+        module_package[$name]=$package
+    fi
+done <<'MODULES'
+bash|Bash|Shells|true|bash|bash|official
+fish|Fish|Shells|true|fish|fish|official
+nushell|Nushell|Shells|true|nushell|nu|official
+zsh|Zsh|Shells|true|zsh|zsh|official
+starship|Starship|Shells|true|starship|starship|official
+atuin|Atuin|CLI|true|atuin|atuin|official
+bat|Bat|CLI|true|bat|bat|official
+broot|Broot|CLI|true|broot|broot|official
+yazi|Yazi|CLI|true|yazi|yazi|official
+lazygit|LazyGit|CLI|true|lazygit|lazygit|official
+fastfetch|Fastfetch|CLI|true|fastfetch|fastfetch|official
+btop|Btop|CLI|true|btop|btop|official
+git|Git|Development|true|git|git|official
+nvim|Neovim|Development|true|neovim|nvim|official
+kitty|Kitty|Desktop|true|kitty|kitty|official
+cava|Cava|Desktop|true|cava|cava|official
+ssh|SSH|System|true|openssh|ssh|official
+oh-my-posh|Oh My Posh|Shells|true|oh-my-posh-bin|oh-my-posh|aur
+hypr|Hyprland|Desktop|true|hyprland|Hyprland|official
+kairo-shell|Kairo Shell|Desktop|false||quickshell|official
+rofi|Rofi|Desktop|true|rofi|rofi|official
+wezterm|WezTerm|Desktop|true|wezterm|wezterm|official
+waybar|Waybar|Desktop|true|waybar|waybar|official
+swaync|SwayNC + battery alerts|Desktop|true|swaync|swaync|official
+sddm|SDDM login theme|System|true|sddm|sddm-greeter-qt6|official
+plymouth|Plymouth Lone|System|true|plymouth|plymouth-set-default-theme|official
+kitty-smooth|Kitty Smooth|Desktop|true|kitty|kitty|official
+MODULES
 declare -A installed_package_cache=()
 package_cache_loaded=false
 declare -a profile_names=(core-build cpp rust python web containers wayland media)
@@ -122,6 +137,9 @@ Usage: ./install.sh [options]
 Options:
   --dry-run          Show what would change without writing files
   --no-backup        Replace existing files without backing them up
+  --rebuild-kitty-smooth
+                     Rebuild even when the pinned Kitty Smooth build is installed
+  --list-modules     Print module metadata as tab-separated rows and exit
   --default-shell NAME
                      Login shell: keep (default), bash, zsh, fish, nushell (or nu)
                      Changes only after a successful install; may prompt for password
@@ -140,15 +158,24 @@ Options:
   -h, --help         Show this help
 
 Components:
-  bash zsh nushell git lazygit broot nvim yazi fastfetch btop oh-my-posh
-  starship atuin bat cava ssh kitty fish hypr kairo-shell rofi wezterm waybar swaync sddm plymouth kitty-smooth all
 EOF
+    printf '  %s all\n' "${module_names[*]}"
 }
 
 while (($#)); do
     case "$1" in
         --dry-run)
             dry_run=true
+            ;;
+        --list-modules)
+            for index in "${!module_names[@]}"; do
+                name=${module_names[index]}
+                printf '%s\t%s\t%s\t%s\n' "$name" "${module_labels[index]}" "${module_categories[index]}" "${module_default[$name]}"
+            done
+            exit 0
+            ;;
+        --rebuild-kitty-smooth)
+            rebuild_kitty_smooth=true
             ;;
         --no-backup)
             no_backup=true
@@ -399,6 +426,15 @@ rollback_transaction() {
 }
 
 rollback_system_changes() {
+    if [[ -n $sddm_receipt && -s $sddm_receipt ]]; then
+        printf 'Restoring SDDM after a later installation failure...\n' >&2
+        local sddm_backup
+        IFS= read -r sddm_backup < "$sddm_receipt"
+        if ! bash "$repo_root/.local/share/sddm/themes/archnemesis/rollback.sh" "$sddm_backup"; then
+            printf 'SDDM recovery failed; restore manually from %s\n' "$sddm_backup" >&2
+        fi
+        sddm_receipt=''
+    fi
     if $chaotic_config_changed && [[ -n $chaotic_config_backup && -f $chaotic_config_backup ]]; then
         printf 'Restoring /etc/pacman.conf after failure...\n' >&2
         if ((EUID == 0)); then
@@ -1723,8 +1759,15 @@ preflight_kitty_smooth() {
 
 install_kitty_smooth() {
     is_selected kitty-smooth || return 0
-    local checkout payload patch tool desktop
-    if $dry_run; then
+    local checkout payload patch tool desktop current=false
+    local expected_build
+    expected_build=$(printf 'kitty=%s\npatch=%s\n' "$kitty_smooth_kitty_commit" "$kitty_smooth_patch_commit")
+    payload="$HOME/.local/kitty-smooth"
+    if ! $rebuild_kitty_smooth && [[ -x $payload/bin/kitty && -f $payload/.kairo-build ]] &&
+        [[ $(cat "$payload/.kairo-build") == "$expected_build" ]]; then
+        current=true
+    fi
+    if $dry_run && ! $current; then
         describe "Build Kitty Smooth: Kitty $kitty_smooth_kitty_tag ($kitty_smooth_kitty_commit), patch $kitty_smooth_patch_commit"
         describe "Install kitty-smooth transactionally -> $HOME/.local/kitty-smooth"
         describe "Install launcher -> $HOME/.local/bin/kitty-smooth (stock Kitty fallback)"
@@ -1732,45 +1775,55 @@ install_kitty_smooth() {
         record_installed kitty-smooth
         return 0
     fi
-    for tool in git python3 go cc pkg-config curl slangc fc-list tic; do
-        command -v "$tool" >/dev/null || {
-            printf 'Kitty Smooth requires %s; rerun with --install-packages.\n' "$tool" >&2; return 1;
+    if $current; then
+        describe "Kitty Smooth pinned build already current"
+        record_current kitty-smooth
+    elif ! $dry_run; then
+        for tool in git python3 go cc pkg-config curl slangc fc-list tic; do
+            command -v "$tool" >/dev/null || {
+                printf 'Kitty Smooth requires %s; rerun with --install-packages.\n' "$tool" >&2; return 1;
+            }
+        done
+        pkg-config --exists libcrypto libxxhash libpng lcms2 cairo-fc harfbuzz gl x11 x11-xcb \
+            xrandr xinerama xcursor xkbcommon xkbcommon-x11 dbus-1 wayland-client \
+            wayland-cursor wayland-scanner wayland-protocols || {
+            echo 'Missing Kitty build libraries; rerun with --install-packages.' >&2; return 1;
         }
-    done
-    pkg-config --exists libcrypto libxxhash libpng lcms2 cairo-fc harfbuzz gl x11 x11-xcb \
-        xrandr xinerama xcursor xkbcommon xkbcommon-x11 dbus-1 wayland-client \
-        wayland-cursor wayland-scanner wayland-protocols || {
-        echo 'Missing Kitty build libraries; rerun with --install-packages.' >&2; return 1;
-    }
-    printf '#include <simde/x86/sse4.2.h>\n' | cc -E -x c - >/dev/null || {
-        echo 'Missing simde headers; rerun with --install-packages.' >&2; return 1;
-    }
+        printf '#include <simde/x86/sse4.2.h>\n' | cc -E -x c - >/dev/null || {
+            echo 'Missing simde headers; rerun with --install-packages.' >&2; return 1;
+        }
+        ensure_external_root
+        checkout="$external_root/kitty-smooth-source"
+        payload="$external_root/kitty-smooth-payload"
+        patch="$external_root/kitty-smooth.patch"
+        describe "Building Kitty Smooth $kitty_smooth_kitty_tag; this may take several minutes"
+        git clone --depth 1 --branch "$kitty_smooth_kitty_tag" https://github.com/kovidgoyal/kitty.git "$checkout"
+        [[ $(git -C "$checkout" rev-parse HEAD) == "$kitty_smooth_kitty_commit" ]] || {
+            printf 'Kitty source does not match the reviewed commit.\n' >&2; return 1;
+        }
+        curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            "https://raw.githubusercontent.com/SunqdXX/kitty-smooth-cursor/$kitty_smooth_patch_commit/kitty-smooth-cursor.patch" -o "$patch"
+        [[ $(sha256sum "$patch" | cut -d ' ' -f 1) == "$kitty_smooth_patch_sha256" ]] || {
+            printf 'Kitty Smooth patch checksum mismatch.\n' >&2; return 1;
+        }
+        git -C "$checkout" apply --check "$patch"
+        git -C "$checkout" apply "$patch"
+        # The source package looks up SymbolsNFM through fontconfig. No remote fonts
+        # or compiler binaries are downloaded; Arch packages supply those inputs.
+        mkdir -p "$checkout/docs/_build/html" "$checkout/docs/_build/man"
+        (
+            cd -- "$checkout"
+            python3 setup.py linux-package --prefix "$payload" --update-check-interval=0
+        )
+        [[ -x $payload/bin/kitty ]] || { echo 'Kitty Smooth build produced no executable.' >&2; return 1; }
+        "$payload/bin/kitty" --version
+        printf 'kitty=%s\npatch=%s\n' "$kitty_smooth_kitty_commit" "$kitty_smooth_patch_commit" > "$payload/.kairo-build"
+    fi
+    if $dry_run; then
+        describe "Check Kitty Smooth launcher and desktop entry"
+        return 0
+    fi
     ensure_external_root
-    checkout="$external_root/kitty-smooth-source"
-    payload="$external_root/kitty-smooth-payload"
-    patch="$external_root/kitty-smooth.patch"
-    describe "Building Kitty Smooth $kitty_smooth_kitty_tag; this may take several minutes"
-    git clone --depth 1 --branch "$kitty_smooth_kitty_tag" https://github.com/kovidgoyal/kitty.git "$checkout"
-    [[ $(git -C "$checkout" rev-parse HEAD) == "$kitty_smooth_kitty_commit" ]] || {
-        printf 'Kitty source does not match the reviewed commit.\n' >&2; return 1;
-    }
-    curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
-        "https://raw.githubusercontent.com/SunqdXX/kitty-smooth-cursor/$kitty_smooth_patch_commit/kitty-smooth-cursor.patch" -o "$patch"
-    [[ $(sha256sum "$patch" | cut -d ' ' -f 1) == "$kitty_smooth_patch_sha256" ]] || {
-        printf 'Kitty Smooth patch checksum mismatch.\n' >&2; return 1;
-    }
-    git -C "$checkout" apply --check "$patch"
-    git -C "$checkout" apply "$patch"
-    # The source package looks up SymbolsNFM through fontconfig. No remote fonts
-    # or compiler binaries are downloaded; Arch packages supply those inputs.
-    mkdir -p "$checkout/docs/_build/html" "$checkout/docs/_build/man"
-    (
-        cd -- "$checkout"
-        python3 setup.py linux-package --prefix "$payload" --update-check-interval=0
-    )
-    [[ -x $payload/bin/kitty ]] || { echo 'Kitty Smooth build produced no executable.' >&2; return 1; }
-    "$payload/bin/kitty" --version
-    printf 'kitty=%s\npatch=%s\n' "$kitty_smooth_kitty_commit" "$kitty_smooth_patch_commit" > "$payload/.kairo-build"
     desktop="$external_root/kitty-smooth.desktop"
     python3 - "$HOME/.local/bin/kitty-smooth" "$desktop" <<'PY'
 from pathlib import Path
@@ -1908,7 +1961,15 @@ if ! $dry_run; then validate_installed_configs; fi
 # Apply system themes only after home configurations validate.
 if is_selected sddm; then
     sddm_args=()
-    $dry_run && sddm_args+=(--dry-run)
+    if $dry_run; then
+        sddm_args+=(--dry-run)
+    else
+        ensure_external_root
+        sddm_receipt="$external_root/sddm-receipt"
+        # Create as the invoking user so sudo's umask cannot hide the receipt.
+        (umask 077; : > "$sddm_receipt")
+        sddm_args+=(--receipt "$sddm_receipt")
+    fi
     bash "$repo_root/.local/share/sddm/themes/archnemesis/install.sh" "${sddm_args[@]}"
     record_installed sddm
 fi
@@ -1922,6 +1983,7 @@ fi
 
 if ! $dry_run; then
     commit_transaction
+    sddm_receipt=''
     chaotic_config_changed=false
 fi
 
