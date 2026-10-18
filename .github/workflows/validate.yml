@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 2
 
       - name: Install validation tools
-        run: sudo apt-get update && sudo apt-get install --yes lua5.4 yamllint
+        run: sudo apt-get update && sudo apt-get install --yes lua5.4 yamllint python3-yaml
 
       - name: Check strict JSON files
         run: |
@@ -40,7 +40,7 @@ jobs:
         run: |
           python3 .config/scripts/validate_repo.py
           yamllint -d relaxed \
-            .github/workflows/validate.yml .config/lazygit/config.yml
+            .github/workflows/validate.yml .github/workflows/build-iso.yml .config/lazygit/config.yml
 
       - name: Check Linux installer
         run: |
@@ -58,6 +58,14 @@ jobs:
 
           PATH="$fake_bin:$PATH" ./.config/tests/test-install.sh
           python3 .config/tests/test-install-ui.py
+
+      - name: Check ISO build and release contract
+        run: |
+          python3 .config/tests/test-stage-payload.py
+          python3 .config/tests/test-iso-release.py
+          bash -n iso/build.sh
+          bash -n iso/build-rootfs.sh
+          bash -n .github/scripts/publish-iso-release.sh
 
       - name: Check SDDM theme installer
         run: |

@@ -11,8 +11,10 @@ on:
 permissions:
   contents: read
 
+# Give each main push a separate run; pending runs must not coalesce.
+# The publisher waits for earlier main runs before editing the rolling release.
 concurrency:
-  group: kairo-iso-${{ startsWith(github.ref, 'refs/tags/iso-v') && github.ref || 'rolling' }}
+  group: kairo-iso-${{ github.ref == 'refs/heads/main' && github.run_id || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -22,6 +24,7 @@ jobs:
     timeout-minutes: 360
 
     permissions:
+      actions: read
       contents: write
 
     steps:
@@ -30,12 +33,13 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Validate ISO builder
+      - name: Validate ISO builder and release publisher
         shell: bash
         run: |
           set -euo pipefail
           test -f iso/build.sh
           bash -n iso/build.sh
+          bash -n .github/scripts/publish-iso-release.sh
           df -h .
 
       - name: Build ISO using Arch Linux
@@ -50,7 +54,7 @@ jobs:
             archlinux:latest \
             bash -euo pipefail -c '
               pacman -Syu --noconfirm --needed \
-                archiso git curl wget rsync sudo libisoburn squashfs-tools fakeroot gnupg mtools python
+                git curl libisoburn squashfs-tools fakeroot gnupg mtools python
 
               git config --global \
                 --add safe.directory /workspace
@@ -58,12 +62,11 @@ jobs:
               bash iso/build.sh
             '
 
-      - name: Prepare ISO and checksums
+      - name: Verify ISO and checksum
+        id: iso
         shell: bash
         run: |
           set -euo pipefail
-
-          mkdir -p release-assets
 
           mapfile -d '' images < <(
             find out -maxdepth 1 -type f \
@@ -76,69 +79,57 @@ jobs:
           fi
 
           image="${images[0]}"
-          name="$(basename "$image")"
-
-          sudo chown "$(id -u):$(id -g)" "$image"
-
+          checksum="${image}.sha256"
           test -s "$image"
+          test -s "$checksum"
+          sudo chown "$(id -u):$(id -g)" "$image" "$checksum"
+          (cd out && sha256sum -c "$(basename "$checksum")")
 
-          cp -- "$image" "release-assets/$name"
+          {
+            printf 'image=%s\n' "$image"
+            printf 'checksum=%s\n' "$checksum"
+          } >> "$GITHUB_OUTPUT"
 
-          cd release-assets
-
-          sha256sum "$name" > "$name.sha256"
-          sha256sum -c "$name.sha256"
-
-          # GitHub Release assets must be smaller than 2 GiB.
-          if (( $(stat -c %s "$name") >= 2 * 1024 * 1024 * 1024 )); then
-            echo "ISO is 2 GiB or larger; cannot upload as one raw GitHub Release asset." >&2
-            exit 1
-          fi
-
-          ls -lh .
-
-      - name: Publish rolling ISO release
-        if: ${{ !startsWith(github.ref, 'refs/tags/iso-v') }}
+      - name: Prepare release notes
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          if ! gh release view rolling >/dev/null 2>&1; then
-            gh release create rolling --target "$GITHUB_SHA" \\
-              --title "Kairo Rolling ISO" --prerelease \\
-              --notes "Latest successful Kairo ISO build from main."
-          fi
-          gh release upload rolling release-assets/* --clobber
-
-      - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/iso-v')
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
 
           cat > release-notes.md <<'EOF'
           # Kairo Arch Linux ISO
 
-          Bootable Arch Linux installation medium with Kairo.
+          Raw, USB-flashable Arch Linux installation medium with Kairo.
 
-          1. Download the ISO and checksum.
-          2. Verify the SHA-256 checksum.
-          3. Flash the ISO to a USB drive.
-          4. Boot and run archinstall.
-          5. Reboot and run kairo-setup.
+          - Download the `.iso` and matching `.sha256` asset.
+          - Verify it with `sha256sum -c <downloaded-iso-name>.sha256`.
+          - Follow the installation guide in the repository's `iso/README.md`.
 
-          If the ISO is split into parts, download every
-          part and follow REASSEMBLE.txt.
-
-          See iso/README.md for installation instructions.
+          The ISO is uploaded directly as a GitHub Release asset. Assets at or above 2 GiB are rejected; the image is never split or archived.
           EOF
 
-          gh release create "$TAG" \
-            release-assets/* \
-            --verify-tag \
-            --title "Kairo ISO $TAG" \
-            --notes-file release-notes.md
+      - name: Publish rolling release
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          ISO_PATH: ${{ steps.iso.outputs.image }}
+          CHECKSUM_PATH: ${{ steps.iso.outputs.checksum }}
+          RELEASE_NOTES_PATH: release-notes.md
+          RELEASE_MODE: rolling
+        run: bash .github/scripts/publish-iso-release.sh
+
+      - name: Publish versioned release
+        if: startsWith(github.ref, 'refs/tags/iso-v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          ISO_PATH: ${{ steps.iso.outputs.image }}
+          CHECKSUM_PATH: ${{ steps.iso.outputs.checksum }}
+          RELEASE_NOTES_PATH: release-notes.md
+          RELEASE_MODE: versioned
+        run: bash .github/scripts/publish-iso-release.sh

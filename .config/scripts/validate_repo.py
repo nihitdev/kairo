@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import json
+import os
+from functools import lru_cache
 import re
 import sys
 import tomllib
@@ -13,7 +15,20 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 ERRORS: list[str] = []
-IGNORED_PARTS = {".git", "node_modules", "dist"}
+IGNORED_PARTS = {".git", "node_modules", "dist", ".build", "out"}
+
+
+@lru_cache(maxsize=1)
+def repository_paths() -> tuple[Path, ...]:
+    files = []
+    for directory, subdirectories, names in os.walk(ROOT):
+        subdirectories[:] = [name for name in subdirectories if name not in IGNORED_PARTS]
+        files.extend(Path(directory) / name for name in names)
+    return tuple(files)
+
+
+def repository_files(pattern: str):
+    return (path for path in repository_paths() if path.match(pattern))
 
 
 def is_repository_file(path: Path) -> bool:
@@ -62,14 +77,14 @@ def strip_json_comments(text: str) -> str:
 
 
 def validate_structured_files() -> None:
-    for path in ROOT.rglob("*.json"):
+    for path in repository_files("*.json"):
         if is_repository_file(path):
             try:
                 json.loads(path.read_text(encoding="utf-8"))
             except Exception as exc:  # noqa: BLE001 - report parser details
                 error(path, f"invalid JSON: {exc}")
 
-    for path in ROOT.rglob("*.jsonc"):
+    for path in repository_files("*.jsonc"):
         if not is_repository_file(path):
             continue
         try:
@@ -77,7 +92,7 @@ def validate_structured_files() -> None:
         except Exception as exc:  # noqa: BLE001
             error(path, f"invalid JSONC: {exc}")
 
-    for path in ROOT.rglob("*.toml"):
+    for path in repository_files("*.toml"):
         if not is_repository_file(path):
             continue
         try:
@@ -86,7 +101,7 @@ def validate_structured_files() -> None:
             error(path, f"invalid TOML: {exc}")
 
     for pattern in ("*.xml", "*.xaml"):
-        for path in ROOT.rglob(pattern):
+        for path in repository_files(pattern):
             if not is_repository_file(path):
                 continue
             try:
@@ -94,7 +109,7 @@ def validate_structured_files() -> None:
             except Exception as exc:  # noqa: BLE001
                 error(path, f"invalid XML: {exc}")
 
-    for path in ROOT.rglob("*.hjson"):
+    for path in repository_files("*.hjson"):
         if not is_repository_file(path):
             continue
         text = path.read_text(encoding="utf-8")
@@ -104,7 +119,7 @@ def validate_structured_files() -> None:
 
 def validate_markdown_links() -> None:
     link_pattern = re.compile(r"!?\[[^\]]*\]\(([^)\s]+)")
-    for path in ROOT.rglob("*.md"):
+    for path in repository_files("*.md"):
         if not is_repository_file(path):
             continue
         for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
@@ -125,7 +140,7 @@ def validate_css() -> None:
     mutable_github = re.compile(
         r"(?:raw\.githubusercontent\.com/[^/]+/[^/]+/(?:main|master|refs/heads/)|github\.io/)"
     )
-    for path in ROOT.rglob("*.css"):
+    for path in repository_files("*.css"):
         if not is_repository_file(path):
             continue
         text = path.read_text(encoding="utf-8")
@@ -167,12 +182,53 @@ def validate_workflow_pins() -> None:
                 error(path, f"line {line_number}: action is not pinned to a full commit SHA")
 
 
+def validate_iso_release_workflow() -> None:
+    workflow = ROOT / ".github/workflows/build-iso.yml"
+    publisher = ROOT / ".github/scripts/publish-iso-release.sh"
+    if not workflow.is_file() or not publisher.is_file():
+        error(workflow, "missing ISO release workflow or publisher")
+        return
+    workflow_text = workflow.read_text(encoding="utf-8")
+    publisher_text = publisher.read_text(encoding="utf-8")
+    required_workflow = {
+        "main push trigger": re.search(r"(?m)^\s{6}- main\s*$", workflow_text),
+        "versioned ISO tag trigger": "'iso-v*'" in workflow_text,
+        "manual trigger": "workflow_dispatch:" in workflow_text,
+        "rolling publish step": "RELEASE_MODE: rolling" in workflow_text,
+        "versioned publish step": "RELEASE_MODE: versioned" in workflow_text,
+        "serialized main publication": "wait_for_prior_main_releases" in publisher_text,
+        "release write permission": "contents: write" in workflow_text,
+        "release API read permission": "actions: read" in workflow_text,
+        "non-cancelling concurrency": "cancel-in-progress: false" in workflow_text,
+    }
+    for description, present in required_workflow.items():
+        if not present:
+            error(workflow, f"missing {description}")
+    forbidden = ("actions/upload-artifact", "--bytes=1900M", "REASSEMBLE.txt", ".zip")
+    for value in forbidden:
+        if value in workflow_text or value in publisher_text:
+            error(workflow, f"forbidden ISO publication behavior: {value}")
+    for description, value in {
+        "raw release asset upload": "gh release upload",
+        "asset replacement": "--clobber",
+        "rolling release identity": "tag=rolling",
+        "rolling title": "Kairo Rolling ISO",
+        "GitHub size limit check": "max_asset_bytes=$((2 * 1024 * 1024 * 1024))",
+        "stale asset cleanup": "--method DELETE",
+        "stable rolling tag update": "git/refs/tags/$tag",
+        "versioned tag validation": "iso-v*",
+    }.items():
+        if value not in publisher_text:
+            error(publisher, f"missing {description}")
+
+
 def main() -> int:
     validate_structured_files()
     validate_markdown_links()
     validate_css()
     validate_vendored_files()
     validate_workflow_pins()
+    validate_iso_release_workflow()
     if ERRORS:
         print("Repository validation failed:", file=sys.stderr)
         for finding in ERRORS:

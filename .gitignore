@@ -24,3 +24,7 @@ site/dist/
 # Python runtime caches
 __pycache__/
 *.py[cod]
+
+# ISO build inputs, work directories, and generated images
+.build/
+out/

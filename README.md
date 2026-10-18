@@ -79,17 +79,18 @@ for dependencies, checksum verification, flashing, and installation steps.
 
 [![Build Kairo ISO](https://github.com/nihitdev/kairo/actions/workflows/build-iso.yml/badge.svg)](https://github.com/nihitdev/kairo/actions/workflows/build-iso.yml)
 
-Kairo automatically builds bootable Arch Linux ISOs using GitHub Actions.
+Every push to `main` builds the Arch ISO and updates the single **Kairo Rolling ISO** release at tag `rolling`. The raw `.iso` and its `.sha256` checksum are direct assets on the [GitHub Releases page](https://github.com/nihitdev/kairo/releases). Builds triggered by `iso-v*` tags continue to publish versioned releases. Failed builds do not publish. Images at or above GitHub's 2 GiB per asset limit fail clearly; they are never split or archived.
 
-- Run builds manually from GitHub Actions.
-- Push an `iso-v*` Git tag to create a release.
-- Download the ISO and SHA-256 checksum from [GitHub Releases](https://github.com/nihitdev/kairo/releases).
-- Verify the ISO before flashing it to USB.
+Download both rolling assets and verify the ISO before flashing:
 
-After booting the ISO, use `archinstall`, reboot into Arch,
-and run `kairo-setup` as your regular user.
+```sh
+gh release download rolling --repo nihitdev/kairo \
+  --pattern 'kairo-arch-*.iso' \
+  --pattern 'kairo-arch-*.iso.sha256'
+for checksum in kairo-arch-*.iso.sha256; do sha256sum -c "$checksum"; done
+```
 
-See [ISO installation instructions](iso/README.md).
+The checksum command matches the current ISO checksum. For a versioned release, replace `rolling` with its `iso-v*` tag. See [the ISO guide](iso/README.md) for USB flashing and installation.
 
 ## Screenshots
 

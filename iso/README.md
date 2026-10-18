@@ -27,6 +27,28 @@ including new non-ignored files. Ignored machine state and build products are
 excluded. Build directories stay under `.build/iso/` for inspection; the output
 and checksum are under `out/`. Move an existing output aside before rebuilding.
 
+## Download and verify a release
+
+The [GitHub Releases page](https://github.com/nihitdev/kairo/releases) has one
+**Kairo Rolling ISO** release, updated after each successful build from `main`.
+It contains the raw `.iso` and a matching `.iso.sha256` file. Releases made from
+`iso-v*` tags are kept separately as versioned releases.
+
+With GitHub CLI, download both current rolling assets directly:
+
+```sh
+gh release download rolling --repo nihitdev/kairo \
+  --pattern 'kairo-arch-*.iso' \
+  --pattern 'kairo-arch-*.iso.sha256'
+for checksum in kairo-arch-*.iso.sha256; do sha256sum -c "$checksum"; done
+```
+
+A successful check prints `OK`. Download the matching `.sha256` file alongside the ISO; do not
+verify one image with a checksum from a different build. The workflow fails
+before publishing if an ISO is 2 GiB or larger, since GitHub does not accept
+release assets at that size. The ISO remains a direct release download and is
+never split or zipped.
+
 ## Write the USB
 
 Identify the USB using `lsblk -o NAME,SIZE,MODEL,TRAN,MOUNTPOINTS`, and unmount
@@ -72,10 +94,10 @@ in [the Plymouth guide](../.local/share/plymouth/README.md) if you select it.
 
 ## Verification
 
-Run the isolated tests with:
+Run the payload staging regression test with:
 
 ```sh
-python3 .config/tests/test-iso.py
+python3 .config/tests/test-stage-payload.py
 ```
 
 A real image should additionally be boot-tested in BIOS and UEFI virtual
