@@ -66,3 +66,7 @@ python3 .config/scripts/validate_repo.py
 
 The validator checks formats, local Markdown links, license presence, duplicate
 theme equality, and mutable GitHub URLs in CSS.
+
+## Curated wallpapers
+
+`.local/share/wallpapers/archnemesis/CozyPixels/` contains only the Catppuccin, Nord, and One Dark Space & Cosmic subsets from [CozyPixels](https://github.com/SleepyCatHey/CozyPixels). Its upstream MIT license is retained as `CozyPixels/LICENSE`. Two snow wallpapers were supplied by the maintainer. The collection contains 40 images; no full CozyPixels checkout is distributed or cloned by the installer.

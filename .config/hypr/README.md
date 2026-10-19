@@ -19,6 +19,6 @@ Waybar provides live network/Bluetooth status. Click notifications to open the p
 
 ## Install
 
-From the repository root, preview with `./install.sh --dry-run --only hypr --only rofi`, then install with `./install.sh --only hypr --only rofi --install-packages`. The explicit Rofi selection replaces an existing launcher theme; Hyprland alone seeds Rofi only when absent. Existing configs are backed up by default. Wallpaper state is preserved for the recipient; machine-specific links and generated lockscreen configs are not distributed.
+From the repository root, preview with `./install.sh --dry-run --only hypr --only rofi`, then install with `./install.sh --only hypr --only rofi --install-packages`. The explicit Rofi selection replaces an existing launcher theme; Hyprland alone seeds Rofi only when absent. Existing configs are backed up by default. The bundled curated wallpapers are seeded into `~/Pictures/Wallpapers`; fresh installs select `snow-pine-forest.png`. Existing wallpaper selections and personal files are preserved. Machine-specific links and generated lockscreen configs are not distributed.
 
 Use the main repository README for installation and rollback details. The installer does not restart your session.

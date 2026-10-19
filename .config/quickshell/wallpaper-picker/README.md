@@ -5,8 +5,7 @@ Arrow keys / mouse wheel browse; click a card to select, click again or Enter to
 Search filters local filenames. Colour buttons filter by approximate average image colour.
 History contains wallpapers applied through this picker. The monitor selector defaults to all.
 
-Images: ~/Pictures/Wallpapers
-Additional live media: ~/Pictures/CozyPixels/Live Wallpapers/Wallpapers
+Library: ~/Pictures/Wallpapers (including subfolders)
 Thumbnails and history: ~/.cache/wallpaper-carousel
 
 Uses Quickshell, Python Pillow, ffmpeg, hyprpaper, and mpvpaper.

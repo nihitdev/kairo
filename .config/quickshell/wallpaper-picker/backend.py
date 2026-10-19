@@ -17,7 +17,7 @@ def run(*args):
 
 def index():
     items = []
-    roots = [H/'Pictures/Wallpapers', H/'Pictures/CozyPixels/Catppuccin/Space & Cosmic', H/'Pictures/CozyPixels/Live Wallpapers/Wallpapers']
+    roots = [H/'Pictures/Wallpapers']
     for root in roots:
         for p in sorted(root.rglob('*')):
             if not p.is_file() or p.suffix.lower() not in STATIC | VIDEO: continue

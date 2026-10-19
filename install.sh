@@ -153,7 +153,7 @@ Options:
   --install-gpu-drivers
                      Install reviewed Arch drivers for detected GPUs
   --install-wallpapers
-                     Clone the optional CozyPixels wallpaper collection
+                     Install the bundled curated wallpapers (included with Hyprland)
   --only NAME        Install one specific component; repeat for multiple tools
                      Use --only all to install every supported component
   -h, --help         Show this help
@@ -676,9 +676,6 @@ collect_missing_packages() {
         package_is_installed zsh zsh || record_unique missing_official_packages zsh
         package_is_installed ttf-jetbrains-mono-nerd || record_unique missing_official_packages ttf-jetbrains-mono-nerd
     fi
-    if $install_wallpapers; then
-        package_is_installed git git || record_unique missing_official_packages git
-    fi
     if is_selected nvim; then
         package_is_installed git git || record_unique missing_official_packages git
         # Language extras need runtimes for tests/DAP and Mason's installers.
@@ -950,8 +947,15 @@ preflight_desktop() {
         bash -n "$repo_root/.local/share/sddm/themes/archnemesis/install.sh"
         bash -n "$repo_root/.local/share/sddm/themes/archnemesis/rollback.sh"
     fi
-    if $install_wallpapers; then
-        assert_safe_destination "$HOME/Pictures/Wallpapers/CozyPixels"
+    if is_selected hypr || $install_wallpapers; then
+        local wallpaper_source="$repo_root/.local/share/wallpapers/archnemesis"
+        [[ -r $wallpaper_source/snow-pine-forest.png ]] || {
+            printf 'Missing default wallpaper: snow-pine-forest.png\n' >&2; return 1;
+        }
+        assert_safe_destination "$HOME/Pictures/Wallpapers"
+        while IFS= read -r -d '' file; do
+            assert_safe_destination "$HOME/Pictures/Wallpapers/${file#"$wallpaper_source"/}"
+        done < <(find "$wallpaper_source" -type f -print0)
     fi
     for module in hypr waybar; do
         is_selected "$module" || continue
@@ -1010,47 +1014,19 @@ preflight_desktop() {
     fi
 }
 
-install_optional_wallpapers() {
-    $install_wallpapers || return 0
-
-    local wallpaper_root="$HOME/Pictures"
-    local destination="$wallpaper_root/CozyPixels"
-    local repo="https://github.com/SleepyCatHey/CozyPixels.git"
-
-    assert_safe_destination "$destination"
-
-    if [[ -d $destination/.git ]]; then
-        describe "CozyPixels wallpapers already installed -> $destination"
+install_curated_wallpapers() {
+    local component=wallpapers
+    if is_selected hypr; then
+        component=hypr
+    elif ! $install_wallpapers; then
         return 0
     fi
-
-    if [[ -e $destination || -L $destination ]]; then
-        warnings+=("Wallpaper destination already exists and is not a CozyPixels Git checkout: $destination")
-        return 0
-    fi
-
-    if $dry_run; then
-        describe "Clone CozyPixels wallpapers -> $destination"
-        return 0
-    fi
-
-    command -v git >/dev/null 2>&1 || {
-        warnings+=("Git is unavailable; CozyPixels wallpapers were not installed")
-        return 0
-    }
-
-    ensure_external_root
-    local checkout="$external_root/CozyPixels"
-
-    if $interactive && declare -F ui_run_spinner >/dev/null; then
-        ui_run_spinner "Installing CozyPixels wallpapers" \
-            git clone --depth=1 "$repo" "$checkout"
-    else
-        git clone --depth=1 "$repo" "$checkout"
-    fi
-
-    install_item wallpapers "$checkout" "$destination"
-    describe "Installed CozyPixels wallpapers -> $destination"
+    local source="$repo_root/.local/share/wallpapers/archnemesis" file destination
+    # Seed individual files: keep personal images and participate in rollback.
+    while IFS= read -r -d '' file; do
+        destination="$HOME/Pictures/Wallpapers/${file#"$source"/}"
+        install_seed_item "$component" "$file" "$destination"
+    done < <(find "$source" -type f -print0 | sort -z)
 }
 
 install_hypr_desktop() {
@@ -1063,6 +1039,12 @@ install_hypr_desktop() {
     elif [[ -r $saved ]]; then
         IFS= read -r wallpaper < "$saved" || true
         [[ -f $wallpaper ]] || wallpaper=''
+    fi
+    if [[ -z $wallpaper ]]; then
+        wallpaper="$HOME/Pictures/Wallpapers/snow-pine-forest.png"
+    fi
+    if [[ ! -f $wallpaper ]] && ! $dry_run; then
+        wallpaper=''
     fi
     if [[ -z $wallpaper && -f /usr/share/hypr/wall0.png ]]; then
         wallpaper=/usr/share/hypr/wall0.png
@@ -1574,10 +1556,10 @@ interactive_prepare() {
 
     ui_heading
     ui_section 'Wallpapers'
-    printf '\n  Kairo can optionally download the CozyPixels wallpaper collection.\n'
-    printf '  Destination: %s\n\n' "$HOME/Pictures/Wallpapers/CozyPixels"
+    printf '\n  Hyprland includes curated wallpapers with snow-pine-forest as the default.\n'
+    printf '  Destination: %s\n\n' "$HOME/Pictures/Wallpapers"
     if ! $install_wallpapers; then
-        ui_confirm 'Install additional CozyPixels wallpapers?' && install_wallpapers=true
+        ui_confirm 'Install curated wallpapers even without Hyprland?' && install_wallpapers=true
     fi
     if $no_backup; then
         ui_status warn 'Backups disabled; transactional rollback remains enabled'
@@ -1926,8 +1908,8 @@ fi
 install_item swaync "$source_config_root/swaync/config.json" "$config_root/swaync/config.json"
 install_item swaync "$source_config_root/swaync/style.css" "$config_root/swaync/style.css"
 install_item swaync "$repo_root/.local/bin/battery-guardian" "$HOME/.local/bin/battery-guardian"
+install_curated_wallpapers
 install_hypr_desktop
-install_optional_wallpapers
 install_waybar
 install_item rofi "$source_config_root/rofi" "$config_root/rofi"
 install_kairo_shell

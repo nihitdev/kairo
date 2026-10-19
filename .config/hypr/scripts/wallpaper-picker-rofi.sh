@@ -2,23 +2,18 @@
 set -euo pipefail
 
 WALLDIR="$HOME/Pictures/Wallpapers"
-LIVE_WALLDIR="$HOME/Pictures/CozyPixels/Live Wallpapers/Wallpapers"
 CACHE="$HOME/.cache/current-wallpaper"
 CURRENT="$HOME/.config/hypr/current-wallpaper"
 THEME="$HOME/.config/rofi/wallpaper/wallpaper.rasi"
 
-[[ -d "$WALLDIR" || -d "$LIVE_WALLDIR" ]] || {
+[[ -d "$WALLDIR" ]] || {
     notify-send -a Hyprpaper "Wallpaper directory not found" "$WALLDIR"
     exit 1
 }
 
 # Build the wallpaper list once.
 mapfile -d '' -t walls < <(
-    directories=()
-    for directory in "$WALLDIR" "$LIVE_WALLDIR"; do
-        [[ ! -d "$directory" ]] || directories+=("$directory")
-    done
-    find "${directories[@]}" -type f \
+    find "$WALLDIR" -type f \
         \( -iname '*.png' \
         -o -iname '*.jpg' \
         -o -iname '*.jpeg' \

@@ -172,7 +172,7 @@ Notification history and Do Not Disturb, opened from Waybar.
 
 </details>
 
-Wallpaper images shown in these captures belong to the personal collection and are not included in the installer payload.
+Screenshots may show wallpapers outside the curated collection bundled with the installer.
 
 ---
 
@@ -354,16 +354,21 @@ refreshes that directory's font cache. `--install-packages` includes Iosevka Ner
 Font, Hyprpaper/Hypridle/Hyprlock, SwayNC, and the TUI tools used by the bar. It does
 not automatically install every application mentioned in personal keybinds.
 
-Wallpaper images and machine-specific wallpaper links are not included in Git.
-An install preserves the target user's existing wallpaper link or saved selection,
-then falls back to the installed Hyprland wallpaper if available. Add your images
-to `~/Pictures/Wallpapers` and use
-**Super+Alt+Space** to choose one. **Super+Ctrl+Space** opens the live-wallpaper
-picker for videos in `~/Pictures/CozyPixels/Live Wallpapers/Wallpapers`. Hyprland
-restores the selected wallpaper backend at startup; `--install-packages` includes
-Quickshell, Qt Quick, Python Pillow, FFmpeg, and the AUR package `mpvpaper`. Pass `--install-wallpapers` to download the
-optional CozyPixels collection; failed installations roll back a newly downloaded
-collection along with the configuration changes.
+The repository bundles 40 curated wallpapers: two snow scenes and the CozyPixels
+Space & Cosmic collections for Catppuccin, Nord, and One Dark. Hyprland installation
+copies them into `~/Pictures/Wallpapers` (including the themed subfolders), without
+cloning the full CozyPixels repository or replacing existing files. A fresh install
+selects **snow-pine-forest.png**; reinstalls preserve an existing wallpaper link or
+saved selection. Machine-specific wallpaper links remain excluded from Git.
+
+Both static wallpaper pickers scan `~/Pictures/Wallpapers` recursively.
+Use **Super+Alt+Space** to choose one. **Super+Ctrl+Space** opens the separate
+live-wallpaper picker for videos in
+`~/Pictures/CozyPixels/Live Wallpapers/Wallpapers`. Hyprland restores the selected
+wallpaper backend at startup; `--install-packages` includes Quickshell, Qt Quick,
+Python Pillow, FFmpeg, and the AUR package `mpvpaper`.
+Pass `--install-wallpapers` to install the curated collection with other modules,
+without selecting Hyprland. Wallpaper copies participate in transactional rollback.
 The picker updates Hyprpaper's persistent selection. Locking falls back to a solid
 background when no image is available. Desktop launchers use the standard
 `~/.config` layout; use that location for the complete desktop installation.
@@ -524,7 +529,7 @@ Nerd Font, and the AUR package `wl-gammarelay-rs`. Installation remains opt-in
 through `--install-packages` or interactive review. Without it, missing packages
 are reported and must be installed before starting the shell. The upstream
 interactive installer, system upgrades, display-manager setup, service changes,
-and optional wallpaper downloads are not run.
+and wallpaper installation are not run.
 
 The downloaded payload retains upstream AGPL-3.0 licensing and attribution.
 The [local shell prototype](shell/README.md) is separate from this release.

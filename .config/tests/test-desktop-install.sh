@@ -81,30 +81,66 @@ rm "$target/.cache/current-wallpaper" "$target/.config/hypr/current-wallpaper"
 HOME="$target" XDG_CONFIG_HOME="$target/.config" PATH="$test_root/mock-bin:$PATH" \
     bash "$target/.config/hypr/scripts/lock.sh"
 grep -q 'color = rgba(25, 23, 36, 1.0)' "$target/.config/hyprlock/hyprlock.conf" || fail 'lock fallback missing'
-# Wallpaper downloads use a staged checkout and participate in config rollback.
+# A fresh Hyprland install gets the curated images and snow-pine default.
+target="$test_root/fresh-desktop"
+mkdir -p "$target"
+run_install "$target" --dry-run --only hypr > "$test_root/fresh-plan"
+[[ ! -e $target/Pictures ]] || fail 'wallpaper dry-run created directories'
+grep -Fq 'snow-pine-forest.png' "$test_root/fresh-plan" || fail 'default wallpaper missing from plan'
+run_install "$target" --only hypr > "$test_root/fresh-install"
+[[ $(readlink "$target/.config/hypr/current-wallpaper") == "$target/Pictures/Wallpapers/snow-pine-forest.png" ]] || fail 'fresh default is not snow-pine-forest'
+cmp "$repo_root/.local/share/wallpapers/archnemesis/snow-pine-forest.png" "$target/Pictures/Wallpapers/snow-pine-forest.png"
+[[ ! -d $target/Pictures/CozyPixels/.git ]] || fail 'full CozyPixels checkout installed'
+
+# Optional wallpaper installs are offline, preserve personal files, and roll back.
 cat > "$test_root/mock-bin/git" <<'MOCK'
 #!/usr/bin/env bash
+printf 'unexpected Git operation\n' >&2
+exit 1
+MOCK
+cat > "$test_root/mock-bin/cp" <<'MOCK'
+#!/usr/bin/env bash
 set -eu
-[[ $1 == clone ]] || exit 1
-mkdir -p "${@: -1}/.git"
-printf 'wallpaper fixture\n' > "${@: -1}/wallpaper.png"
-[[ ${FAIL_WALLPAPER_CLONE:-false} != true ]]
+if [[ ${FAIL_WALLPAPER_COPY:-false} == true && $* == *snow-night-moon.png* ]]; then
+    exit 1
+fi
+exec "$REAL_CP" "$@"
 MOCK
 printf '#!/usr/bin/env bash\nexit 1\n' > "$test_root/mock-bin/bat"
-chmod +x "$test_root/mock-bin/git" "$test_root/mock-bin/bat"
-for scenario in success clone-failure rollback; do
+chmod +x "$test_root/mock-bin/git" "$test_root/mock-bin/cp" "$test_root/mock-bin/bat"
+export REAL_CP
+REAL_CP=$(command -v cp)
+for scenario in success copy-failure rollback; do
     target="$test_root/wallpapers-$scenario"
-    mkdir -p "$target"
+    mkdir -p "$target/Pictures/Wallpapers"
+    printf 'personal image\n' > "$target/Pictures/Wallpapers/personal.png"
     args=(--only kitty --install-wallpapers)
     [[ $scenario != rollback ]] || args+=(--only bat)
-    if PATH="$test_root/mock-bin:$PATH" FAIL_WALLPAPER_CLONE="$([[ $scenario == clone-failure ]] && echo true || echo false)" \
+    if PATH="$test_root/mock-bin:$PATH" FAIL_WALLPAPER_COPY="$([[ $scenario == copy-failure ]] && echo true || echo false)" \
         run_install "$target" "${args[@]}" > "$test_root/wallpapers-$scenario.log" 2>&1; then
         [[ $scenario == success ]] || fail "$scenario unexpectedly succeeded"
-        [[ -f $target/Pictures/CozyPixels/wallpaper.png ]] || fail 'wallpapers missing'
+        [[ -f $target/Pictures/Wallpapers/snow-pine-forest.png ]] || fail 'curated default missing'
+        [[ -f "$target/Pictures/Wallpapers/CozyPixels/Catppuccin/Space & Cosmic/astronaut.png" ]] || fail 'curated cosmic images missing'
+        # Existing same-name images are left untouched, including on repeat install.
+        printf 'personal replacement\n' > "$target/Pictures/Wallpapers/snow-pine-forest.png"
+        PATH="$test_root/mock-bin:$PATH" run_install "$target" "${args[@]}" > "$test_root/wallpapers-repeat.log"
+        [[ $(cat "$target/Pictures/Wallpapers/snow-pine-forest.png") == 'personal replacement' ]] || fail 'existing wallpaper overwritten'
+        ! grep -q 'Replace ' "$test_root/wallpapers-repeat.log" || fail 'wallpaper reinstall replaced files'
     else
         [[ $scenario != success ]] || fail 'wallpaper installation failed'
-        [[ ! -e $target/Pictures/CozyPixels ]] || fail 'partial wallpaper checkout remained'
+        [[ $(find "$target/Pictures/Wallpapers" -type f | wc -l) == 1 ]] || fail 'partial wallpaper files remained after rollback'
         [[ ! -e $target/.config/kitty ]] || fail 'wallpaper failure did not roll back configs'
     fi
+    [[ $(cat "$target/Pictures/Wallpapers/personal.png") == 'personal image' ]] || fail 'personal wallpaper lost'
 done
+
+# Reject an escaping wallpaper subdirectory before replacing any configs.
+target="$test_root/wallpapers-escape"
+mkdir -p "$target/Pictures/Wallpapers" "$test_root/wallpaper-outside"
+ln -s "$test_root/wallpaper-outside" "$target/Pictures/Wallpapers/CozyPixels"
+if run_install "$target" --only kitty --install-wallpapers > "$test_root/wallpapers-escape.log" 2>&1; then
+    fail 'wallpaper destination escape accepted'
+fi
+[[ ! -e $target/.config/kitty ]] || fail 'wallpaper preflight failure changed configs'
+[[ -z $(find "$test_root/wallpaper-outside" -type f -print -quit) ]] || fail 'wallpaper escaped HOME'
 printf 'Desktop installer tests passed.\n'
