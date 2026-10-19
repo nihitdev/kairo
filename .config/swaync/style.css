@@ -774,3 +774,32 @@ notificationwindow.background,
     background-color: rgba(35, 18, 28, 0.48);
     border-color: rgba(243, 139, 168, 0.65);
 }
+
+/* ARCHNEMESIS: Rosé Pine palette shared with the compositor and bar. */
+:root {
+  --cc-bg: rgba(25, 23, 36, 0.72);
+  --noti-bg: 31, 29, 46;
+  --noti-bg-alpha: 0.72;
+  --noti-border-color: rgba(196, 167, 231, 0.28);
+  --noti-bg-darker: #191724;
+  --noti-bg-hover: #26233a;
+  --noti-bg-focus: rgba(196, 167, 231, 0.15);
+  --noti-close-bg: #393552;
+  --noti-close-bg-hover: #524f67;
+  --text-color: #e0def4;
+  --text-color-disabled: #908caa;
+  --bg-selected: #c4a7e7;
+  --font-size-body: 13px;
+  --font-size-summary: 14px;
+}
+.control-center { border: 1px solid rgba(196, 167, 231, 0.28); border-radius: 12px; }
+.floating-notifications .notification-row .notification-background .notification {
+  background: rgba(31, 29, 46, 0.72);
+  border: 1px solid rgba(196, 167, 231, 0.30);
+  border-radius: 12px;
+}
+.floating-notifications .notification-row .notification-background .notification.critical {
+  background: rgba(38, 28, 43, 0.78);
+  border-color: #eb6f92;
+}
+.floating-notifications .notification-default-action:hover { background: rgba(196, 167, 231, 0.10); }

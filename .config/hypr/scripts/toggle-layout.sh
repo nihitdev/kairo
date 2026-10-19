@@ -12,20 +12,32 @@ current="$(hyprctl -j getoption general:layout | jq -er '.str')"
 
 case "$current" in
     dwindle)   next="scrolling" ;;
-    scrolling) next="dwindle" ;;
+    scrolling) next="master" ;;
+    master)    next="dwindle" ;;
     *)         next="dwindle" ;;
 esac
 
-# Persist the selected layout.
+# Persist the selected layout; restore it if verification fails.
+backup="$(mktemp)"
+cp -- "$CFG" "$backup"
+trap 'rm -f "$backup"' EXIT
 sed -i -E \
-    's/layout = "(dwindle|scrolling)"/layout = "'"$next"'"/' \
+    's/layout = "(dwindle|scrolling|master)"/layout = "'"$next"'"/' \
     "$CFG"
+
+if ! Hyprland --verify-config -c "$HOME/.config/hypr/hyprland.lua" >/dev/null 2>&1; then
+    cp -- "$backup" "$CFG"
+    notify-send -u critical -a Hyprland 'Layout unchanged' 'Configuration validation failed; restored previous layout.'
+    exit 1
+fi
 
 hyprctl reload >/dev/null
 
 errors="$(hyprctl configerrors)"
 
 if [[ -n "${errors//[[:space:]]/}" ]]; then
+    cp -- "$backup" "$CFG"
+    hyprctl reload >/dev/null
     notify-send -a Hyprland \
         "Layout configuration error" \
         "$errors"

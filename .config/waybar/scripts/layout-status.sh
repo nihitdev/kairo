@@ -3,6 +3,7 @@
 layout=$(hyprctl -j getoption general:layout 2>/dev/null | jq -r '.str // empty')
 case "$layout" in
     scrolling) printf '󰖲 SCROLL\n' ;;
+    master) printf '󰶮 MASTER\n' ;;
     dwindle) printf '󰕰 DWINDLE\n' ;;
     *) printf '󰕰 %s\n' "${layout:-UNKNOWN}" ;;
 esac

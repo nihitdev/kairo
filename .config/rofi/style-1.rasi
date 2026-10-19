@@ -22,7 +22,7 @@ configuration {
 
 /*****----- Global Properties -----*****/
 * {
-    background:     #191724CC;
+    background:     #191724B3;
     background-alt: #1F1D2ECC;
     foreground:     #E0DEF4FF;
     selected:       #C4A7E7FF;
@@ -44,7 +44,7 @@ window {
     enabled:                     true;
     margin:                      0px;
     padding:                     0px;
-    border:                      0px solid;
+    border:                      1px solid;
     border-radius:               12px;
     border-color:                @selected;
     background-color:            @background;
@@ -54,9 +54,9 @@ window {
 /*****----- Main Box -----*****/
 mainbox {
     enabled:                     true;
-    spacing:                     0px;
+    spacing:                     6px;
     margin:                      0px;
-    padding:                     0px;
+    padding:                     6px;
     border:                      0px solid;
     border-radius:               0px 0px 0px 0px;
     border-color:                @selected;
@@ -69,12 +69,12 @@ inputbar {
     enabled:                     true;
     spacing:                     10px;
     margin:                      0px;
-    padding:                     15px;
+    padding:                     12px;
     border:                      0px solid;
-    border-radius:               0px;
+    border-radius:               6px;
     border-color:                @selected;
-    background-color:            @selected;
-    text-color:                  @background;
+    background-color:            #C4A7E733;
+    text-color:                  @foreground;
     children:                    ["prompt", "entry" ];
 }
 
@@ -112,7 +112,7 @@ listview {
     fixed-height:                true;
     fixed-columns:               true;
     
-    spacing:                     5px;
+    spacing:                     4px;
     margin:                      0px;
     padding:                     0px;
     border:                      0px solid;
@@ -136,18 +136,18 @@ element {
     margin:                      0px;
     padding:                     8px;
     border:                      0px solid;
-    border-radius:               0px;
+    border-radius:               6px;
     border-color:                @selected;
     background-color:            transparent;
     text-color:                  @foreground;
     cursor:                      pointer;
 }
 element normal.normal {
-    background-color:            @background;
+    background-color:            transparent;
     text-color:                  @foreground;
 }
 element selected.normal {
-    background-color:            @background-alt;
+    background-color:            #C4A7E733;
     text-color:                  @foreground;
 }
 element-icon {

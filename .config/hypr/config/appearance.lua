@@ -23,12 +23,12 @@ hl.config({
         rounding_power = 2,
 
         active_opacity = 1.0,
-        inactive_opacity = 0.97,
+        inactive_opacity = 1.0,
 
         -- Lighter shadow than before.
         shadow = {
             enabled = true,
-            range = 8,
+            range = 12,
             render_power = 2,
             color = "rgba(100d1c80)",
         },
@@ -36,7 +36,7 @@ hl.config({
         -- Keep the glass look without hammering the GPU.
         blur = {
             enabled = true,
-            size = 5,
+            size = 4,
             passes = 2,
             ignore_opacity = true,
             vibrancy = 0.10,
@@ -45,6 +45,13 @@ hl.config({
 
     dwindle = {
         preserve_split = true,
+    },
+
+    -- Main window uses 60% of the width; new windows join the side stack.
+    master = {
+        mfact = 0.60,
+        orientation = "left",
+        new_status = "slave",
     },
 
     scrolling = {

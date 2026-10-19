@@ -109,7 +109,7 @@ hl.bind(
 
 hl.bind(
     "XF86MonBrightnessDown",
-    hl.dsp.exec_cmd("brightnessctl set 5%-"),
+    hl.dsp.exec_cmd("brightnessctl --min-value=1 set 5%-"),
     { locked = true, repeating = true }
 )
 
@@ -163,3 +163,28 @@ hl.bind(
 -- Live wallpaper picker.
 
 hl.bind(M .. " + CTRL + Space", hl.dsp.exec_cmd(SCRIPTS .. "live-wallpaper.sh"))
+
+-- Everyday window controls. Existing shortcuts remain available.
+hl.bind(M .. " + F", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
+hl.bind(M .. " + SHIFT + F", hl.dsp.window.fullscreen({ mode = "maximized" }))
+hl.bind(M .. " + SHIFT + Space", hl.dsp.window.float())
+hl.bind(M .. " + C", hl.dsp.window.center())
+hl.bind(M .. " + Tab", hl.dsp.window.cycle_next({ next = true }))
+hl.bind(M .. " + SHIFT + Tab", hl.dsp.window.cycle_next({ next = false }))
+
+for _, item in ipairs({
+    { "left", "left", -40, 0 }, { "right", "right", 40, 0 },
+    { "up", "up", 0, -40 }, { "down", "down", 0, 40 },
+}) do
+    hl.bind(M .. " + SHIFT + " .. item[1], hl.dsp.window.move({ direction = item[2] }))
+    hl.bind(M .. " + CTRL + " .. item[1],
+        hl.dsp.window.resize({ x = item[3], y = item[4], relative = true }),
+        { repeating = true })
+end
+
+hl.bind(M .. " + bracketleft", hl.dsp.focus({ workspace = "e-1" }))
+hl.bind(M .. " + bracketright", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(M .. " + slash", hl.dsp.exec_cmd(SCRIPTS .. "keybinds.sh"))
+hl.bind(M .. " + SHIFT + R", hl.dsp.exec_cmd(SCRIPTS .. "reload.sh"))
+hl.bind(M .. " + SHIFT + N", hl.dsp.exec_cmd("swaync-client -t"))
+hl.bind("CTRL + PRINT", hl.dsp.exec_cmd(SCRIPTS .. "screenshot.sh window"))

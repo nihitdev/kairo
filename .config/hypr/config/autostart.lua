@@ -16,6 +16,7 @@ hl.on("hyprland.start", function()
     -- Session daemons.
     for _, daemon in ipairs({
         "hypridle",
+        "swaync",
         "waybar",
         "nm-applet",
     }) do

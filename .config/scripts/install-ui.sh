@@ -139,7 +139,7 @@ ui_kv() {
 # Plain text for the scrollable review, including implicit desktop dependencies.
 ui_swaync_summary() {
     printf '%s\n' \
-        '  SwayNC: ARCHNEMESIS glass, grouped notifications, 10-second timeouts.' \
+        '  SwayNC: translucent glass, grouped notifications, persistent critical alerts.' \
         '  Battery alerts: 20%, 10%, 5%; starts with Hyprland (one watcher).'
 }
 

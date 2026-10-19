@@ -15,7 +15,7 @@
     text-shadow: none;
 }
 window#waybar {
-    background: rgba(20, 18, 33, 0.68);
+    background: rgba(20, 18, 33, 0.48);
     color: @text;
     border: 1px solid rgba(196, 167, 231, 0.20);
     border-radius: 10px;
@@ -23,7 +23,7 @@ window#waybar {
 #workspaces { margin-left: 5px; }
 #workspaces button {
     min-width: 20px;
-    padding: 0 6px;
+    padding: 0 7px;
     margin: 4px 2px;
     border-radius: 6px;
     background: transparent;
@@ -44,34 +44,33 @@ window#waybar {
     background: rgba(235, 111, 146, 0.22);
     color: @love;
 }
-#custom-layout, #mpris, #custom-network, #custom-bluetooth,
+#custom-layout, #mpris, #network, #bluetooth,
 #wireplumber, #backlight, #battery, #clock, #custom-notifications, #custom-power {
     padding: 0 8px;
-    margin: 4px 1px;
+    margin: 4px 2px;
     border-radius: 6px;
-    background: rgba(38, 35, 58, 0.36);
+    background: rgba(38, 35, 58, 0.26);
     transition: background-color 160ms ease, color 160ms ease;
 }
-#custom-layout:hover, #mpris:hover, #custom-network:hover, #custom-bluetooth:hover,
+#custom-layout:hover, #mpris:hover, #network:hover, #bluetooth:hover,
 #wireplumber:hover, #backlight:hover, #battery:hover, #clock:hover,
 #custom-notifications:hover, #custom-power:hover {
     background: rgba(196, 167, 231, 0.18);
     color: @text;
 }
 #connectivity, #system {
-    margin: 4px 2px;
-    border-radius: 6px;
-    background: rgba(38, 35, 58, 0.36);
-}
-#connectivity > widget > *, #system > widget > * {
     margin: 0;
     background: transparent;
+}
+#connectivity > widget > *, #system > widget > * {
+    margin: 4px 2px;
+    background: rgba(38, 35, 58, 0.26);
 }
 #connectivity > widget > *:hover, #system > widget > *:hover {
     background: rgba(196, 167, 231, 0.18);
 }
 #custom-layout, #wireplumber, #clock, #custom-notifications { color: @iris; }
-#mpris, #custom-network, #custom-bluetooth, #battery { color: @foam; }
+#mpris, #network, #bluetooth, #battery { color: @foam; }
 #backlight, #battery.warning { color: @gold; }
 #battery.critical:not(.charging) { color: @love; }
 #wireplumber.muted, #mpris.paused,
@@ -98,4 +97,12 @@ tooltip {
     border: 1px solid rgba(196, 167, 231, 0.28);
     border-radius: 8px;
 }
-tooltip label { color: @text; padding: 6px; font-size: 12px; font-weight: 400; }
+tooltip label { color: @text; padding: 6px; font-size: 13px; font-weight: 400; }
+
+/* Status remains legible without relying on tooltips. */
+#network.disconnected, #bluetooth.disabled, #bluetooth.off { color: @muted; }
+#bluetooth.connected { color: @foam; }
+#workspaces button.empty { color: #6e6a86; }
+#workspaces button.active { color: @iris; min-width: 26px; }
+#battery.charging, #battery.plugged { color: @foam; }
+#battery.critical:not(.charging) { background: rgba(235, 111, 146, 0.18); }

@@ -162,7 +162,7 @@ printf 'RESULT %s' "$status"
         result = subprocess.run(['bash', '-eu'], input=UI.read_text() +
                                 '\nui_swaync_summary', text=True, capture_output=True,
                                 check=True, timeout=5)
-        self.assertIn('10-second timeouts', result.stdout)
+        self.assertIn('persistent critical alerts', result.stdout)
         self.assertIn('one watcher', result.stdout)
 
     def test_module_labels_are_plain_text(self):

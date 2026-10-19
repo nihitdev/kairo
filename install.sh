@@ -64,10 +64,11 @@ declare -a hypr_packages=(
     kitty rofi cliphist wl-clipboard jq libnotify brightnessctl playerctl
     wireplumber xdg-desktop-portal-hyprland qt5-wayland qt6-wayland qt6ct kvantum
     grim slurp procps-ng util-linux ffmpeg quickshell qt6-declarative python-pillow
+    ttf-iosevka-nerd ttf-jetbrains-mono-nerd
 )
 declare -a waybar_packages=(
     waybar python jq swaync kitty wireplumber brightnessctl playerctl
-    networkmanager bluetui pulsemixer btop cava calcurse yazi rofi libnotify fontconfig ttf-iosevka-nerd
+    networkmanager bluez bluez-utils bluetui pulsemixer btop cava calcurse yazi rofi libnotify fontconfig ttf-iosevka-nerd
 )
 
 # Single module registry: id | label | category | default | package | command | source.
@@ -973,8 +974,15 @@ preflight_desktop() {
             }
             assert_safe_destination "$config_root/$module"
         done
-        [[ -f $source_config_root/hypr/hyprland.lua &&
-           -f $source_config_root/hypr/hyprpaper.conf ]] || return 1
+        for file in hyprland.lua hyprpaper.conf config/windows.lua shortcuts.txt \
+            scripts/keybinds.sh scripts/reload.sh scripts/toggle-layout.sh; do
+            [[ -r $source_config_root/hypr/$file ]] || {
+                printf 'Missing Hyprland payload: %s\n' "$file" >&2; return 1;
+            }
+            if [[ $file == scripts/*.sh && ! -x $source_config_root/hypr/$file ]]; then
+                printf 'Hyprland helper is not executable: %s\n' "$file" >&2; return 1
+            fi
+        done
     fi
     if is_selected swaync; then
         for file in config.json style.css; do

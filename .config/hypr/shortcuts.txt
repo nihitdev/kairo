@@ -1,0 +1,35 @@
+Super + Return                 Terminal
+Super + Space                  App launcher
+Super + B                      Browser
+Super + E                      File manager
+Super + N                      Neovim
+Super + G                      Video editor
+Super + W                      Close window
+Super + F                      Fullscreen
+Super + Shift + F              Maximize
+Super + Shift + Space          Toggle floating
+Super + C                      Center floating window
+Super + Arrow / H J K          Focus window (L switches layout)
+Super + Shift + Arrow          Move window
+Super + Ctrl + Arrow           Resize window
+Super + Tab / Shift + Tab      Next / previous window
+Super + 1…0                    Workspace 1…10
+Super + Shift + 1…0            Move window to workspace
+Super + [ / ]                  Previous / next workspace
+Super + S                      Show scratch workspace
+Super + Shift + S              Send window to scratch workspace
+Super + L                      Cycle Dwindle / Scrolling / Master
+Super + P                      Toggle pseudo (Dwindle)
+Super + V                      Clipboard history
+Super + Alt + Space            Wallpaper picker
+Super + Ctrl + Space           Live wallpaper picker
+Super + Alt + L                Lock screen
+Super + Shift + N              Notification panel
+Super + Shift + R              Validate and reload config
+Super + /                      This shortcut menu
+Print / Alt + Z                Region screenshot
+Shift + Print                  Full desktop screenshot
+Ctrl + Print                   Active window screenshot
+Super + Left mouse drag        Move window
+Super + Right mouse drag       Resize window
+Three-finger swipe             Switch workspace

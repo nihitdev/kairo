@@ -296,9 +296,21 @@ your display manager, the theme appears the next time its greeter starts.
 ### ARCHNEMESIS desktop installation
 
 The Hyprland and Waybar payloads track the live dark Rosé Pine setup: compact glass
-surfaces, Dwindle/Scrolling switching, event-driven notifications, and CPU-reactive
+surfaces, Dwindle/Scrolling/Master switching, event-driven notifications, and CPU-reactive
 skull/cat artwork. The original workspace, media, launcher, lock, and wallpaper
 shortcuts are preserved. These Lua configs target Hyprland 0.56 or newer.
+
+**Super+L** (or the Waybar layout button) cycles Dwindle → Scrolling → Master.
+Master gives the main window 60% of the width and stacks other windows on the right.
+The selected layout persists. **Super+/** opens the searchable shortcut reference;
+**Super+Shift+R** validates and reloads the compositor configuration.
+
+The desktop uses subtle opening animations, quicker closing/fades, a 34px translucent
+Waybar with occupied/current workspaces, and a compact 400px Rofi launcher. Wi-Fi
+and Bluetooth icons reflect live connection status. Window controls include
+**Super+F** for fullscreen, **Super+Shift+Space** for floating,
+**Super+Shift+Arrows** to move, and **Super+Ctrl+Arrows** to resize.
+**Ctrl+Print** saves and copies the active window rectangle.
 
 ```bash
 # Preview the complete desktop (no writes or package installation)
@@ -322,7 +334,8 @@ to already be present for its click actions.
 SwayNC is also a default module (`--only swaync` for a scoped install). It deploys
 `config.json` and `style.css` individually, preserving other files in the SwayNC
 directory. The ARCHNEMESIS glass theme retains grouped notifications, DND and
-critical styling, and 10-second timeouts for all urgency levels. The existing
+critical styling. Normal notifications expire after 7 seconds, low-priority ones
+after 4 seconds, and critical notifications remain until dismissed. The existing
 Hyprland layer rules provide blur for the control center and floating popups.
 
 The same module installs `~/.local/bin/battery-guardian`. Hyprland starts it on

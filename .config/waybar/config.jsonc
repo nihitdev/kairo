@@ -2,8 +2,8 @@
   "layer": "top",
   "position": "top",
   "height": 34,
-  "spacing": 2,
-  "margin-top": 5,
+  "spacing": 5,
+  "margin-top": 6,
   "margin-left": 8,
   "margin-right": 8,
   "modules-left": [
@@ -25,7 +25,9 @@
   "hyprland/workspaces": {
     "format": "{name}",
     "on-click": "activate",
-    "sort-by-number": true
+    "sort-by-number": true,
+    "disable-scroll": true,
+    "all-outputs": false
   },
   "custom/layout": {
     "exec": "~/.config/waybar/scripts/layout-status.sh",
@@ -33,7 +35,7 @@
     "signal": 8,
     "format": "{}",
     "on-click": "~/.config/hypr/scripts/toggle-layout.sh",
-    "tooltip-format": "Layout: {}\nClick / Super+L: switch Dwindle ↔ Scrolling",
+    "tooltip-format": "Layout: {}\nClick / Super+L: Dwindle → Scrolling → Master",
     "tooltip": true,
     "exec-on-event": false
   },
@@ -41,8 +43,9 @@
     "exec": "~/.config/waybar/scripts/skull.sh",
     "format": "{}",
     "tooltip": true,
-    "tooltip-format": "ARCHNEMESIS",
-    "restart-interval": 5
+    "tooltip-format": "ARCHNEMESIS\nClick: shortcuts · Super+/",
+    "restart-interval": 5,
+    "on-click": "~/.config/hypr/scripts/keybinds.sh"
   },
   "custom/cpucat": {
     "exec": "~/.config/waybar/scripts/catloop.sh",
@@ -50,27 +53,14 @@
     "restart-interval": 5
   },
   "mpris": {
-    "format": "  {artist} - {title}",
-    "format-paused": "󰐊  {artist} - {title}",
-    "max-length": 24,
-    "player": "spotify",
+    "format": "  {title}",
+    "format-paused": "󰏤  {title}",
+    "max-length": 19,
     "tooltip": true,
-    "on-click": "playerctl --player=spotify play-pause",
+    "on-click": "playerctl play-pause",
     "on-click-right": "~/.config/waybar/scripts/tui.sh music",
-    "on-scroll-up": "playerctl --player=spotify next",
-    "on-scroll-down": "playerctl --player=spotify previous"
-  },
-  "custom/network": {
-    "format": "",
-    "on-click": "~/.config/waybar/scripts/tui.sh network",
-    "tooltip-format": "Network",
-    "tooltip": true
-  },
-  "custom/bluetooth": {
-    "format": "",
-    "on-click": "~/.config/waybar/scripts/tui.sh bluetooth",
-    "tooltip-format": "Bluetooth",
-    "tooltip": true
+    "on-scroll-up": "playerctl next",
+    "on-scroll-down": "playerctl previous"
   },
   "wireplumber": {
     "scroll-step": 5,
@@ -87,7 +77,7 @@
     "format": "󰃠  {percent}%",
     "tooltip": true,
     "on-scroll-up": "brightnessctl set +5%",
-    "on-scroll-down": "brightnessctl set 5%-",
+    "on-scroll-down": "brightnessctl --min-value=1 set 5%-",
     "tooltip-format": "Brightness: {percent}%\nScroll to adjust"
   },
   "battery": {
@@ -113,10 +103,12 @@
       "󰁹"
     ],
     "tooltip": true,
-    "on-click": "~/.config/waybar/scripts/tui.sh system"
+    "on-click": "~/.config/waybar/scripts/tui.sh system",
+    "interval": 30,
+    "tooltip-format": "{capacity}% · {timeTo}\n{power:.1f} W\nClick: system monitor"
   },
   "clock": {
-    "format": "  {:%H:%M}",
+    "format": "{:%a  %H:%M}",
     "tooltip-format": "{:%A, %d %B %Y}",
     "on-click": "~/.config/waybar/scripts/tui.sh calendar"
   },
@@ -139,7 +131,8 @@
       "inhibited-none": "󰂜",
       "dnd-inhibited-notification": "󰂛",
       "dnd-inhibited-none": "󰪑"
-    }
+    },
+    "on-click-middle": "swaync-client -C"
   },
   "custom/power": {
     "format": "",
@@ -152,8 +145,8 @@
   "group/connectivity": {
     "orientation": "horizontal",
     "modules": [
-      "custom/network",
-      "custom/bluetooth"
+      "network",
+      "bluetooth"
     ]
   },
   "group/system": {
@@ -163,5 +156,24 @@
       "backlight",
       "battery"
     ]
+  },
+  "network": {
+    "format-wifi": "",
+    "format-ethernet": "󰈀",
+    "format-disconnected": "󰖪",
+    "tooltip-format-wifi": "{essid} · {signalStrength}%\n{ipaddr}\nClick: network settings",
+    "tooltip-format-ethernet": "{ifname} · {ipaddr}",
+    "tooltip-format-disconnected": "Disconnected · click to connect",
+    "on-click": "~/.config/waybar/scripts/tui.sh network",
+    "interval": 10
+  },
+  "bluetooth": {
+    "format": "",
+    "format-disabled": "󰂲",
+    "format-off": "󰂲",
+    "format-connected": "󰂱",
+    "tooltip-format": "Bluetooth: {status}\nClick: Bluetooth settings",
+    "tooltip-format-connected": "{device_alias}\n{device_enumerate}",
+    "on-click": "~/.config/waybar/scripts/tui.sh bluetooth"
   }
 }

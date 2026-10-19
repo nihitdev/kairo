@@ -448,6 +448,14 @@ run_hypr_rice_payload_test() {
     HOME="$home" XDG_CONFIG_HOME="$home/.config" \
         "$repo_root/install.sh" --no-backup --only hypr >/dev/null
     [[ -f $home/.config/hypr/hyprland.lua ]] || fail 'Hyprland rice payload was not installed'
+    local helper
+    for helper in keybinds reload toggle-layout screenshot; do
+        [[ -x $home/.config/hypr/scripts/$helper.sh ]] || fail "Hyprland helper missing or not executable: $helper"
+    done
+    [[ -r $home/.config/hypr/config/windows.lua && -r $home/.config/hypr/shortcuts.txt ]] ||
+        fail 'Hyprland utility rules or shortcut reference missing'
+    [[ ! -e $home/.config/hypr/.last-backup ]] || fail 'machine-specific backup pointer was deployed'
+
     [[ -f $home/.config/waybar/style.css ]] || fail 'Waybar rice payload was not installed with Hyprland'
     cmp -s "$repo_root/.config/waybar/style.css" "$home/.config/waybar/style.css" ||
         fail 'installed Waybar rice differs from selected branch'

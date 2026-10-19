@@ -1,0 +1,24 @@
+# ARCHNEMESIS desktop
+
+Hyprland 0.56+ Lua configuration with Dwindle, Scrolling (Niri-style columns), and Master layouts. Press **Super+L** or click the Waybar layout indicator to cycle; the selection persists across restarts. Master puts the main window on the left at 60% width and stacks other windows on the right.
+
+Press **Super+/** or click the skull for the searchable [shortcut reference](shortcuts.txt). **Super+Shift+R** validates and reloads the compositor config. Hyprland also automatically reloads edits to its config files.
+
+The theme uses a translucent 34px Waybar, a compact 400px Rofi launcher, matching notifications, subtle opening animations, and quicker closing/fades. Blur rules cover the launcher, bar, and notification surfaces. Workspaces appear only while occupied or currently viewed.
+
+## Files
+
+- `config/*.lua`: compositor behavior, animation timings, and keybindings.
+- `config/appearance.lua`: theme and layout settings.
+- `scripts/`: layout switching, screenshot, lock, wallpaper, and desktop helpers.
+- `../waybar/`, `../rofi/`, `../swaync/`, `../hyprlock/`: companion desktop configurations.
+
+Screenshots go to `~/Pictures/Screenshots` and are copied as PNG. **Ctrl+Print** captures the active window rectangle. Utility terminals float at 70% of the display size.
+
+Waybar provides live network/Bluetooth status. Click notifications to open the panel, right-click for Do Not Disturb, or middle-click to clear notifications. Critical notifications remain until dismissed.
+
+## Install
+
+From the repository root, preview with `./install.sh --dry-run --only hypr --only rofi`, then install with `./install.sh --only hypr --only rofi --install-packages`. The explicit Rofi selection replaces an existing launcher theme; Hyprland alone seeds Rofi only when absent. Existing configs are backed up by default. Wallpaper state is preserved for the recipient; machine-specific links and generated lockscreen configs are not distributed.
+
+Use the main repository README for installation and rollback details. The installer does not restart your session.

@@ -1,73 +1,28 @@
--- ╭──────────────────────────────────────────────╮
--- │ Animations                                   │
--- ╰──────────────────────────────────────────────╯
-
--- Fast ease-out curve for responsive window movement.
+-- Subtle ease-out motion without bounce or large zoom effects.
 hl.curve("easeOut", {
     type = "bezier",
-    points = {
-        { 0.16, 1.0 },
-        { 0.30, 1.0 },
-    },
+    points = { { 0.16, 1.0 }, { 0.30, 1.0 } },
 })
-
--- Slightly softer workspace movement.
 hl.curve("workspace", {
     type = "bezier",
-    points = {
-        { 0.25, 1.0 },
-        { 0.50, 1.0 },
-    },
+    points = { { 0.25, 1.0 }, { 0.50, 1.0 } },
 })
 
-hl.animation({
-    leaf = "global",
-    enabled = true,
-    speed = 4,
-    bezier = "easeOut",
-})
-
-hl.animation({
-    leaf = "windows",
-    enabled = true,
-    speed = 4,
-    bezier = "easeOut",
-})
-
-hl.animation({
-    leaf = "windowsIn",
-    enabled = true,
-    speed = 4,
-    bezier = "easeOut",
-    style = "popin 97%",
-})
-
-hl.animation({
-    leaf = "windowsOut",
-    enabled = true,
-    speed = 4,
-    bezier = "easeOut",
-    style = "popin 97%",
-})
-
-hl.animation({
-    leaf = "fade",
-    enabled = true,
-    speed = 4,
-    bezier = "easeOut",
-})
-
-hl.animation({
-    leaf = "layers",
-    enabled = true,
-    speed = 4,
-    bezier = "easeOut",
-})
-
-hl.animation({
-    leaf = "workspaces",
-    enabled = true,
-    speed = 4,
-    bezier = "workspace",
-    style = "slide",
-})
+-- Separate timings: opening is soft, closing is quick, focus stays responsive.
+for _, animation in ipairs({
+    { "global",     3.0, "easeOut" },
+    { "windows",    3.0, "easeOut" },
+    { "windowsIn",  3.0, "easeOut", "popin 99%" },
+    { "windowsOut", 2.0, "easeOut", "popin 99%" },
+    { "fade",       2.0, "easeOut" },
+    { "layers",     2.5, "easeOut" },
+    { "workspaces", 3.5, "workspace", "slide" },
+}) do
+    hl.animation({
+        leaf = animation[1],
+        enabled = true,
+        speed = animation[2],
+        bezier = animation[3],
+        style = animation[4],
+    })
+end

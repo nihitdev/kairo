@@ -77,8 +77,9 @@ class SwayNCTest(unittest.TestCase):
 
     def test_timeouts_and_grouping(self):
         config = json.loads((ROOT / '.config/swaync/config.json').read_text())
-        for key in ('timeout', 'timeout-low', 'timeout-critical'):
-            self.assertEqual(config[key], 10)
+        self.assertEqual(config['timeout'], 7)
+        self.assertEqual(config['timeout-low'], 4)
+        self.assertEqual(config['timeout-critical'], 0)
         self.assertTrue(config['notification-grouping'])
 
     def test_failed_guardian_copy_rolls_back_swaync(self):

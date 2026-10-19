@@ -28,3 +28,8 @@ __pycache__/
 # ISO build inputs, work directories, and generated images
 .build/
 out/
+
+# Local desktop editing snapshots and backup pointers
+.config/hypr/.last-backup
+.config/waybar/*.before-spacing
+.config/rofi/*.before-sizing
