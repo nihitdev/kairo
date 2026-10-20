@@ -2,9 +2,9 @@
 
 Hyprland 0.56+ Lua configuration with Dwindle, Scrolling (Niri-style columns), and Master layouts. Press **Super+L** or click the Waybar layout indicator to cycle; the selection persists across restarts. Master puts the main window on the left at 60% width and stacks other windows on the right.
 
-Press **Super+/** or click the skull for the searchable [shortcut reference](shortcuts.txt). **Super+Shift+R** validates and reloads the compositor config. Hyprland also automatically reloads edits to its config files.
+Press **Super+/** for the searchable [shortcut reference](shortcuts.txt). **Super+Shift+R** validates and reloads the compositor config. Hyprland also automatically reloads edits to its config files.
 
-The theme uses a translucent 34px Waybar, a compact 400px Rofi launcher, matching notifications, subtle opening animations, and quicker closing/fades. Blur rules cover the launcher, bar, and notification surfaces. Workspaces appear only while occupied or currently viewed.
+The theme uses a transparent 32px Waybar with wallpaper-derived colors, a compact 400px Rofi launcher, matching notifications, subtle opening animations, and quicker closing/fades. Blur rules cover the launcher, bar, and notification surfaces. Workspaces appear as dots only while occupied or currently viewed. Both wallpaper pickers update the bar palette automatically; login restores it.
 
 ## Files
 

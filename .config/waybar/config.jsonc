@@ -1,21 +1,20 @@
 {
   "layer": "top",
   "position": "top",
-  "height": 34,
-  "spacing": 5,
-  "margin-top": 6,
-  "margin-left": 8,
-  "margin-right": 8,
+  "height": 32,
+  "spacing": 3,
+  "margin-top": 7,
+  "margin-left": 40,
+  "margin-right": 40,
   "modules-left": [
     "hyprland/workspaces",
     "custom/layout",
     "custom/cpucat"
   ],
   "modules-center": [
-    "custom/skull"
+    "mpris"
   ],
   "modules-right": [
-    "mpris",
     "group/connectivity",
     "group/system",
     "clock",
@@ -23,11 +22,16 @@
     "custom/power"
   ],
   "hyprland/workspaces": {
-    "format": "{name}",
+    "format": "{icon}",
     "on-click": "activate",
     "sort-by-number": true,
     "disable-scroll": true,
-    "all-outputs": false
+    "all-outputs": false,
+    "format-icons": {
+      "default": "○",
+      "active": "●",
+      "urgent": "●"
+    }
   },
   "custom/layout": {
     "exec": "~/.config/waybar/scripts/layout-status.sh",
@@ -55,7 +59,7 @@
   "mpris": {
     "format": "  {title}",
     "format-paused": "󰏤  {title}",
-    "max-length": 19,
+    "max-length": 24,
     "tooltip": true,
     "on-click": "playerctl play-pause",
     "on-click-right": "~/.config/waybar/scripts/tui.sh music",

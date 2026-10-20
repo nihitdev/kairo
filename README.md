@@ -295,9 +295,9 @@ your display manager, the theme appears the next time its greeter starts.
 
 ### ARCHNEMESIS desktop installation
 
-The Hyprland and Waybar payloads track the live dark Rosé Pine setup: compact glass
-surfaces, Dwindle/Scrolling/Master switching, event-driven notifications, and CPU-reactive
-skull/cat artwork. The original workspace, media, launcher, lock, and wallpaper
+The Hyprland and Waybar payloads track the live desktop: a floating transparent bar,
+wallpaper-derived colors, Dwindle/Scrolling/Master switching, event-driven
+notifications, and CPU-reactive cat artwork. The original workspace, media, launcher, lock, and wallpaper
 shortcuts are preserved. These Lua configs target Hyprland 0.56 or newer.
 
 **Super+L** (or the Waybar layout button) cycles Dwindle → Scrolling → Master.
@@ -305,8 +305,8 @@ Master gives the main window 60% of the width and stacks other windows on the ri
 The selected layout persists. **Super+/** opens the searchable shortcut reference;
 **Super+Shift+R** validates and reloads the compositor configuration.
 
-The desktop uses subtle opening animations, quicker closing/fades, a 34px translucent
-Waybar with occupied/current workspaces, and a compact 400px Rofi launcher. Wi-Fi
+The desktop uses subtle opening animations, quicker closing/fades, a 32px transparent
+Waybar with dot workspaces and centered media, and a compact 400px Rofi launcher. Wi-Fi
 and Bluetooth icons reflect live connection status. Window controls include
 **Super+F** for fullscreen, **Super+Shift+Space** for floating,
 **Super+Shift+Arrows** to move, and **Super+Ctrl+Arrows** to resize.
@@ -330,6 +330,18 @@ Kairo Shell takes precedence over Waybar when both are selected. Its startup
 command lives in an installer-generated `hypr/config/bar.lua`, avoiding edits to
 the daemon list. Installing only Waybar expects the matching Hyprland/Rofi scripts
 to already be present for its click actions.
+
+Waybar's text, accents, workspace highlights, and hover colors follow the selected
+wallpaper. Both static pickers, the live-wallpaper picker, and login startup call
+`waybar/scripts/wallpaper-colors.py`; no polling daemon is used. Static images are
+sampled with Python Pillow; video wallpapers use one FFmpeg frame. A crop of the
+wallpaper's top strip guides contrast. The stylesheet imports `colors.css`, which
+is replaced atomically and Waybar reloads only when the palette changes.
+
+The installer includes Pillow, FFmpeg, and JetBrains Mono with Waybar. It samples
+an existing wallpaper into a staged payload with `--no-reload`, preserving the
+running session. A bundled palette for `snow-pine-forest.png` keeps fresh installs
+usable even when sampling dependencies or a readable wallpaper are unavailable.
 
 SwayNC is also a default module (`--only swaync` for a scoped install). It deploys
 `config.json` and `style.css` individually, preserving other files in the SwayNC

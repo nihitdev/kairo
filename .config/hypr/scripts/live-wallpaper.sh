@@ -43,4 +43,8 @@ pkill -u "$(id -u)" -x mpvpaper 2>/dev/null || true
 pkill -u "$(id -u)" -x hyprpaper 2>/dev/null || true
 mpvpaper -f -p -o "no-audio loop-file=inf hwdec=auto-safe" ALL "$VIDEO"
 ln -sfn -- "$VIDEO" "$CURRENT"
+palette="${XDG_CONFIG_HOME:-$HOME/.config}/waybar/scripts/wallpaper-colors.py"
+if [[ -f "$palette" ]]; then
+    python3 "$palette" "$VIDEO" || true
+fi
 notify-send "Live wallpaper activated" "$(basename "$VIDEO")"

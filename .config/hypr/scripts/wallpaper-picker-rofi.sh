@@ -84,3 +84,9 @@ ln -sfn -- "$wall" "$CURRENT"
 
 mkdir -p "$(dirname "$CACHE")"
 printf '%s\n' "$wall" > "$CACHE"
+
+# Theme the bar after the wallpaper and persistent state are updated.
+palette="${XDG_CONFIG_HOME:-$HOME/.config}/waybar/scripts/wallpaper-colors.py"
+if [[ -f "$palette" ]]; then
+    python3 "$palette" "$wall" || true
+fi

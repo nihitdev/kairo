@@ -67,7 +67,7 @@ declare -a hypr_packages=(
     ttf-iosevka-nerd ttf-jetbrains-mono-nerd
 )
 declare -a waybar_packages=(
-    waybar python jq swaync kitty wireplumber brightnessctl playerctl
+    waybar python python-pillow ffmpeg jq swaync kitty wireplumber brightnessctl playerctl ttf-jetbrains-mono
     networkmanager bluez bluez-utils bluetui pulsemixer btop cava calcurse yazi rofi libnotify fontconfig ttf-iosevka-nerd
 )
 
@@ -1005,6 +1005,8 @@ preflight_desktop() {
     if is_selected waybar && ! is_selected kairo-shell; then
         [[ -f $source_config_root/waybar/config.jsonc &&
            -f $source_config_root/waybar/style.css &&
+           -f $source_config_root/waybar/colors.css &&
+           -x $source_config_root/waybar/scripts/wallpaper-colors.py &&
            -f $source_config_root/waybar/scripts/fonts/Waycat.ttf &&
            -f $source_config_root/waybar/scripts/fonts/Skulltype.ttf ]] || return 1
         assert_safe_destination "$kairo_shell_data/fonts/archnemesis"
@@ -1098,6 +1100,8 @@ install_hypr_desktop() {
         command=${command//\\/\\\\}
         command=${command//\"/\\\"}
         printf 'return "%s"\n' "$command" > "$temp_hypr/config/bar.lua"
+        # The palette helper belongs to Waybar, which is not deployed with Kairo Shell.
+        sed -i '/Restore wallpaper-derived bar colors once per login/d; /hl.exec_cmd.*waybar\/scripts\/wallpaper-colors.py/d' "$temp_hypr/config/autostart.lua"
         # The current live config starts Waybar directly; replace only that entry.
         sed -i '/^[[:space:]]*"waybar",[[:space:]]*$/d' "$temp_hypr/config/autostart.lua"
         sed -i '/    -- Session daemons\./i\    hl.exec_cmd(require("config.bar"))\n' "$temp_hypr/config/autostart.lua"
@@ -1128,7 +1132,24 @@ install_kitty() {
 install_waybar() {
     is_selected waybar || return 0
     is_selected kairo-shell && return 0
-    install_item waybar "$source_config_root/waybar" "$config_root/waybar"
+    local payload="$source_config_root/waybar" wallpaper=''
+    if ! $dry_run && command -v python3 >/dev/null 2>&1 && python3 -c 'import PIL' >/dev/null 2>&1; then
+        if [[ -f $config_root/hypr/current-live-wallpaper ]]; then
+            wallpaper="$config_root/hypr/current-live-wallpaper"
+        elif [[ -f $config_root/hypr/current-wallpaper ]]; then
+            wallpaper="$config_root/hypr/current-wallpaper"
+        fi
+        if [[ -n $wallpaper ]]; then
+            ensure_external_root
+            payload="$external_root/waybar"
+            cp -a -- "$source_config_root/waybar" "$payload"
+            if ! python3 "$payload/scripts/wallpaper-colors.py" "$wallpaper" \
+                --output "$payload/colors.css" --no-reload >/dev/null 2>&1; then
+                warnings+=('Could not sample the current wallpaper; using the bundled Waybar palette')
+            fi
+        fi
+    fi
+    install_item waybar "$payload" "$config_root/waybar"
     install_item waybar "$source_config_root/waybar/scripts/fonts" "$kairo_shell_data/fonts/archnemesis"
     if ! is_selected hypr; then
         warnings+=('Waybar actions expect the matching Hyprland scripts and custom Rofi setup; use --only hypr for the complete desktop')

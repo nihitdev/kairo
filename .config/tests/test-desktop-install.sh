@@ -36,6 +36,11 @@ done
 cmp "$repo_root/.config/swaync/config.json" "$target/.config/swaync/config.json"
 cmp "$repo_root/.config/swaync/style.css" "$target/.config/swaync/style.css"
 cmp "$repo_root/.config/waybar/config.jsonc" "$target/.config/waybar/config.jsonc"
+[[ -r $target/.config/waybar/colors.css && -x $target/.config/waybar/scripts/wallpaper-colors.py ]] || fail 'adaptive Waybar palette payload missing'
+grep -Fq '@import "colors.css";' "$target/.config/waybar/style.css" || fail 'palette stylesheet not imported'
+grep -Fq 'wallpaper-colors.py' "$target/.config/hypr/scripts/wallpaper-picker-rofi.sh" || fail 'Rofi palette hook missing'
+grep -Fq 'wallpaper-colors.py' "$target/.config/quickshell/wallpaper-picker/backend.py" || fail 'carousel palette hook missing'
+
 run_install "$target" --only hypr > "$test_root/repeat"
 ! grep -q 'Replace ' "$test_root/repeat" || fail 'desktop reinstall replaced unchanged files'
 [[ ! -e $target/.dotfiles-backup ]] || fail '--no-backup created backups'

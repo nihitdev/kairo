@@ -72,6 +72,14 @@ def apply(path, output):
     tmp = HISTORY.with_suffix('.tmp')
     tmp.write_text(json.dumps(hist[:100]))
     tmp.replace(HISTORY)
+    # Palette failures must not undo a successfully applied wallpaper.
+    palette = CONFIG/'waybar/scripts/wallpaper-colors.py'
+    if palette.is_file():
+        try:
+            subprocess.run([sys.executable, str(palette), str(p)],
+                           stdout=subprocess.DEVNULL, timeout=20, check=False)
+        except (OSError, subprocess.TimeoutExpired) as error:
+            print(f'Waybar palette: {error}', file=sys.stderr)
     print(json.dumps({'ok':True, 'history':hist[:100]}))
 if __name__ == '__main__':
     try:
