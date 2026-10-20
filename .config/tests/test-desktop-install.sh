@@ -91,6 +91,13 @@ run_install "$target" --only hypr > "$test_root/fresh-install"
 [[ $(readlink "$target/.config/hypr/current-wallpaper") == "$target/Pictures/Wallpapers/snow-pine-forest.png" ]] || fail 'fresh default is not snow-pine-forest'
 cmp "$repo_root/.local/share/wallpapers/archnemesis/snow-pine-forest.png" "$target/Pictures/Wallpapers/snow-pine-forest.png"
 [[ ! -d $target/Pictures/CozyPixels/.git ]] || fail 'full CozyPixels checkout installed'
+[[ $(find "$target/Pictures/Wallpapers" -mindepth 1 -maxdepth 1 -type f | wc -l) == 22 ]] || fail 'expected exactly 22 wallpaper images'
+[[ -z $(find "$target/Pictures/Wallpapers" -mindepth 1 -type d -print -quit) ]] || fail 'wallpaper subdirectories installed'
+[[ -f $target/Pictures/Wallpapers/snow-desert-sunset.jpg && -f $target/Pictures/Wallpapers/snow-mountain-range.jpg ]] || fail 'downloaded JPG wallpapers missing'
+[[ -z $(find "$target/Pictures/Wallpapers" -type f ! -iname '*.png' ! -iname '*.jpg' ! -iname '*.jpeg' ! -iname '*.webp' -print -quit) ]] || fail 'non-image files installed with wallpapers'
+while IFS= read -r -d '' image; do
+    cmp "$image" "$target/Pictures/Wallpapers/${image##*/}" || fail 'installed wallpaper differs from bundled image'
+done < <(find "$repo_root/.local/share/wallpapers/archnemesis" -maxdepth 1 -type f -print0)
 
 # Optional wallpaper installs are offline, preserve personal files, and roll back.
 cat > "$test_root/mock-bin/git" <<'MOCK'
@@ -120,7 +127,7 @@ for scenario in success copy-failure rollback; do
         run_install "$target" "${args[@]}" > "$test_root/wallpapers-$scenario.log" 2>&1; then
         [[ $scenario == success ]] || fail "$scenario unexpectedly succeeded"
         [[ -f $target/Pictures/Wallpapers/snow-pine-forest.png ]] || fail 'curated default missing'
-        [[ -f "$target/Pictures/Wallpapers/CozyPixels/Catppuccin/Space & Cosmic/astronaut.png" ]] || fail 'curated cosmic images missing'
+        [[ -f "$target/Pictures/Wallpapers/astronaut.png" ]] || fail 'curated cosmic images missing'
         # Existing same-name images are left untouched, including on repeat install.
         printf 'personal replacement\n' > "$target/Pictures/Wallpapers/snow-pine-forest.png"
         PATH="$test_root/mock-bin:$PATH" run_install "$target" "${args[@]}" > "$test_root/wallpapers-repeat.log"
@@ -137,7 +144,7 @@ done
 # Reject an escaping wallpaper subdirectory before replacing any configs.
 target="$test_root/wallpapers-escape"
 mkdir -p "$target/Pictures/Wallpapers" "$test_root/wallpaper-outside"
-ln -s "$test_root/wallpaper-outside" "$target/Pictures/Wallpapers/CozyPixels"
+ln -s "$test_root/wallpaper-outside/external.png" "$target/Pictures/Wallpapers/snow-pine-forest.png"
 if run_install "$target" --only kitty --install-wallpapers > "$test_root/wallpapers-escape.log" 2>&1; then
     fail 'wallpaper destination escape accepted'
 fi

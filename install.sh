@@ -955,7 +955,7 @@ preflight_desktop() {
         assert_safe_destination "$HOME/Pictures/Wallpapers"
         while IFS= read -r -d '' file; do
             assert_safe_destination "$HOME/Pictures/Wallpapers/${file#"$wallpaper_source"/}"
-        done < <(find "$wallpaper_source" -type f -print0)
+        done < <(find "$wallpaper_source" -maxdepth 1 -type f -print0)
     fi
     for module in hypr waybar; do
         is_selected "$module" || continue
@@ -1026,7 +1026,7 @@ install_curated_wallpapers() {
     while IFS= read -r -d '' file; do
         destination="$HOME/Pictures/Wallpapers/${file#"$source"/}"
         install_seed_item "$component" "$file" "$destination"
-    done < <(find "$source" -type f -print0 | sort -z)
+    done < <(find "$source" -maxdepth 1 -type f -print0 | sort -z)
 }
 
 install_hypr_desktop() {
