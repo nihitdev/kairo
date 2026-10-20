@@ -91,7 +91,10 @@ run_install "$target" --only hypr > "$test_root/fresh-install"
 [[ $(readlink "$target/.config/hypr/current-wallpaper") == "$target/Pictures/Wallpapers/snow-pine-forest.png" ]] || fail 'fresh default is not snow-pine-forest'
 cmp "$repo_root/.local/share/wallpapers/archnemesis/snow-pine-forest.png" "$target/Pictures/Wallpapers/snow-pine-forest.png"
 [[ ! -d $target/Pictures/CozyPixels/.git ]] || fail 'full CozyPixels checkout installed'
-[[ $(find "$target/Pictures/Wallpapers" -mindepth 1 -maxdepth 1 -type f | wc -l) == 22 ]] || fail 'expected exactly 22 wallpaper images'
+[[ $(find "$target/Pictures/Wallpapers" -mindepth 1 -maxdepth 1 -type f | wc -l) == 25 ]] || fail 'expected exactly 25 wallpaper images'
+for added_image in Clouds.jpg Girl-Shooter.png Mahoraga.jpg; do
+    [[ -f $target/Pictures/Wallpapers/$added_image ]] || fail "additional wallpaper missing: $added_image"
+done
 [[ -z $(find "$target/Pictures/Wallpapers" -mindepth 1 -type d -print -quit) ]] || fail 'wallpaper subdirectories installed'
 [[ -f $target/Pictures/Wallpapers/snow-desert-sunset.jpg && -f $target/Pictures/Wallpapers/snow-mountain-range.jpg ]] || fail 'downloaded JPG wallpapers missing'
 [[ -z $(find "$target/Pictures/Wallpapers" -type f ! -iname '*.png' ! -iname '*.jpg' ! -iname '*.jpeg' ! -iname '*.webp' -print -quit) ]] || fail 'non-image files installed with wallpapers'
