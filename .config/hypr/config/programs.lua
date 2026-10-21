@@ -3,19 +3,15 @@
 -- ╰──────────────────────────────────────────────╯
 
 local HOME = os.getenv("HOME")
-local launcher = HOME .. "/.local/bin/kitty-smooth"
-local function quote(value)
-    return "'" .. value:gsub("'", "'\\''") .. "'"
-end
--- Keep shortcuts working when the optional launcher has not been installed.
-local available = os.execute("test -x " .. quote(launcher))
-local TERMINAL = (available == true or available == 0) and quote(launcher) or "kitty"
+-- Check at launch time: Hyprland can reap os.execute() children before Lua waits.
+-- The wrapper selects the patched Kitty; stock Kitty remains the fallback.
+local TERMINAL = [[sh -c 'if [ -x "$HOME/.local/bin/kitty-smooth" ]; then exec "$HOME/.local/bin/kitty-smooth" "$@"; else exec kitty "$@"; fi' kitty-smooth]]
 
 P = {
-    terminal    = TERMINAL,
-    browser     = "helium-browser",
-    fileManager = "dolphin",
-    launcher    = "\"" .. os.getenv("HOME") .. "/.config/rofi/launchers/launcher.sh\"",
-    editor      = TERMINAL .. " nvim",
-    videoEditor = "kdenlive",
+	terminal = TERMINAL,
+	browser = "helium-browser",
+	fileManager = "/home/nihitdev/.local/share/bin/bubble",
+	launcher = '"' .. os.getenv("HOME") .. '/.config/rofi/launchers/launcher.sh"',
+	editor = TERMINAL .. " nvim",
+	videoEditor = "kdenlive",
 }

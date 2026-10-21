@@ -33,6 +33,7 @@ ShellRoot {
         setter.command = ["python3",backend,"apply",p.path,output];
         message = "Applying " + p.name + "…";
         setter.running = true;
+        panel.visible = false;
     }
     IpcHandler {
         target: "picker"
@@ -61,9 +62,9 @@ ShellRoot {
         id: setter
         property string selectedPath: ""
         stdout: StdioCollector { onStreamFinished: {
-            try { let data=JSON.parse(text); if(data.error) root.message=data.error;
+            try { let data=JSON.parse(text); if(data.error) { root.message=data.error; panel.visible=true; }
                 else if (data.ok) {root.current=setter.selectedPath;root.history=data.history;Qt.quit();}
-            } catch(e) {root.message="Wallpaper application failed";}
+            } catch(e) {root.message="Wallpaper application failed";panel.visible=true;}
         } }
     }
     PanelWindow {

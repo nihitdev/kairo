@@ -32,11 +32,11 @@ set -gx LESS "-R -F -X"
 
 # ── Starship ───────────────────────────────────────────────────────────────────
 
-set -gx STARSHIP_CONFIG "$HOME/.config/starship/fish.toml"
+set -gx STARSHIP_CONFIG "$XDG_CONFIG_HOME/starship/fish.toml"
 
 # Fall back to the existing Zsh Starship config if Fish does not have its own.
 if not test -f "$STARSHIP_CONFIG"
-    set -gx STARSHIP_CONFIG "$HOME/.config/starship/zsh.toml"
+    set -gx STARSHIP_CONFIG "$XDG_CONFIG_HOME/starship/zsh.toml"
 end
 
 # ── FZF ────────────────────────────────────────────────────────────────────────

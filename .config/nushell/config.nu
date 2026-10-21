@@ -14,7 +14,6 @@ const ZOXIDE_CACHE = $"($nu.config-path | path dirname)/dotfiles-init/zoxide.nu"
 const XDG_CONFIG_ROOT = ($nu.default-config-dir | path dirname)
 const STARSHIP_CONFIG = $"($XDG_CONFIG_ROOT)/starship/nushell.toml"
 const FASTFETCH_CONFIG = $"($XDG_CONFIG_ROOT)/fastfetch/config.jsonc"
-const FASTFETCH_LOGO = $"($XDG_CONFIG_ROOT)/fastfetch/ascii.txt"
 
 $env.EDITOR = "nvim"
 $env.VISUAL = "nvim"
@@ -101,7 +100,7 @@ source $ZOXIDE_CACHE
 if $nu.is-interactive {
     if (has-command fastfetch) {
         if ($FASTFETCH_CONFIG | path exists) {
-            ^fastfetch --config $FASTFETCH_CONFIG --file $FASTFETCH_LOGO
+            ^fastfetch --config $FASTFETCH_CONFIG
         } else {
             ^fastfetch
         }
@@ -368,7 +367,7 @@ def --wrapped ff [...args] {
     if ($args | is-not-empty) {
         ^fastfetch ...$args
     } else if ($FASTFETCH_CONFIG | path exists) {
-        ^fastfetch --config $FASTFETCH_CONFIG --file $FASTFETCH_LOGO
+        ^fastfetch --config $FASTFETCH_CONFIG
     } else {
         ^fastfetch
     }
@@ -383,3 +382,6 @@ def --wrapped ff [...args] {
 # Prompt appearance and the beloved λ are configured in:
 #
 # ~/.config/starship/nushell.toml
+
+# Shared Prism terminal palette.
+source ($nu.config-path | path dirname | path dirname | path join "prism/init.nu")

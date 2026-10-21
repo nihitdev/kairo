@@ -20,17 +20,16 @@ Up/Down searches matching history, and Ctrl+Space accepts autosuggestions.
 FZF supplies its own history/file/directory bindings when available.
 
 Oh My Zsh supplies the base plugin set. External plugins provide fzf-tab,
-autosuggestions, history substring search, autopair, and
+autosuggestions, history substring search, autopair, alias suggestions, and
 Forgit. Forgit keeps `FORGIT_NO_ALIASES=1`, preserving ARCHNEMESIS Git shortcuts.
 Syntax highlighting is sourced last, after all integrations and widgets.
 
-Editor settings respect existing choices, with an installed-editor fallback.
-`starship/zsh.toml` shows command duration at the right edge of the input line;
-Fastfetch is available through aliases only.
+All editor environment variables use Neovim. The prompt remains the existing
+`starship/zsh.toml`; Fastfetch is available through aliases only.
 
 ## Useful extras
 
-- `vf` — fuzzy-find a file and open it with your configured editor
+- `vf` — fuzzy-find a file and open it in Neovim
 - `cdf` — fuzzy-find a directory and enter it
 - `y` — Yazi with cwd handoff
 - `mkcd DIR` — create and enter a directory

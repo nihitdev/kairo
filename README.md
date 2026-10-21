@@ -143,7 +143,8 @@ Workspaces, layout indicator, skull/cat artwork, hardware controls, notification
 
 **Super + Alt + Space** opens the standalone Quickshell wallpaper carousel with
 slanted previews, local search, colour filters, history, and monitor selection.
-Use the arrow keys or scroll to browse, then Enter to apply. The picker closes
+Static wallpapers use awww transitions; video wallpapers use mpvpaper. Use the
+arrow keys or scroll to browse, then Enter to apply. The picker closes
 automatically after a successful selection; Escape closes without applying.
 The screenshot above shows the original Rofi gallery, still available with
 `~/.config/hypr/scripts/wallpaper-picker.sh --rofi`.
@@ -381,12 +382,15 @@ Use **Super+Alt+Space** to choose one. **Super+Ctrl+Space** opens the separate
 live-wallpaper picker for videos in
 `~/Pictures/CozyPixels/Live Wallpapers/Wallpapers`. Hyprland restores the selected
 wallpaper backend at startup; `--install-packages` includes Quickshell, Qt Quick,
-Python Pillow, FFmpeg, and the AUR package `mpvpaper`.
+`awww`, Python Pillow, and FFmpeg. Video wallpapers use the AUR package
+`mpvpaper`; the optional Rofi fallback uses Hyprpaper. The installer also deploys
+the awww transition settings read by the carousel.
 Pass `--install-wallpapers` to install the curated collection with other modules,
 without selecting Hyprland. Wallpaper copies participate in transactional rollback.
-The picker updates Hyprpaper's persistent selection. Locking falls back to a solid
-background when no image is available. Desktop launchers use the standard
-`~/.config` layout; use that location for the complete desktop installation.
+The picker saves the selected wallpaper for login restore and lock-screen use.
+Locking falls back to a solid background when no image is available. Desktop
+launchers use the standard `~/.config` layout; use that location for the complete
+desktop installation.
 
 Desktop source syntax and destinations are checked before package installation or
 configuration replacement. The installer does not restart the compositor, bar,

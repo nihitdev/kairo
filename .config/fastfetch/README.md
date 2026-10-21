@@ -1,7 +1,7 @@
 # Fastfetch
 
-System-information layout, colors, modules, and ARCHNEMESIS ASCII artwork.
+An Arch-blue logo with detected system information and lavender hardware labels.
 
-Copy this directory to `${XDG_CONFIG_HOME:-~/.config}/fastfetch` or use `install.sh --only fastfetch`. Preview it with `fastfetch --config <config-path>`.
+The shared `config.jsonc` selects Fastfetch's built-in Arch logo, so no absolute logo path is needed. Nushell startup and its `ff` helper use this configuration without overriding the logo.
 
-The logo is embedded in `config.jsonc` so it works with any home directory or XDG config root. `archnemesis.txt` holds the same artwork for standalone use; update both when changing the logo. Host information is detected automatically.
+Run `fastfetch` to preview, or `ff` in Nushell. The older custom artwork is retained in `ascii.txt` and `archnemesis.txt` for optional use.

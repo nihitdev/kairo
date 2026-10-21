@@ -60,7 +60,7 @@ declare -a kairo_shell_packages=(
 
 # Packages used by the shipped desktop scripts, not unrelated application bundles.
 declare -a hypr_packages=(
-    hyprland hyprpaper hypridle hyprlock swaync network-manager-applet
+    hyprland hyprpaper hypridle hyprlock awww swaync network-manager-applet
     kitty rofi cliphist wl-clipboard jq libnotify brightnessctl playerctl
     wireplumber xdg-desktop-portal-hyprland qt5-wayland qt6-wayland qt6ct kvantum
     grim slurp procps-ng util-linux ffmpeg quickshell qt6-declarative python-pillow
@@ -972,12 +972,15 @@ preflight_desktop() {
         done < <(find "$source_config_root/$module" -type f \( -name '*.sh' -o -name '*.lua' \) -print0)
     done
     if is_selected hypr; then
-        for module in hyprlock rofi quickshell/wallpaper-picker; do
+        for module in hyprlock rofi quickshell/wallpaper-picker awww; do
             [[ -d $source_config_root/$module ]] || {
                 printf 'Missing desktop payload: %s\n' "$module" >&2; return 1;
             }
             assert_safe_destination "$config_root/$module"
         done
+        [[ -r $source_config_root/awww/archnemesis.toml ]] || {
+            printf 'Missing awww transition config: %s\n' "$source_config_root/awww/archnemesis.toml" >&2; return 1;
+        }
         for file in hyprland.lua hyprpaper.conf config/windows.lua shortcuts.txt \
             scripts/keybinds.sh scripts/reload.sh scripts/toggle-layout.sh; do
             [[ -r $source_config_root/hypr/$file ]] || {
@@ -1061,6 +1064,7 @@ install_hypr_desktop() {
         describe 'Skip Waybar deployment because Kairo Shell is selected'
     fi
     install_item hypr "$source_config_root/quickshell/wallpaper-picker" "$config_root/quickshell/wallpaper-picker"
+    install_item hypr "$source_config_root/awww" "$config_root/awww"
     install_item hypr "$source_config_root/hyprlock" "$config_root/hyprlock"
     # Required by the existing keybinds; preserve a user's custom Rofi setup.
     if ! is_selected rofi; then

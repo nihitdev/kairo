@@ -1,89 +1,138 @@
 {
     "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
     "logo": {
-        "type": "data",
-        "source": "   ╭──────────────────────────────╮\n   │                              │\n   │   A R C H N E M E S I S      │\n   │                              │\n   │        /\\                    │\n   │       /  \\     ARCH LINUX    │\n   │      / /\\ \\                  │\n   │     / ____ \\   HYPRLAND      │\n   │    /_/    \\_\\                │\n   │                              │\n   ╰──────────────────────────────╯\n",
-        "color": {
-            "1": "magenta"
-        },
+        "type": "builtin",
+        "height": 15,
+        "width": 30,
         "padding": {
-            "right": 3
+            "top": 5,
+            "left": 3
         }
-    },
-    "display": {
-        "separator": " "
     },
     "modules": [
         "break",
-        "break",
         {
-            "type": "title",
-            "keyWidth": 10,
-            "color": "#C4A7E7"
-        },
-        "break",
-        {
-            "type": "os",
-            "key": " ",
-            "keyColor": "#c4a7e7",
-            "color": "#e0def4",
-            "format": "Arch (Btw)"
+            "type": "custom",
+            "format": "\u001b[90m┌──────────────────────Hardware──────────────────────┐"
         },
         {
             "type": "host",
-            "key": "🖥 ",
-            "keyColor": "#c4a7e7",
-            "color": "#e0def4"
-        },
-        {
-            "type": "shell",
-            "format": "Pain in my ahh",
-            "key": ">_",
-            "keyColor": "#c4a7e7",
-            "color": "#e0def4"
-        },
-        {
-            "type": "terminal",
-            "key": " ",
-            "keyColor": "#c4a7e7",
-            "color": "#e0def4"
-        },
-        {
-            "type": "wm",
-            "format": "{} (wayland)",
-            "key": " ",
-            "keyColor": "#c4a7e7",
-            "color": "#e0def4"
+            "key": "󰌢  PC",
+            "keyColor": "green"
         },
         {
             "type": "cpu",
-            "key": "󰍛 ",
-            "keyColor": "#c4a7e7",
-            "color": "#e0def4",
-            "format": "Intel i5337u"
+            "key": "│ ├󰻠 ",
+            "keyColor": "green"
         },
         {
             "type": "gpu",
-            "key": "󰢮 ",
-            "keyColor": "#c4a7e7",
-            "color": "#e0def4",
-            "format": "Intel HD 4000"
+            "key": "│ ├󰍹 ",
+            "keyColor": "green"
         },
         {
             "type": "memory",
-            "key": "🎟 ",
-            "keyColor": "#c4a7e7",
-            "color": "#e0def4",
-            "format": "{} {}"
+            "key": "│ ├󰑭 ",
+            "keyColor": "green"
+        },
+        {
+            "type": "disk",
+            "key": "└ └󰋊 ",
+            "keyColor": "green"
+        },
+        {
+            "type": "custom",
+            "format": "\u001b[90m└────────────────────────────────────────────────────┘"
+        },
+        "break",
+        {
+            "type": "custom",
+            "format": "\u001b[90m┌──────────────────────Software──────────────────────┐"
+        },
+        {
+            "type": "os",
+            "key": "  OS",
+            "keyColor": "yellow"
+        },
+        {
+            "type": "kernel",
+            "key": "│ ├󰌽 ",
+            "keyColor": "yellow"
+        },
+        {
+            "type": "bios",
+            "key": "│ ├󰖡 ",
+            "keyColor": "yellow"
+        },
+        {
+            "type": "packages",
+            "key": "│ ├󰏗 ",
+            "keyColor": "yellow"
+        },
+        {
+            "type": "shell",
+            "key": "└ └󰞷 ",
+            "keyColor": "yellow"
+        },
+        "break",
+        {
+            "type": "de",
+            "key": "󰧨  DE",
+            "keyColor": "blue"
+        },
+        {
+            "type": "lm",
+            "key": "│ ├󰍁 ",
+            "keyColor": "blue"
+        },
+        {
+            "type": "wm",
+            "key": "│ ├󱂬 ",
+            "keyColor": "blue"
+        },
+        {
+            "type": "wmtheme",
+            "key": "│ ├󰉦 ",
+            "keyColor": "blue"
+        },
+        {
+            "type": "terminal",
+            "key": "└ └󰆍 ",
+            "keyColor": "blue"
+        },
+        {
+            "type": "custom",
+            "format": "\u001b[90m└────────────────────────────────────────────────────┘"
+        },
+        "break",
+        {
+            "type": "custom",
+            "format": "\u001b[90m┌────────────────────Uptime / Age / DT────────────────────┐"
+        },
+        {
+            "type": "command",
+            "key": "  ›  OS Age  ",
+            "keyColor": "magenta",
+            "text": "sh ~/.config/fastfetch/os-age.sh"
         },
         {
             "type": "uptime",
-            "key": " ",
-            "keyColor": "#c4a7e7",
-            "color": "#e0def4"
+            "key": "  ›  Uptime  ",
+            "keyColor": "magenta"
         },
-        "break",
-        "break",
-        "break"
+        {
+            "type": "datetime",
+            "key": "  ›  DateTime  ",
+            "keyColor": "magenta"
+        },
+        {
+            "type": "custom",
+            "format": "\u001b[90m└─────────────────────────────────────────────────────────┘"
+        },
+        {
+            "type": "colors",
+            "paddingLeft": 2,
+            "symbol": "circle"
+        }
     ]
 }

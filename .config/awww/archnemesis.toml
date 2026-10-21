@@ -1,0 +1,7 @@
+# ARCHNEMESIS // AWWW WALLPAPER ENGINE
+
+[transition]
+type = "random-s"
+duration = 2.0
+fps = 60
+resize = "crop"

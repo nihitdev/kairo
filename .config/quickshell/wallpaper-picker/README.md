@@ -8,9 +8,9 @@ History contains wallpapers applied through this picker. The monitor selector de
 Library: ~/Pictures/Wallpapers (including subfolders)
 Thumbnails and history: ~/.cache/wallpaper-carousel
 
-Uses Quickshell, Python Pillow, ffmpeg, hyprpaper, and mpvpaper.
+Uses Quickshell, Python Pillow, ffmpeg, awww, and mpvpaper. Static images use awww transitions; video wallpapers use mpvpaper. The optional Rofi picker uses hyprpaper.
 Video wallpapers use all monitors. Static images can target one monitor; the existing login restore uses the last static selection globally.
 This standalone adaptation does not include Serpantinum's online image search, desktop menu, shader wallpaper transitions, or automatic theme generation.
-It retains the installed wallpaper backends and login restore links.
+It keeps Hyprland wallpaper links for login restore and lock-screen integration.
 
 Original Rofi picker: ~/.config/hypr/scripts/wallpaper-picker.sh --rofi

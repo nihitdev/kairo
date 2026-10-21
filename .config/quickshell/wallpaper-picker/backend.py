@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import colorsys, hashlib, json, os, subprocess, sys
+import colorsys, hashlib, json, os, subprocess, sys, time, tomllib
 from pathlib import Path
 from PIL import Image
 H = Path.home()
@@ -47,20 +47,44 @@ def apply(path, output):
     if p.suffix.lower() in VIDEO:
         if output != 'all': raise ValueError('Video wallpapers currently apply to all monitors')
         subprocess.run(['pkill','-u',str(os.getuid()),'-x','mpvpaper'], capture_output=True)
-        run('mpvpaper', '-f', '-p', '-o', 'no-audio loop-file=inf hwdec=auto-safe', 'ALL', str(p))
+        subprocess.run(['pkill','-u',str(os.getuid()),'-x','hyprpaper'], capture_output=True)
+        subprocess.run(['awww', 'kill'], capture_output=True)
+        subprocess.Popen(['mpvpaper', '-f', '-p', '-o', 'no-audio loop-file=inf hwdec=auto-safe', 'ALL', str(p)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
         link = CONFIG/'hypr/current-live-wallpaper'
     else:
-        if subprocess.run(['pgrep','-u',str(os.getuid()),'-x','hyprpaper'], capture_output=True).returncode:
-            subprocess.Popen(['hyprpaper'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
-            import time
-            time.sleep(.7)
-        monitors = json.loads(run('hyprctl','-j','monitors'))
+        monitors = json.loads(run('hyprctl', '-j', 'monitors'))
         targets = [m['name'] for m in monitors if output == 'all' or m['name'] == output]
         if not targets: raise ValueError('Monitor is no longer connected')
-        for name in targets:
-            result = run('hyprctl','hyprpaper','wallpaper',f'{name}, {p}, cover')
-            if 'error' in result.lower(): raise RuntimeError(result)
-        subprocess.run(['pkill','-u',str(os.getuid()),'-x','mpvpaper'], capture_output=True)
+
+        if subprocess.run(['awww', 'query'], capture_output=True).returncode:
+            subprocess.Popen(['awww-daemon'], stdout=subprocess.DEVNULL,
+                             stderr=subprocess.DEVNULL, start_new_session=True)
+            for _ in range(30):
+                if subprocess.run(['awww', 'query'], capture_output=True).returncode == 0:
+                    break
+                time.sleep(.1)
+            else:
+                raise RuntimeError('awww daemon failed to start')
+
+        with (CONFIG/'awww/archnemesis.toml').open('rb') as f:
+            opts = tomllib.load(f)['transition']
+        if opts['type'] == 'random-s':
+            import random
+            opts['type'] = random.choice(['wave', 'grow', 'outer'])
+
+        cmd = ['awww', 'img', str(p), '--resize', opts['resize'],
+               '--transition-type', opts['type'],
+               '--transition-duration', str(opts['duration']),
+               '--transition-fps', str(opts['fps'])]
+
+        if output != 'all':
+            cmd += ['--outputs', ','.join(targets)]
+
+        run(*cmd)
+
+        subprocess.run(['pkill', '-u', str(os.getuid()), '-x', 'hyprpaper'], capture_output=True)
+        subprocess.run(['pkill', '-u', str(os.getuid()), '-x', 'mpvpaper'], capture_output=True)
+
         (CONFIG/'hypr/current-live-wallpaper').unlink(missing_ok=True)
         (H/'.cache/current-wallpaper').write_text(str(p)+'\n')
         link = CONFIG/'hypr/current-wallpaper'

@@ -1,4 +1,5 @@
 Super + Return                 Terminal
+Super + F5 / F6                Brightness down / up (5%)
 Super + Space                  App launcher
 Super + B                      Browser
 Super + E                      File manager

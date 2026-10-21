@@ -87,4 +87,3 @@ export FORGIT_NO_ALIASES=1
 _source_first \
   "$ZSH_PLUGIN_DIR/forgit/forgit.plugin.zsh" \
   "$ZSH_SYSTEM_PLUGIN_DIR/forgit/forgit.plugin.zsh"
-

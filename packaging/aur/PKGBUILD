@@ -1,7 +1,7 @@
 # Maintainer: nihitdev
 pkgname=kairo-git
 pkgver=0.1.0.r96.gea6c5ec
-pkgrel=2
+pkgrel=3
 pkgdesc='Safe, interactive Arch workstation installer and curated Wayland dotfiles'
 arch=(any)
 url='https://github.com/nihitdev/kairo'
@@ -23,7 +23,11 @@ optdepends=(
   'waybar: status bar configuration'
   'quickshell: Kairo desktop shell runtime'
   'swaync: notification center configuration'
-  'hyprpaper: Hyprland wallpapers'
+  'hyprpaper: Rofi wallpaper picker and Hyprland wallpaper restore'
+  'awww: static wallpaper transitions in the Quickshell carousel'
+  'mpvpaper: video wallpapers (AUR)'
+  'python-pillow: wallpaper thumbnails and palette generation'
+  'ffmpeg: video thumbnails and wallpaper palette extraction'
   'hypridle: Hyprland idle management'
   'hyprlock: lock screen configuration'
   'cliphist: clipboard history menus'

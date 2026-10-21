@@ -12,14 +12,11 @@ pgrep -u "$(id -u)" -x hyprlock >/dev/null && exit 0
 
 wall=""
 
-# Prefer the cached current wallpaper.
-if [[ -r "$CACHE" ]]; then
+# Keep a stable path so even direct `hyprlock` launches follow wallpaper changes.
+if [[ -f "$CURRENT" ]]; then
+    wall="$CURRENT"
+elif [[ -r "$CACHE" ]]; then
     IFS= read -r wall < "$CACHE" || true
-fi
-
-# Fall back to the persistent symlink.
-if [[ ! -f "$wall" && -f "$CURRENT" ]]; then
-    wall="$(realpath -- "$CURRENT")"
 fi
 
 # Locking must still work without a wallpaper.
@@ -30,7 +27,9 @@ escaped="${wall//\\/\\\\}"
 escaped="${escaped//&/\\&}"
 escaped="${escaped//|/\\|}"
 
-sed "s|__WALLPAPER__|$escaped|g" \
-    "$TEMPLATE" > "$CONFIG"
+temporary="$(mktemp "$CONFIG.XXXXXX")"
+trap 'rm -f -- "$temporary"' EXIT
+sed "s|__WALLPAPER__|$escaped|g" "$TEMPLATE" > "$temporary"
+mv -f -- "$temporary" "$CONFIG"
 
 exec hyprlock --config "$CONFIG"
