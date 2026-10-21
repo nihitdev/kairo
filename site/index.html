@@ -3,200 +3,140 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b0d10">
-  <meta name="description" content="Kairo is a safe, interactive Arch Linux workstation and dotfiles installer.">
-  <meta property="og:title" content="Kairo — Arch, composed.">
-  <meta property="og:description" content="A safe, interactive Arch Linux workstation and dotfiles installer.">
+  <meta name="theme-color" content="#eee9dd">
+  <meta name="description" content="Handwritten Arch Linux dotfiles, a careful workstation installer, and a desktop you can make your own.">
+  <meta property="og:title" content="Kairo — Handwritten for Arch.">
+  <meta property="og:description" content="A personal Arch Linux workstation, built from the dotfiles up and installed on your terms.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://get-kairo.vercel.app/">
-  <meta name="twitter:card" content="summary">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="canonical" href="https://get-kairo.vercel.app/">
-  <title>Kairo — Arch, composed.</title>
+  <title>Kairo — Handwritten for Arch.</title>
   <link rel="stylesheet" href="/src/styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
+  <div class="announcement"><span class="status-dot"></span> ARCH LINUX · PERSONAL DOTFILES · OPEN SOURCE <a href="https://github.com/nihitdev/kairo">Explore the repository <span aria-hidden="true">↗</span></a></div>
   <header class="nav-shell">
     <nav class="nav wrap" aria-label="Primary navigation">
-      <a class="brand" href="#top" aria-label="Kairo home"><span class="brand-mark">K</span><span>Kairo</span></a>
+      <a class="brand" href="#top" aria-label="Kairo home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 36 36"><path d="M8 5h5v11l10-11h7L19 17l12 14h-7L15 20l-2 2v9H8z"/></svg></span><span>KAIRO<span class="brand-period">.</span></span></a>
       <div class="nav-links">
-        <a href="#experience">Experience</a>
-        <a href="#modules">Modules</a>
-        <a href="#safety">Safety</a>
-        <a class="nav-github" href="https://github.com/nihitdev/kairo">GitHub ↗</a>
+        <a href="#story">The idea</a>
+        <a href="#showcase">Desktop</a>
+        <a href="#modules">Dotfiles</a>
+        <a href="#install">Install</a>
+        <a class="nav-source" href="https://github.com/nihitdev/kairo">GitHub <span aria-hidden="true">↗</span></a>
       </div>
+      <a class="nav-cta" href="#install">Get started <span aria-hidden="true">↗</span></a>
     </nav>
   </header>
 
   <main id="main">
     <section class="hero wrap" id="top">
       <div class="hero-copy reveal">
-        <p class="eyebrow"><span class="pulse"></span> Arch Linux · Hyprland · CLI-first</p>
-        <h1>Arch,<br><em>composed.</em></h1>
-        <p class="hero-lede">A focused workstation installer that turns a fresh Arch system into your environment—without treating your home directory like a blank canvas.</p>
+        <p class="eyebrow"><span class="eyebrow-mark">01</span> A HAND-BUILT ARCH WORKSTATION</p>
+        <h1>Your system.<br><em>Your handwriting.</em></h1>
+        <p class="hero-lede">Kairo is a collection of thoughtfully written Arch Linux dotfiles, with a careful installer to bring them to your machine—one piece at a time.</p>
         <div class="hero-actions">
-          <a class="button button-primary" href="#install">Install Kairo</a>
-          <a class="button button-ghost" href="#modules">Explore modules <span>↓</span></a>
+          <a class="button button-dark" href="#install">Build your setup <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="#showcase">See the desktop <span aria-hidden="true">↓</span></a>
         </div>
-        <dl class="hero-facts">
-          <div><dt>%KAIRO_MODULE_COUNT%</dt><dd>dotfile modules</dd></div>
-          <div><dt>8</dt><dd>toolchain profiles</dd></div>
-          <div><dt>0</dt><dd>TUI dependencies</dd></div>
-        </dl>
-      </div>
-
-      <div class="terminal-wrap reveal" aria-label="Kairo installer preview">
-        <div class="terminal-glow"></div>
-        <div class="terminal">
-          <div class="terminal-bar">
-            <div class="terminal-dots" aria-hidden="true"><i></i><i></i><i></i></div>
-            <span>kairo · module selection</span>
-            <span class="terminal-arch">arch</span>
-          </div>
-          <div class="terminal-body">
-            <pre class="wordmark" aria-hidden="true">██╗  ██╗ █████╗ ██╗██████╗  ██████╗
-██║ ██╔╝██╔══██╗██║██╔══██╗██╔═══██╗
-█████╔╝ ███████║██║██████╔╝██║   ██║
-██╔═██╗ ██╔══██║██║██╔══██╗██║   ██║
-██║  ██╗██║  ██║██║██║  ██║╚██████╔╝
-╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝</pre>
-            <div class="terminal-section"><span>◆</span> Choose your modules <b>%KAIRO_DEFAULT_COUNT% selected</b></div>
-            <p class="terminal-label">SHELLS</p>
-            <p class="terminal-row active"><span>›</span><i>●</i> Fish <small>login shell optional</small></p>
-            <p class="terminal-row"><span></span><i>●</i> Nushell</p>
-            <p class="terminal-row"><span></span><i>●</i> Zsh + Starship</p>
-            <p class="terminal-label">DEVELOPMENT</p>
-            <p class="terminal-row"><span></span><i>●</i> Neovim</p>
-            <p class="terminal-row"><span></span><i>●</i> Hyprland <small>selected by default</small></p>
-            <div class="terminal-footer">↑/↓ move &nbsp; Space toggle &nbsp; Enter review</div>
-          </div>
+        <div class="hero-meta">
+          <span><i>⌁</i> Configured by hand</span>
+          <span><i>⌘</i> Choose what lands</span>
+          <span><i>↶</i> Backups built in</span>
         </div>
       </div>
+      <div class="hero-visual reveal">
+        <div class="visual-topline"><span>ARCHNEMESIS / DAILY DRIVER</span><span>01 — 04</span></div>
+        <div class="visual-frame">
+          <img src="/showcase/editor.png" alt="Kairo's Arch Linux desktop running Neovim with the matching Waybar and theme" fetchpriority="high">
+          <div class="visual-stamp"><span>LIVE CAPTURE</span><b>ARCH<br>COMPOSED</b><i>HYPRLAND · NEOVIM</i></div>
+        </div>
+        <div class="visual-caption"><span>One machine, made personal.</span><span>Captured on Arch Linux <b>↗</b></span></div>
+        <div class="orbit-note" aria-hidden="true"><span>𐂂</span><small>CONFIG<br>IS CRAFT</small></div>
+      </div>
+      <div class="hero-index" aria-hidden="true">K / 01</div>
     </section>
 
     <section class="install-band" id="install">
       <div class="wrap install-grid">
-        <div>
-          <p class="eyebrow">One command</p>
-          <h2>Start with a preview.</h2>
-          <p>Curl and Wget clone Kairo to ~/kairo, request sudo, and open the full installer. Existing local work is never overwritten.</p>
+        <div class="install-intro reveal">
+          <p class="eyebrow"><span class="eyebrow-mark">START HERE</span></p>
+          <h2>Take a look<br>before you <em>install.</em></h2>
+          <p>Preview the exact changes first. Pick only the dotfiles and packages you want; Kairo shows what it will touch before it begins.</p>
         </div>
-        <div class="command-card">
+        <div class="command-card reveal">
+          <div class="command-head"><div><span class="terminal-lights"><i></i><i></i><i></i></span><span>kairo · installer</span></div><span>ARCH LINUX</span></div>
           <div class="command-tabs" role="tablist" aria-label="Install methods">
-            <button class="command-tab active" role="tab" aria-selected="true" data-command="curl">Curl</button>
-            <button class="command-tab" role="tab" aria-selected="false" data-command="wget">Wget</button>
+            <button class="command-tab active" role="tab" aria-selected="true" data-command="curl">Quick start</button>
             <button class="command-tab" role="tab" aria-selected="false" data-command="clone">Clone</button>
-            <button class="command-tab" role="tab" aria-selected="false" data-command="dry">Dry run</button>
+            <button class="command-tab" role="tab" aria-selected="false" data-command="dry">Preview</button>
           </div>
-          <div class="command-line">
-            <code id="install-command">curl -fsSL https://raw.githubusercontent.com/nihitdev/kairo/main/install.sh | bash</code>
-            <button class="copy-button" type="button" data-copy="#install-command" aria-label="Copy install command">Copy</button>
-          </div>
+          <div class="command-line"><span class="prompt-mark">$</span><code id="install-command">curl -fsSL https://raw.githubusercontent.com/nihitdev/kairo/main/install.sh | bash</code><button class="copy-button" type="button" data-copy="#install-command" aria-label="Copy install command">Copy</button></div>
           <p class="copy-status" role="status" aria-live="polite"></p>
+          <div class="command-note"><span>01 / Fetch</span><span>02 / Review</span><span>03 / Make it yours</span></div>
         </div>
       </div>
     </section>
 
-    <section class="section wrap" id="experience">
-      <div class="section-heading reveal">
-        <p class="eyebrow">Designed for confidence</p>
-        <h2>A guided install.<br>Not a blind script.</h2>
-        <p>Kairo discovers the machine, lets you choose the surface area, and shows the consequences before it writes.</p>
+    <section class="story section wrap" id="story">
+      <div class="story-aside reveal"><p class="eyebrow"><span class="eyebrow-mark">02</span> WHY KAIRO EXISTS</p><span class="story-glyph" aria-hidden="true">⌁</span><p class="side-note">THE MACHINE<br>IS YOURS TO SHAPE.</p></div>
+      <div class="story-main reveal">
+        <h2>Dotfiles should feel<br>like <em>someone made them.</em></h2>
+        <p class="story-lede">Not a pile of copied configs. Not a black box that takes over your home folder. Kairo is a hand-built Arch setup: each config has a point of view, and every install stays in your hands.</p>
+        <div class="principles">
+          <article><span>01 / MAKE</span><h3>Written with intention.</h3><p>Shells, editor, terminal and desktop settings are maintained as real configurations—not generated from a template.</p></article>
+          <article><span>02 / CHOOSE</span><h3>Take the parts you like.</h3><p>Install one module, a full desktop, or a toolchain. Your choices are separate and easy to review.</p></article>
+          <article><span>03 / KEEP</span><h3>Your machine stays yours.</h3><p>Backups, staged installs and rollback protect the setup you already have.</p></article>
+        </div>
       </div>
-      <ol class="flow-grid reveal">
-        <li><span>01</span><h3>Detect</h3><p>Arch, architecture, shell, session, package tools, and systemd.</p></li>
-        <li><span>02</span><h3>Choose</h3><p>Dotfiles and toolchain profiles selected independently.</p></li>
-        <li><span>03</span><h3>Review</h3><p>Missing packages, replacements, trust changes, and backup status.</p></li>
-        <li><span>04</span><h3>Apply</h3><p>Packages, staged configs, shell integration, caches, and validation.</p></li>
-      </ol>
     </section>
 
-    <section class="section modules-section" id="modules">
+    <section class="showcase-section" id="showcase">
+      <div class="wrap showcase-wrap">
+        <div class="section-head reveal"><div><p class="eyebrow"><span class="eyebrow-mark">03</span> THE DESKTOP IN USE</p><h2>Small details.<br><em>One point of view.</em></h2></div><p>Built around a calm dark palette, compact controls and a desktop that stays out of your way.</p></div>
+        <div class="gallery-grid">
+          <a class="gallery-card gallery-main reveal" href="/showcase/desktop.png" target="_blank" rel="noreferrer"><div class="gallery-image"><img src="/showcase/desktop.png" alt="Kairo desktop wallpaper and compact Waybar" loading="lazy"><span class="gallery-open">↗</span></div><div class="gallery-label"><span>01 / THE DESKTOP</span><b>Arch, at rest.</b></div></a>
+          <a class="gallery-card gallery-wallpaper reveal" href="/showcase/wallpapers.png" target="_blank" rel="noreferrer"><div class="gallery-image"><img src="/showcase/wallpapers.png" alt="Wallpaper picker with a grid of cosmic wallpapers" loading="lazy"><span class="gallery-open">↗</span></div><div class="gallery-label"><span>02 / WALLPAPER PICKER</span><b>Find the right atmosphere.</b></div></a>
+          <a class="gallery-card gallery-lock reveal" href="/showcase/lockscreen.png" target="_blank" rel="noreferrer"><div class="gallery-image"><img src="/showcase/lockscreen.png" alt="Kairo Hyprlock screen, reading time against a soft blurred wallpaper" loading="lazy"><span class="gallery-open">↗</span></div><div class="gallery-label"><span>03 / LOCK SCREEN</span><b>A quieter way back in.</b></div></a>
+        </div>
+        <p class="gallery-footnote"><span>CAPTURES FROM A REAL KAIRO SYSTEM</span><a href="https://github.com/nihitdev/kairo/tree/main/screenshots">More in the repository ↗</a></p>
+      </div>
+    </section>
+
+    <section class="modules-section section" id="modules">
       <div class="wrap">
-        <div class="section-heading reveal">
-          <p class="eyebrow">Make it yours</p>
-          <h2>Small modules.<br>Useful combinations.</h2>
-          <p>Install one config, a complete workstation, or anything between.</p>
-        </div>
-        <div class="filter-row reveal" role="group" aria-label="Filter modules">
-          <button class="filter active" data-filter="all">Everything</button>
-          <button class="filter" data-filter="shell">Shells</button>
-          <button class="filter" data-filter="cli">CLI</button>
-          <button class="filter" data-filter="development">Development</button>
-          <button class="filter" data-filter="desktop">Desktop</button>
-        </div>
+        <div class="section-head reveal"><div><p class="eyebrow"><span class="eyebrow-mark">04</span> YOUR CONFIG, PIECE BY PIECE</p><h2>Pick a starting<br><em>point.</em></h2></div><p>Handwritten configs for the tools you use, with room to keep your own choices. Use a module by itself or combine a few.</p></div>
+        <div class="module-toolbar reveal"><div class="filter-row" role="group" aria-label="Filter modules"><button class="filter active" data-filter="all">Everything</button><button class="filter" data-filter="shell">Shells</button><button class="filter" data-filter="cli">CLI</button><button class="filter" data-filter="development">Development</button><button class="filter" data-filter="desktop">Desktop</button></div><span><b>%KAIRO_MODULE_COUNT%</b> CONFIG MODULES</span></div>
         <div class="module-grid reveal" id="module-grid">
-          <article data-category="shell"><span>01</span><h3>Fish</h3><p>Fish configuration, Starship, Atuin, and modern navigation.</p></article>
-          <article data-category="shell"><span>02</span><h3>Nushell</h3><p>Structured pipelines with generated Starship and Zoxide caches.</p></article>
-          <article data-category="shell"><span>03</span><h3>Zsh</h3><p>Oh My Zsh with Arch-packaged plugins and a dedicated prompt.</p></article>
-          <article data-category="shell"><span>04</span><h3>Bash</h3><p>A compact interactive baseline—nothing sprawling or magical.</p></article>
-          <article data-category="cli"><span>05</span><h3>Starship</h3><p>One binary, four carefully separated shell configurations.</p></article>
-          <article data-category="cli"><span>06</span><h3>Yazi</h3><p>Catppuccin file management, previews, Git state, and plugins.</p></article>
-          <article data-category="cli"><span>07</span><h3>Bat + Broot</h3><p>Readable files and fast tree navigation with shared theming.</p></article>
-          <article data-category="development"><span>08</span><h3>Neovim</h3><p>LazyVim, pinned plugins, and a focused development surface.</p></article>
-          <article data-category="development"><span>09</span><h3>Git + LazyGit</h3><p>Managed includes preserve identity while Delta sharpens diffs.</p></article>
-          <article data-category="desktop"><span>10</span><h3>Hyprland</h3><p>A Wayland desktop module selected by default, with replacement review.</p></article>
-          <article data-category="desktop"><span>11</span><h3>Kitty</h3><p>Fast terminal rendering, tabs, themes, and Fish-first workflow.</p></article>
-          <article data-category="cli"><span>12</span><h3>Fastfetch + Cava</h3><p>Arch system identity and a responsive terminal visualizer.</p></article>
+          <article data-category="shell"><span>SH / 01</span><h3>Fish</h3><p>Fast navigation, helpful functions, native completions and a shared palette.</p><b class="module-arrow">↗</b></article>
+          <article data-category="shell"><span>SH / 02</span><h3>Nushell</h3><p>Structured pipelines, useful commands and a generated startup cache.</p><b class="module-arrow">↗</b></article>
+          <article data-category="shell"><span>SH / 03</span><h3>Zsh + Bash</h3><p>Two familiar shells, tuned with the same prompt and terminal colors.</p><b class="module-arrow">↗</b></article>
+          <article data-category="shell"><span>SH / 04</span><h3>Prism</h3><p>One command to switch shared terminal palettes across shells, Kitty and tools.</p><b class="module-arrow">↗</b></article>
+          <article data-category="cli"><span>CL / 05</span><h3>Starship + Atuin</h3><p>A focused prompt and searchable shell history, configured per shell.</p><b class="module-arrow">↗</b></article>
+          <article data-category="cli"><span>CL / 06</span><h3>Yazi + Fastfetch</h3><p>File navigation and a clean system readout with a consistent look.</p><b class="module-arrow">↗</b></article>
+          <article data-category="development"><span>DV / 07</span><h3>Neovim</h3><p>A complete editor setup with a useful dashboard and a considered color scheme.</p><b class="module-arrow">↗</b></article>
+          <article data-category="development"><span>DV / 08</span><h3>Git + LazyGit</h3><p>Handy aliases and a clear workflow, while keeping your identity separate.</p><b class="module-arrow">↗</b></article>
+          <article data-category="desktop"><span>DT / 09</span><h3>Hyprland + Waybar</h3><p>A compact Wayland desktop with a wallpaper-aware bar and useful controls.</p><b class="module-arrow">↗</b></article>
+          <article data-category="desktop"><span>DT / 10</span><h3>Kitty + Rofi</h3><p>A quick terminal, launcher, picker and menus that feel like one setup.</p><b class="module-arrow">↗</b></article>
+          <article data-category="desktop"><span>DT / 11</span><h3>Kairo Shell</h3><p>An optional Quickshell desktop experience, available as its own module.</p><b class="module-arrow">↗</b></article>
+          <article data-category="desktop"><span>DT / 12</span><h3>Wallpapers</h3><p>A small, curated collection with a calm default and a simple picker.</p><b class="module-arrow">↗</b></article>
         </div>
+        <div class="module-footer reveal"><span>THE REPOSITORY IS THE SOURCE OF TRUTH.</span><a href="https://github.com/nihitdev/kairo/tree/main/.config">Browse every config ↗</a></div>
       </div>
     </section>
 
-    <section class="section wrap profiles-section">
-      <div class="profile-intro reveal">
-        <p class="eyebrow">Beyond dotfiles</p>
-        <h2>Toolchains,<br>on your terms.</h2>
-        <p>Profiles are opt-in package bundles. Combine them freely; Kairo installs only what the selected environment is missing.</p>
-        <code>./install.sh --profile rust --profile python</code>
-      </div>
-      <div class="profile-list reveal">
-        <div><b>core-build</b><span>base-devel · Git · curl · wget · archives · ShellCheck</span></div>
-        <div><b>cpp</b><span>GCC · Clang · CMake · Ninja · GDB · LLDB</span></div>
-        <div><b>rust</b><span>Rustup and a clean toolchain starting point</span></div>
-        <div><b>python</b><span>Python · pip · uv</span></div>
-        <div><b>web</b><span>Node.js · npm · pnpm · Bun</span></div>
-        <div><b>containers</b><span>Docker · Compose · Podman · Buildah</span></div>
-        <div><b>wayland</b><span>Portals · clipboard · capture · display controls</span></div>
-        <div><b>media</b><span>PipeWire · FFmpeg · ImageMagick · yt-dlp</span></div>
-      </div>
+    <section class="profiles-section section wrap">
+      <div class="profile-intro reveal"><p class="eyebrow"><span class="eyebrow-mark">05</span> MORE THAN DOTFILES</p><h2>Tools for the<br><em>work ahead.</em></h2><p>Optional toolchain profiles make Kairo useful beyond the desktop. Pick the tools you need; packages already installed are left alone.</p><code>./install.sh --profile rust --profile python</code></div>
+      <div class="profile-list reveal"><div><b>core-build</b><span>Base tools · Git · archives · ShellCheck</span></div><div><b>cpp</b><span>GCC · Clang · CMake · Ninja · GDB</span></div><div><b>rust</b><span>Rustup and a clean toolchain starting point</span></div><div><b>python</b><span>Python · pip · uv</span></div><div><b>web</b><span>Node.js · npm · pnpm · Bun</span></div><div><b>containers</b><span>Docker · Compose · Podman · Buildah</span></div><div><b>wayland</b><span>Portals · clipboard · capture · display controls</span></div><div><b>media</b><span>PipeWire · FFmpeg · ImageMagick · yt-dlp</span></div></div>
     </section>
 
-    <section class="section safety-section" id="safety">
-      <div class="wrap safety-grid">
-        <div class="section-heading reveal">
-          <p class="eyebrow">Built to back out</p>
-          <h2>Safety is part<br>of the interface.</h2>
-          <p>The installer’s visual polish sits on top of conservative filesystem behavior—not instead of it.</p>
-        </div>
-        <div class="safety-card reveal">
-          <ul>
-            <li><i>✓</i><div><b>Private, unique backups</b><span>Every run gets a restrictive timestamped backup directory.</span></div></li>
-            <li><i>✓</i><div><b>Transactional replacement</b><span>Payloads stage beside their target before activation.</span></div></li>
-            <li><i>✓</i><div><b>Reverse-order rollback</b><span>A failed operation restores completed replacements.</span></div></li>
-            <li><i>✓</i><div><b>Strict path boundaries</b><span>Traversal, root targets, and symlink escapes are rejected.</span></div></li>
-            <li><i>✓</i><div><b>Actually dry</b><span>Dry-run performs no package, plugin, cache, or config writes.</span></div></li>
-          </ul>
-        </div>
-      </div>
-    </section>
+    <section class="safety-section section" id="safety"><div class="wrap safety-grid"><div class="safety-intro reveal"><p class="eyebrow"><span class="eyebrow-mark">06</span> CHANGE WITH CONFIDENCE</p><h2>Careful by<br><em>construction.</em></h2><p>Configuring Arch should feel deliberate. Kairo tells you what it plans to do and keeps a way back.</p><a class="text-link" href="https://github.com/nihitdev/kairo/blob/main/README.md#safety-first">How the installer protects your files ↗</a></div><div class="safety-list reveal"><div><span>01</span><p><b>Preview the run</b>See selected modules, packages and destinations before applying.</p><i>↗</i></div><div><span>02</span><p><b>Keep a backup</b>Existing files move to a private, uniquely named backup.</p><i>↗</i></div><div><span>03</span><p><b>Stage, then switch</b>New config is prepared before it replaces the current destination.</p><i>↗</i></div><div><span>04</span><p><b>Undo a failed run</b>Completed replacements are rolled back if a later step fails.</p><i>↗</i></div></div></div></section>
 
-    <section class="closing wrap reveal">
-      <p class="eyebrow">Ready when you are</p>
-      <h2>Your system.<br><em>Still yours.</em></h2>
-      <div class="hero-actions">
-        <a class="button button-primary" href="#install">View install command</a>
-        <a class="button button-ghost" href="https://github.com/nihitdev/kairo">Read the source ↗</a>
-      </div>
-    </section>
+    <section class="closing wrap reveal"><p class="eyebrow"><span class="eyebrow-mark">YOUR ARCH, YOUR RULES</span></p><h2>Start with the<br>parts that <em>feel right.</em></h2><div class="hero-actions"><a class="button button-dark" href="#install">Preview Kairo <span aria-hidden="true">↗</span></a><a class="text-link" href="https://github.com/nihitdev/kairo">Read the source <span aria-hidden="true">↗</span></a></div></section>
   </main>
-
-  <footer>
-    <div class="wrap footer-grid">
-      <a class="brand" href="#top"><span class="brand-mark">K</span><span>Kairo</span></a>
-      <p>Arch-first. Dependency-light. Carefully reversible.</p>
-      <p>GPL-3.0 · Built in the open.</p>
-    </div>
-  </footer>
+  <footer><div class="wrap footer-grid"><a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 36 36"><path d="M8 5h5v11l10-11h7L19 17l12 14h-7L15 20l-2 2v9H8z"/></svg></span><span>KAIRO<span class="brand-period">.</span></span></a><p>Handwritten for Arch Linux. Shared in the open.</p><div class="footer-links"><a href="https://github.com/nihitdev/kairo">GitHub ↗</a><span>GPL-3.0</span></div></div></footer>
   <script type="module" src="/src/app.js"></script>
 </body>
 </html>

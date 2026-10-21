@@ -2,9 +2,9 @@
 
 # Kairo
 
-### Arch, composed.
+### Handwritten Arch Linux dotfiles & a careful workstation installer.
 
-**A safe, interactive workstation installer for Arch Linux, Hyprland, and a CLI-first development setup.**
+**A personal Arch Linux desktop, built from the configs up and installed on your terms.**
 
 [![Arch Linux](https://img.shields.io/badge/Arch-Linux-1793D1?logo=archlinux&logoColor=white)](https://archlinux.org/)
 [![Website](https://img.shields.io/badge/Website-get--kairo.vercel.app-cba6f7)](https://get-kairo.vercel.app)
@@ -15,7 +15,7 @@
 
 </div>
 
-Kairo turns a fresh Arch installation into a configured development workstation without assuming your home directory is disposable.
+Kairo is a hand-built collection of Arch Linux dotfiles. The configs are written and maintained as real files, with a careful installer to bring the pieces you choose to your machine. It turns a fresh Arch installation into a personal development workstation without assuming your home directory is disposable.
 
 It combines curated dotfiles, optional package installation, developer toolchains, GPU detection, and a dependency-free terminal UI. Changes are staged before activation, existing configuration can be backed up, and failed transactions roll back instead of leaving half-installed state behind.
 
@@ -30,6 +30,7 @@ It combines curated dotfiles, optional package installation, developer toolchain
 - **GPU detection** — reviewed package proposals for Intel, AMD, and modern NVIDIA hardware
 - **Developer profiles** — Rust, Python, web, C/C++, containers, Wayland, and media tooling
 - **Per-shell prompts** — separate Starship configuration for Bash, Fish, Nushell, and Zsh
+- **Prism palettes** — handwritten terminal themes shared across shells, Kitty, Starship, Fastfetch, and FZF
 - **Curated rice branches** — coordinated Hyprland, Waybar, Kitty, and wallpaper palettes
 - **Automation-friendly output** — deterministic plain output outside interactive terminals
 - **No surprise upgrades** — Kairo installs what you selected without silently upgrading the whole system
@@ -249,16 +250,19 @@ Run `./install.sh --help` for the authoritative list of options, modules, and pr
 
 | Area | Modules |
 | --- | --- |
-| Shells | [Bash](.config/bash/), [Fish](.config/fish/), [Nushell](.config/nushell/), [Zsh + Oh My Zsh](.config/zsh/) |
+| Shells | [Bash](.config/bash/), [Fish](.config/fish/), [Nushell](.config/nushell/), [Zsh + Oh My Zsh](.config/zsh/), [Prism](.config/prism/) |
 | Prompt & history | [Starship](.config/starship/), [Atuin](.config/atuin/), [Oh My Posh](.config/oh-my-posh/) |
 | CLI workflow | [Bat](.config/bat/), [Broot](.config/broot/), [Yazi](.config/yazi/), [LazyGit](.config/lazygit/), [Fastfetch](.config/fastfetch/), [Btop](.config/btop/), [Cava](.config/cava/) |
 | Development | [Git](.config/git/), [Neovim](.config/nvim/), [SSH](.config/ssh/) |
 | Desktop | [WezTerm](.config/wezterm/), [Kitty](.config/kitty/), [Hyprland](.config/hypr/), [Waybar](.config/waybar/), [Kairo Shell](#kairo-shell) |
 
-Every module is selected by default except **Kairo Shell**. This applies to both
-the interactive module picker and CLI runs without `--only`. Deselect modules in
-the menu or use `--only NAME` for a scoped installation. Preview changes first,
-especially when replacing compositor configuration:
+Every module is selected by default except **Kairo Shell**. Prism is a lightweight
+Python-based terminal palette manager shared by Fish, Bash, Zsh, Nushell, Kitty,
+Starship, Fastfetch, and FZF; choose a palette with `prism theme switch NAME`.
+Kairo preserves the selected palette when it refreshes Fish configuration. The
+defaults apply to both the interactive module picker and CLI runs without `--only`.
+Deselect modules in the menu or use `--only NAME` for a scoped installation.
+Preview changes first, especially when replacing compositor configuration:
 
 ```sh
 ./install.sh --dry-run --only hypr

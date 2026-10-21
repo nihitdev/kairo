@@ -89,6 +89,7 @@ while IFS='|' read -r name label category selected package executable source; do
 done <<'MODULES'
 bash|Bash|Shells|true|bash|bash|official
 fish|Fish|Shells|true|fish|fish|official
+prism|Prism terminal themes|Shells|true||prism|official
 nushell|Nushell|Shells|true|nushell|nu|official
 zsh|Zsh|Shells|true|zsh|zsh|official
 starship|Starship|Shells|true|starship|starship|official
@@ -660,6 +661,9 @@ collect_missing_packages() {
     if is_selected bash || is_selected fish || is_selected nushell; then
         package_is_installed zoxide zoxide || record_unique missing_official_packages zoxide
     fi
+    if is_selected prism; then
+        package_is_installed python python3 || record_unique missing_official_packages python
+    fi
     if is_selected zsh || is_selected fish; then
         # Shared interactive tools, previews, editor defaults, and integrations.
         for package in git fzf fd eza bat neovim yazi lazygit btop starship zoxide mise direnv; do
@@ -935,6 +939,18 @@ install_kairo_shell() {
 preflight_desktop() {
     local module file
     preflight_kitty_smooth
+    if is_selected prism; then
+        for file in prism.py README.md init.sh current theme.sh fzf.txt nu-colors.json; do
+            [[ -r $source_config_root/prism/$file ]] || {
+                printf 'Missing Prism payload: %s\n' "$source_config_root/prism/$file" >&2; return 1;
+            }
+        done
+        [[ -x $source_config_root/prism/prism.py && -x $repo_root/.local/bin/prism ]] || {
+            printf 'Prism entrypoints must be executable.\n' >&2; return 1;
+        }
+        assert_safe_destination "$config_root/prism"
+        assert_safe_destination "$HOME/.local/bin/prism"
+    fi
     if is_selected plymouth; then
         bash "$repo_root/.local/share/plymouth/install.sh" --dry-run >/dev/null
     fi
@@ -1513,6 +1529,11 @@ validate_installed_configs() {
         component_was_applied "$component" || continue
         case "$component" in
             bash) [[ -f $HOME/.bashrc ]] || return 1 ;;
+            prism)
+                [[ -x $HOME/.local/bin/prism && -x $config_root/prism/prism.py &&
+                   -f $config_root/prism/init.sh &&
+                   -f $config_root/prism/current ]] || return 1
+                ;;
             zsh) [[ -f $HOME/.zshrc ]] || return 1 ;;
             starship)
                 for config in bash fish nushell zsh; do
@@ -1898,6 +1919,7 @@ install_seed_item zsh "$source_config_root/starship/zsh.toml" "$config_root/star
 install_item nushell "$source_config_root/nushell/config.nu" "$config_root/nushell/config.nu"
 install_seed_item nushell "$source_config_root/nushell/dotfiles-init/starship.nu" "$config_root/nushell/dotfiles-init/starship.nu"
 install_seed_item nushell "$source_config_root/nushell/dotfiles-init/zoxide.nu" "$config_root/nushell/dotfiles-init/zoxide.nu"
+install_seed_item nushell "$source_config_root/nushell/dotfiles-init/prism.nu" "$config_root/nushell/dotfiles-init/prism.nu"
 install_item git "$source_config_root/git/.gitconfig" "$config_root/dotfiles/gitconfig"
 install_git_include "$config_root/dotfiles/gitconfig"
 install_item lazygit "$source_config_root/lazygit/config.yml" "$config_root/lazygit/config.yml"
@@ -1939,11 +1961,30 @@ install_waybar
 install_item rofi "$source_config_root/rofi" "$config_root/rofi"
 install_kairo_shell
 if [[ -d $source_config_root/fish ]]; then
-    install_item fish "$source_config_root/fish" "$config_root/fish"
+    fish_source="$source_config_root/fish"
+    fish_stage=''
+    if is_selected fish && is_selected prism && [[ -f $config_root/fish/conf.d/15-prism-theme.fish ]]; then
+        ensure_external_root
+        fish_stage="$external_root/fish-config"
+        mkdir -p -- "$fish_stage"
+        cp -a -- "$source_config_root/fish" "$fish_stage/fish"
+        install -D -m 644 -- "$config_root/fish/conf.d/15-prism-theme.fish" \
+            "$fish_stage/fish/conf.d/15-prism-theme.fish"
+        fish_source="$fish_stage/fish"
+    fi
+    install_item fish "$fish_source" "$config_root/fish"
     install_seed_item fish "$source_config_root/starship/fish.toml" "$config_root/starship/fish.toml"
 elif is_selected fish; then
     skipped+=(fish)
 fi
+install_item prism "$source_config_root/prism/prism.py" "$config_root/prism/prism.py"
+install_item prism "$source_config_root/prism/README.md" "$config_root/prism/README.md"
+install_item prism "$source_config_root/prism/init.sh" "$config_root/prism/init.sh"
+install_seed_item prism "$source_config_root/prism/current" "$config_root/prism/current"
+install_seed_item prism "$source_config_root/prism/theme.sh" "$config_root/prism/theme.sh"
+install_seed_item prism "$source_config_root/prism/fzf.txt" "$config_root/prism/fzf.txt"
+install_seed_item prism "$source_config_root/prism/nu-colors.json" "$config_root/prism/nu-colors.json"
+install_item prism "$repo_root/.local/bin/prism" "$HOME/.local/bin/prism"
 
 if $interactive; then ui_stage 5 7 'Configuring shells'; else describe '[5/7] Configuring shells'; fi
 install_zsh_integrations

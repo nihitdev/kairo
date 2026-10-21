@@ -7,8 +7,11 @@ Fish-native shell configuration.
 - config.fish — interactive entrypoint
 - conf.d/00-env.fish — environment and applications
 - conf.d/10-options.fish — Fish UI and colors
+- conf.d/15-prism-theme.fish — generated colors from Prism
 - conf.d/20-aliases.fish — aliases
 - conf.d/90-integrations.fish — mise, zoxide, direnv, Starship
+- functions/prism.fish and completions/prism.fish — Prism command and completion
+- functions/kairo.fish — compatibility alias for `prism`
 - functions/y.fish — Yazi cwd handoff
 - functions/mkcd.fish — create + enter directory
 - functions/vf.fish — fuzzy file -> Neovim

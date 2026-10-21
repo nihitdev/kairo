@@ -1,0 +1,1 @@
+--color=bg:#191724,bg+:#26233a,fg:#e0def4,fg+:#e0def4,hl:#9ccfd8,hl+:#9ccfd8,border:#ebbcba,prompt:#ebbcba,pointer:#9ccfd8,marker:#9ccfd8,spinner:#9ccfd8,header:#31748f

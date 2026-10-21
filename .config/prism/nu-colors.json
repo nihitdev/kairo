@@ -1,0 +1,22 @@
+{
+  "separator": "#908caa",
+  "header": "#31748f",
+  "row_index": "#31748f",
+  "hints": "#908caa",
+  "string": "#e0def4",
+  "int": "#9ccfd8",
+  "float": "#9ccfd8",
+  "bool": "#9ccfd8",
+  "shape_external": "#ebbcba",
+  "shape_external_resolved": "#ebbcba",
+  "shape_internalcall": "#ebbcba",
+  "shape_keyword": "#c4a7e7",
+  "shape_string": "#9ccfd8",
+  "shape_raw_string": "#9ccfd8",
+  "shape_flag": "#9ccfd8",
+  "shape_operator": "#9ccfd8",
+  "shape_pipe": "#9ccfd8",
+  "shape_variable": "#c4a7e7",
+  "shape_externalarg": "#e0def4",
+  "shape_garbage": "#eb6f92"
+}

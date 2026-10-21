@@ -9,6 +9,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 const STARTUP_CACHE_DIR = $"($nu.config-path | path dirname)/dotfiles-init"
+const PRISM_CACHE = $"($nu.config-path | path dirname)/dotfiles-init/prism.nu"
 const STARSHIP_CACHE = $"($nu.config-path | path dirname)/dotfiles-init/starship.nu"
 const ZOXIDE_CACHE = $"($nu.config-path | path dirname)/dotfiles-init/zoxide.nu"
 const XDG_CONFIG_ROOT = ($nu.default-config-dir | path dirname)
@@ -384,4 +385,4 @@ def --wrapped ff [...args] {
 # ~/.config/starship/nushell.toml
 
 # Shared Prism terminal palette.
-source ($nu.config-path | path dirname | path dirname | path join "prism/init.nu")
+source $PRISM_CACHE
