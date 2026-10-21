@@ -4,18 +4,18 @@ Hyprland 0.56+ Lua configuration with Dwindle, Scrolling (Niri-style columns), a
 
 Press **Super+/** for the searchable [shortcut reference](shortcuts.txt). **Super+F** toggles fullscreen; **Super+Shift+F** maximizes; **Super+Shift+Space** toggles floating. Super+Shift+Arrows moves windows, and Super+Ctrl+Arrows resizes them. **Super+F5/F6** adjusts brightness. **Ctrl+Print** captures the focused window. **Super+Shift+R** validates and reloads the compositor config. Hyprland also automatically reloads edits to its config files.
 
-The theme uses a transparent 32px Waybar with wallpaper-derived colors, a compact 400px Rofi launcher, matching notifications, subtle opening animations, and quicker closing/fades. Blur rules cover the launcher, bar, and notification surfaces. Workspaces appear as dots only while occupied or currently viewed. Both wallpaper pickers update the bar palette automatically; login restores it.
+The theme uses a transparent 32px Waybar with wallpaper-derived colors, a compact 400px Rofi launcher, and a Quickshell notification center with toasts, session history, DND, and clear-all. A small watchdog restarts Waybar after unexpected exits and records them in `~/.local/state/waybar/watchdog.log`. Workspaces appear as dots only while occupied or currently viewed. Both wallpaper pickers update the bar palette automatically; login restores it.
 
 ## Files
 
 - `config/*.lua`: compositor behavior, animation timings, and keybindings.
 - `config/appearance.lua`: theme and layout settings.
 - `scripts/`: layout switching, screenshot, lock, wallpaper, and desktop helpers.
-- `../waybar/`, `../rofi/`, `../swaync/`, `../hyprlock/`: companion desktop configurations.
+- `../waybar/`, `../rofi/`, `../quickshell/hyprland-notifications/`, `../hyprlock/`: companion desktop configurations.
 
 Screenshots go to `~/Pictures/Screenshots` and are copied as PNG. **Ctrl+Print** captures the active window rectangle. Utility terminals float at 70% of the display size.
 
-Waybar provides live network/Bluetooth status. Click notifications to open the panel, right-click for Do Not Disturb, or middle-click to clear notifications. Critical notifications remain until dismissed.
+Waybar provides live network/Bluetooth status. Click its notification icon or press **Super+Shift+N** to open the panel, right-click the icon for Do Not Disturb, or middle-click to clear history. Critical notifications remain until dismissed. SwayNC remains an explicit alternative; the installer disables its competing service when selected.
 
 ## Install
 

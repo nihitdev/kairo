@@ -119,8 +119,8 @@
   "custom/notifications": {
     "exec": "~/.config/waybar/scripts/notifications.sh",
     "format": "{icon}",
-    "on-click": "swaync-client -t",
-    "on-click-right": "swaync-client -d",
+    "on-click": "qs ipc --path \"$HOME/.config/quickshell/hyprland-notifications\" call notifications toggle",
+    "on-click-right": "qs ipc --path \"$HOME/.config/quickshell/hyprland-notifications\" call notifications toggleDnd",
     "tooltip-format": "Notifications: {text}\nClick: panel · Right-click: Do Not Disturb",
     "tooltip": true,
     "return-type": "json",
@@ -136,7 +136,7 @@
       "dnd-inhibited-notification": "󰂛",
       "dnd-inhibited-none": "󰪑"
     },
-    "on-click-middle": "swaync-client -C"
+    "on-click-middle": "qs ipc --path \"$HOME/.config/quickshell/hyprland-notifications\" call notifications clear"
   },
   "custom/power": {
     "format": "",

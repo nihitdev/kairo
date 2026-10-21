@@ -60,14 +60,14 @@ declare -a kairo_shell_packages=(
 
 # Packages used by the shipped desktop scripts, not unrelated application bundles.
 declare -a hypr_packages=(
-    hyprland hyprpaper hypridle hyprlock awww swaync network-manager-applet
+    hyprland hyprpaper hypridle hyprlock awww network-manager-applet
     kitty rofi cliphist wl-clipboard jq libnotify brightnessctl playerctl
     wireplumber xdg-desktop-portal-hyprland qt5-wayland qt6-wayland qt6ct kvantum
     grim slurp procps-ng util-linux ffmpeg quickshell qt6-declarative python-pillow
     ttf-iosevka-nerd ttf-jetbrains-mono-nerd
 )
 declare -a waybar_packages=(
-    waybar python python-pillow ffmpeg jq swaync kitty wireplumber brightnessctl playerctl ttf-jetbrains-mono
+    waybar python python-pillow ffmpeg jq kitty wireplumber brightnessctl playerctl ttf-jetbrains-mono
     networkmanager bluez bluez-utils bluetui pulsemixer btop cava calcurse yazi rofi libnotify fontconfig ttf-iosevka-nerd
 )
 
@@ -495,9 +495,16 @@ is_selected() {
 
     if [[ $component == kitty ]] && is_selected kitty-smooth; then return 0; fi
 
-    # SwayNC supplies notifications for the shipped Hyprland/Waybar desktop.
-    if [[ $component == swaync ]] && { is_selected hypr || is_selected waybar; }; then
-        return 0
+    # The Hyprland profile uses its Quickshell notification center by default.
+    # Keep SwayNC available when explicitly requested or used without Hyprland.
+    if [[ $component == swaync ]] && is_selected kairo-shell; then
+        return 1
+    fi
+    if [[ $component == swaync ]] && is_selected hypr; then
+        for selected in "${only[@]}"; do
+            [[ $selected == swaync ]] && return 0
+        done
+        return 1
     fi
 
     # Hyprland includes Waybar unless the alternative desktop shell is selected.
@@ -988,12 +995,22 @@ preflight_desktop() {
         done < <(find "$source_config_root/$module" -type f \( -name '*.sh' -o -name '*.lua' \) -print0)
     done
     if is_selected hypr; then
+        [[ -x $repo_root/.local/bin/battery-guardian ]] || {
+            printf 'Missing battery guardian helper.\n' >&2; return 1;
+        }
+        bash -n "$repo_root/.local/bin/battery-guardian"
         for module in hyprlock rofi quickshell/wallpaper-picker awww; do
             [[ -d $source_config_root/$module ]] || {
                 printf 'Missing desktop payload: %s\n' "$module" >&2; return 1;
             }
             assert_safe_destination "$config_root/$module"
         done
+        if ! is_selected kairo-shell && ! is_selected swaync; then
+            [[ -d $source_config_root/quickshell/hyprland-notifications ]] || {
+                printf 'Missing Hyprland notification shell payload.\n' >&2; return 1;
+            }
+            assert_safe_destination "$config_root/quickshell/hyprland-notifications"
+        fi
         [[ -r $source_config_root/awww/archnemesis.toml ]] || {
             printf 'Missing awww transition config: %s\n' "$source_config_root/awww/archnemesis.toml" >&2; return 1;
         }
@@ -1025,9 +1042,11 @@ preflight_desktop() {
         [[ -f $source_config_root/waybar/config.jsonc &&
            -f $source_config_root/waybar/style.css &&
            -f $source_config_root/waybar/colors.css &&
+           -x $source_config_root/waybar/waybar-watchdog.sh &&
            -x $source_config_root/waybar/scripts/wallpaper-colors.py &&
            -f $source_config_root/waybar/scripts/fonts/Waycat.ttf &&
            -f $source_config_root/waybar/scripts/fonts/Skulltype.ttf ]] || return 1
+        bash -n "$source_config_root/waybar/waybar-watchdog.sh"
         assert_safe_destination "$kairo_shell_data/fonts/archnemesis"
         if command -v python3 >/dev/null 2>&1; then
             python3 -m json.tool "$source_config_root/waybar/config.jsonc" >/dev/null
@@ -1080,6 +1099,9 @@ install_hypr_desktop() {
         describe 'Skip Waybar deployment because Kairo Shell is selected'
     fi
     install_item hypr "$source_config_root/quickshell/wallpaper-picker" "$config_root/quickshell/wallpaper-picker"
+    if ! is_selected kairo-shell && ! is_selected swaync; then
+        install_item hypr "$source_config_root/quickshell/hyprland-notifications" "$config_root/quickshell/hyprland-notifications"
+    fi
     install_item hypr "$source_config_root/awww" "$config_root/awww"
     install_item hypr "$source_config_root/hyprlock" "$config_root/hyprlock"
     # Required by the existing keybinds; preserve a user's custom Rofi setup.
@@ -1093,9 +1115,14 @@ install_hypr_desktop() {
     ensure_external_root
     temp_hypr="$external_root/hypr"
     cp -a -- "$hypr_source" "$temp_hypr"
-    # Keep the live config as the source; add Kairo's notification startup on deploy.
-    if ! grep -q '"swaync"' "$temp_hypr/config/autostart.lua"; then
-        sed -i '/^[[:space:]]*"waybar",[[:space:]]*$/i\        "swaync",' "$temp_hypr/config/autostart.lua"
+    # SwayNC and Quickshell must not compete for org.freedesktop.Notifications.
+    if is_selected swaync; then
+        sed -i '\|hyprland-notifications|d' "$temp_hypr/config/autostart.lua"
+        if ! grep -q '"swaync"' "$temp_hypr/config/autostart.lua"; then
+            sed -i '/^[[:space:]]*"hypridle",[[:space:]]*$/a\        "swaync",' "$temp_hypr/config/autostart.lua"
+        fi
+    elif is_selected kairo-shell; then
+        sed -i '\|hyprland-notifications|d' "$temp_hypr/config/autostart.lua"
     fi
     if [[ -n $wallpaper ]]; then
         if [[ $wallpaper == "$config_root/hypr/"* ]]; then
@@ -1125,6 +1152,9 @@ install_hypr_desktop() {
         # The current live config starts Waybar directly; replace only that entry.
         sed -i '/^[[:space:]]*"waybar",[[:space:]]*$/d' "$temp_hypr/config/autostart.lua"
         sed -i '/    -- Session daemons\./i\    hl.exec_cmd(require("config.bar"))\n' "$temp_hypr/config/autostart.lua"
+    fi
+    if ! is_selected swaync; then
+        install_item hypr "$repo_root/.local/bin/battery-guardian" "$HOME/.local/bin/battery-guardian"
     fi
     install_item hypr "$temp_hypr" "$config_root/hypr"
 }
@@ -1547,10 +1577,15 @@ validate_installed_configs() {
                 ;;
             hypr)
                 [[ -f $config_root/hypr/hyprland.lua && -f $config_root/hypr/hyprpaper.conf ]] || return 1
+                [[ -x $HOME/.local/bin/battery-guardian ]] || return 1
+                if ! is_selected kairo-shell && ! is_selected swaync; then
+                    [[ -f $config_root/quickshell/hyprland-notifications/shell.qml ]] || return 1
+                fi
                 ;;
             waybar)
                 if ! is_selected kairo-shell; then
-                    [[ -f $config_root/waybar/config.jsonc && -f $kairo_shell_data/fonts/archnemesis/Waycat.ttf ]] || return 1
+                    [[ -f $config_root/waybar/config.jsonc && -x $config_root/waybar/waybar-watchdog.sh &&
+                       -f $kairo_shell_data/fonts/archnemesis/Waycat.ttf ]] || return 1
                 fi
                 ;;
             kairo-shell)
@@ -1695,7 +1730,7 @@ interactive_prepare() {
         selected_list+="  • $(module_label "$index")"$'\n'
     done
     if is_selected hypr && ! is_selected kairo-shell; then
-        selected_list+=$'  Hyprland includes Waybar, fonts, Hyprlock and SwayNC.\n'
+        selected_list+=$'  Hyprland includes Waybar, fonts, Hyprlock and Quickshell notifications.\n'
         selected_list+=$'  Rofi is seeded only when absent.\n'
     elif is_selected kairo-shell && is_selected waybar; then
         selected_list+=$'  Kairo Shell selected: Waybar deployment is skipped.\n'

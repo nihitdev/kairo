@@ -153,9 +153,9 @@ The screenshot above shows the original Rofi gallery, still available with
 </details>
 
 <details>
-<summary><b>Notifications — SwayNC panel</b></summary>
+<summary><b>Notifications — Quickshell center</b></summary>
 
-![ARCHNEMESIS SwayNC notification panel](screenshots/notifications.png)
+![ARCHNEMESIS Quickshell notification panel](screenshots/notifications.png)
 
 Notification history and Do Not Disturb, opened from Waybar.
 
@@ -329,7 +329,7 @@ and Bluetooth icons reflect live connection status. Window controls include
 ./install.sh --no-backup --only waybar
 ```
 
-`hypr` includes Waybar, Hyprlock, and SwayNC. It seeds the custom Rofi setup only
+`hypr` includes Waybar, Hyprlock, and the Quickshell notification center. It seeds the custom Rofi setup only
 when no Rofi directory exists; select `--only rofi` explicitly to replace one.
 Kairo Shell takes precedence over Waybar when both are selected. Its startup
 command lives in an installer-generated `hypr/config/bar.lua`, avoiding edits to
@@ -348,19 +348,18 @@ an existing wallpaper into a staged payload with `--no-reload`, preserving the
 running session. A bundled palette for `snow-pine-forest.png` keeps fresh installs
 usable even when sampling dependencies or a readable wallpaper are unavailable.
 
-SwayNC is also a default module (`--only swaync` for a scoped install). It deploys
-`config.json` and `style.css` individually, preserving other files in the SwayNC
-directory. The ARCHNEMESIS glass theme retains grouped notifications, DND and
-critical styling. Normal notifications expire after 7 seconds, low-priority ones
-after 4 seconds, and critical notifications remain until dismissed. The existing
-Hyprland layer rules provide blur for the control center and floating popups.
+Hyprland’s Quickshell center owns `org.freedesktop.Notifications` and provides
+compact toasts, an in-session history, DND, clear-all, and notification actions.
+Waybar opens the panel, toggles DND, and clears history; **Super+Shift+N** also
+opens it. SwayNC remains available as an explicit alternative (`--only swaync`);
+the installer removes the competing Quickshell startup entry when selected.
 
-The same module installs `~/.local/bin/battery-guardian`. Hyprland starts it on
-login; a process lock prevents duplicate watchers. It checks the battery every
+`~/.local/bin/battery-guardian` is installed with the Hyprland profile. It starts
+on login; a process lock prevents duplicate watchers. It checks the battery every
 15 seconds, warns once at 20%, 10% and 5%, and resets warnings when charging.
 BAT1 is preferred with automatic fallback to other BAT devices; desktops without
-a battery exit without starting a watcher. Dependencies are `swaync`, `libnotify`
-and `util-linux`. To deploy only these managed files without backups:
+a battery exit without starting a watcher. Dependencies are `libnotify` and
+`util-linux`. To deploy SwayNC only without backups:
 
 ```sh
 ./install.sh --only swaync --no-backup
@@ -368,7 +367,7 @@ and `util-linux`. To deploy only these managed files without backups:
 
 The installer deploys Waycat and Skulltype into the user's XDG font directory and
 refreshes that directory's font cache. `--install-packages` includes Iosevka Nerd
-Font, Hyprpaper/Hypridle/Hyprlock, SwayNC, and the TUI tools used by the bar. It does
+Font, Hyprpaper/Hypridle/Hyprlock, Quickshell, and the TUI tools used by the bar. It does
 not automatically install every application mentioned in personal keybinds.
 
 The repository bundles exactly 25 curated wallpapers: the 18 images from

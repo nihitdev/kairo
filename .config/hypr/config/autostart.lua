@@ -16,11 +16,15 @@ hl.on("hyprland.start", function()
     -- Restore wallpaper-derived bar colors once per login.
     hl.exec_cmd('python3 "' .. os.getenv("HOME") .. '/.config/waybar/scripts/wallpaper-colors.py"')
 
+    -- Hyprland notifications are owned by the lightweight Quickshell center.
+    hl.exec_cmd([[sh -c 'qs -n -d -p "$HOME/.config/quickshell/hyprland-notifications"']])
+
+    -- Recover Waybar if it exits unexpectedly; the watchdog uses a runtime lock.
+    hl.exec_cmd([[sh -c 'pgrep -u "$(id -u)" -f "[w]aybar-watchdog.sh" >/dev/null || exec "$HOME/.config/waybar/waybar-watchdog.sh"']])
+
     -- Session daemons.
     for _, daemon in ipairs({
         "hypridle",
-        "swaync",
-        "waybar",
         "nm-applet",
     }) do
         hl.exec_cmd(
