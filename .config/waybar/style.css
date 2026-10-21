@@ -15,6 +15,24 @@ window#waybar {
     padding: 0;
 }
 
+/* Compact translucent capsules keep the bar legible over bright wallpapers. */
+#workspaces,
+#custom-layout,
+#custom-cpucat,
+#connectivity,
+#system,
+#clock,
+#custom-notifications,
+#custom-power,
+#mpris {
+    background: rgba(17, 17, 27, 0.68);
+    border: 1px solid rgba(205, 214, 244, 0.10);
+    border-radius: 14px;
+    margin: 2px 4px;
+    padding: 3px 9px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
+}
+
 #workspaces,
 #mpris,
 #battery,
@@ -89,12 +107,14 @@ tooltip label {
 #workspaces button label { font-size: 12px; }
 #custom-layout, #network, #bluetooth, #backlight,
 #custom-notifications, #custom-power {
-    background: transparent;
-    border: none;
-    margin: 0 4px;
-    padding: 4px 2px;
+    margin: 2px 3px;
+    padding: 3px 5px;
 }
-#connectivity, #system { background: transparent; margin: 0; }
+#connectivity, #system { margin: 2px 4px; padding: 3px 6px; }
+#network, #bluetooth, #wireplumber, #backlight, #battery { padding: 2px 4px; }
+#custom-notifications, #custom-power { padding: 3px 7px; }
+#clock { padding: 3px 10px; }
+#mpris { padding: 3px 12px; }
 #custom-layout, #custom-notifications { color: @wall_secondary; }
 #custom-power { color: @wall_text; margin-right: 6px; }
 #custom-power:hover, #custom-notifications:hover, #custom-layout:hover,
@@ -103,6 +123,12 @@ tooltip label {
 #network.disconnected, #bluetooth.disabled, #bluetooth.off { color: @wall_muted; }
 #battery.warning { color: @wall_accent; }
 #battery.critical:not(.charging) { color: @wall_critical; }
+#workspaces button { transition: background-color 160ms ease, color 160ms ease; }
+#custom-layout:hover, #custom-notifications:hover, #custom-power:hover,
+#clock:hover, #mpris:hover, #connectivity:hover, #system:hover {
+    background: rgba(17, 17, 27, 0.82);
+    border-color: rgba(205, 214, 244, 0.18);
+}
 #custom-cpucat {
     font-family: "Waycat";
     font-size: 20px;
