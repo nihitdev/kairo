@@ -334,7 +334,9 @@ when no Rofi directory exists; select `--only rofi` explicitly to replace one.
 Kairo Shell takes precedence over Waybar when both are selected. Its startup
 command lives in an installer-generated `hypr/config/bar.lua`, avoiding edits to
 the daemon list. Installing only Waybar expects the matching Hyprland/Rofi scripts
-to already be present for its click actions.
+to already be present for its click actions. With Hyprland, the installer enables
+Waybar's systemd user service under `graphical-session.target`; systemd restarts it
+after a failure and stops it when the session ends.
 
 Waybar's text, accents, workspace highlights, and hover colors follow the selected
 wallpaper. Both static pickers, the live-wallpaper picker, and login startup call

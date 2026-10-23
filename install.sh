@@ -1042,11 +1042,9 @@ preflight_desktop() {
         [[ -f $source_config_root/waybar/config.jsonc &&
            -f $source_config_root/waybar/style.css &&
            -f $source_config_root/waybar/colors.css &&
-           -x $source_config_root/waybar/waybar-watchdog.sh &&
            -x $source_config_root/waybar/scripts/wallpaper-colors.py &&
            -f $source_config_root/waybar/scripts/fonts/Waycat.ttf &&
            -f $source_config_root/waybar/scripts/fonts/Skulltype.ttf ]] || return 1
-        bash -n "$source_config_root/waybar/waybar-watchdog.sh"
         assert_safe_destination "$kairo_shell_data/fonts/archnemesis"
         if command -v python3 >/dev/null 2>&1; then
             python3 -m json.tool "$source_config_root/waybar/config.jsonc" >/dev/null
@@ -1201,6 +1199,19 @@ install_waybar() {
     fi
     install_item waybar "$payload" "$config_root/waybar"
     install_item waybar "$source_config_root/waybar/scripts/fonts" "$kairo_shell_data/fonts/archnemesis"
+    if is_selected hypr && command -v systemctl >/dev/null 2>&1; then
+        if $dry_run; then
+            describe 'Enable Waybar in graphical-session.target (systemctl --user enable waybar.service)'
+        elif systemctl --user enable waybar.service >/dev/null 2>&1; then
+            if systemctl --user is-active --quiet graphical-session.target &&
+                ! pgrep -u "$(id -u)" -x waybar >/dev/null 2>&1; then
+                systemctl --user start waybar.service ||
+                    warnings+=('Waybar service is enabled but could not be started in this session')
+            fi
+        else
+            warnings+=('Could not enable waybar.service; enable it with systemctl --user enable waybar.service')
+        fi
+    fi
     if ! is_selected hypr; then
         warnings+=('Waybar actions expect the matching Hyprland scripts and custom Rofi setup; use --only hypr for the complete desktop')
     fi
@@ -1584,7 +1595,7 @@ validate_installed_configs() {
                 ;;
             waybar)
                 if ! is_selected kairo-shell; then
-                    [[ -f $config_root/waybar/config.jsonc && -x $config_root/waybar/waybar-watchdog.sh &&
+                    [[ -f $config_root/waybar/config.jsonc &&
                        -f $kairo_shell_data/fonts/archnemesis/Waycat.ttf ]] || return 1
                 fi
                 ;;

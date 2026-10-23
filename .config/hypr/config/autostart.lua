@@ -19,9 +19,6 @@ hl.on("hyprland.start", function()
     -- Hyprland notifications are owned by the lightweight Quickshell center.
     hl.exec_cmd([[sh -c 'qs -n -d -p "$HOME/.config/quickshell/hyprland-notifications"']])
 
-    -- Recover Waybar if it exits unexpectedly; the watchdog uses a runtime lock.
-    hl.exec_cmd([[sh -c 'pgrep -u "$(id -u)" -f "[w]aybar-watchdog.sh" >/dev/null || exec "$HOME/.config/waybar/waybar-watchdog.sh"']])
-
     -- Session daemons.
     for _, daemon in ipairs({
         "hypridle",
