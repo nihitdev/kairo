@@ -668,6 +668,9 @@ collect_missing_packages() {
     if is_selected bash || is_selected fish || is_selected nushell; then
         package_is_installed zoxide zoxide || record_unique missing_official_packages zoxide
     fi
+    if is_selected fish; then
+        package_is_installed fisher || record_unique missing_official_packages fisher
+    fi
     if is_selected prism; then
         package_is_installed python python3 || record_unique missing_official_packages python
     fi
