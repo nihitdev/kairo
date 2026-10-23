@@ -25,7 +25,13 @@ ShellRoot {
         Qt.callLater(() => { carousel.currentIndex = selected; carousel.positionViewAtIndex(selected, ListView.Center); });
         message = cards.count ? "" : "No wallpapers match this filter";
     }
-    function step(delta) { if(cards.count) carousel.currentIndex = Math.max(0,Math.min(cards.count-1,carousel.currentIndex+delta)); }
+    function select(index) {
+        if (!cards.count) return;
+        const selected = Math.max(0, Math.min(cards.count - 1, index));
+        carousel.currentIndex = selected;
+        Qt.callLater(() => carousel.positionViewAtIndex(selected, ListView.Center));
+    }
+    function step(delta) { select(carousel.currentIndex + delta); }
     function apply() {
         if (setter.running || !cards.count) return;
         let p = cards.get(carousel.currentIndex);
@@ -123,10 +129,18 @@ ShellRoot {
             anchors.verticalCenter:parent.verticalCenter;anchors.verticalCenterOffset:18*panel.unit
             height:410*panel.unit;orientation:ListView.Horizontal;spacing:12*panel.unit
             model:cards;clip:false
-            highlightRangeMode:ListView.StrictlyEnforceRange
+            highlightRangeMode:ListView.NoHighlightRange
             preferredHighlightBegin:(width-570*panel.unit)/2
             preferredHighlightEnd:(width+570*panel.unit)/2
             highlightMoveDuration:350
+            ScrollBar.horizontal: ScrollBar {
+                policy:ScrollBar.AlwaysOn
+                interactive:true
+                height:10
+                z:200
+                background:Rectangle {implicitHeight:8;radius:4;color:"#393552"}
+                contentItem:Rectangle {implicitHeight:8;radius:4;color:parent.pressed?"#e0def4":"#c4a7e7"}
+            }
             header:Item {width:(carousel.width-570*panel.unit)/2}
             footer:Item {width:(carousel.width-570*panel.unit)/2}
             delegate:Item {
@@ -160,12 +174,16 @@ ShellRoot {
                         }
                     }
                     Rectangle {anchors.fill:parent;radius:18;color:"transparent";border.width:card.selected?3:0;border.color:"#c4a7e7"}
-                    MouseArea {anchors.fill:parent;cursorShape:Qt.PointingHandCursor;onClicked:{if(card.selected)root.apply();else carousel.currentIndex=card.index;}}
+                    MouseArea {anchors.fill:parent;cursorShape:Qt.PointingHandCursor;onClicked:{if(card.selected)root.apply();else root.select(card.index);}}
                 }
             }
             MouseArea {
                 anchors.fill:parent;acceptedButtons:Qt.NoButton
-                onWheel:wheel=>{if(!wheelDelay.running){root.step(wheel.angleDelta.y>0?-1:1);wheelDelay.start();}wheel.accepted=true;}
+                onWheel:wheel=>{
+                    const delta=wheel.angleDelta.y || wheel.pixelDelta.y || wheel.angleDelta.x || wheel.pixelDelta.x;
+                    if(delta && !wheelDelay.running){root.step(delta>0?-1:1);wheelDelay.start();}
+                    wheel.accepted=true;
+                }
             }
             Timer {id:wheelDelay;interval:130}
         }
@@ -177,7 +195,7 @@ ShellRoot {
                 text:cards.count && carousel.currentIndex >= 0 && carousel.currentIndex < cards.count ? cards.get(carousel.currentIndex).name : ""
                 color:"#e0def4";font.pixelSize:18;width:panel.width*.8;horizontalAlignment:Text.AlignHCenter;elide:Text.ElideMiddle
             }
-            Text {anchors.horizontalCenter:parent.horizontalCenter;text:root.message || ((carousel.currentIndex+1)+" / "+cards.count+"   ·   ← → browse   ·   Enter / click selected to apply   ·   Esc close");color:"#908caa";font.pixelSize:12}
+            Text {anchors.horizontalCenter:parent.horizontalCenter;text:root.message || ((carousel.currentIndex+1)+" / "+cards.count+"   ·   scroll / ← → browse   ·   Enter / click selected to apply   ·   Esc close");color:"#908caa";font.pixelSize:12}
         }
     }
 }
