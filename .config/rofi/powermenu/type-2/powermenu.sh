@@ -45,7 +45,7 @@ case "$choice" in
 
         case "$choice" in
             "$suspend")  exec systemctl suspend ;;
-            "$logout")   exec hyprctl dispatch exit ;;
+            "$logout")   exec hyprctl dispatch 'hl.dsp.exit()' ;;
             "$reboot")   exec systemctl reboot ;;
             "$shutdown") exec systemctl poweroff ;;
         esac
