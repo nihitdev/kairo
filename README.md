@@ -185,15 +185,21 @@ Welcome → Detect → Dependencies → Modules → Review
         → Backup → Packages → Dotfiles → Configure → Validate → Complete
 ```
 
+The terminal UI uses a Rosé Pine palette, rounded panels, and a highlighted selection row. Wide terminals show module details beside the list; smaller terminals use one panel. Welcome, system details, review, and completion screens scroll within the terminal.
+
 Kairo detects the distribution, architecture, shell, display session, package tools, service manager, and configuration root. The review step shows the selected modules, missing packages, replacement targets, and backup behavior before privileged or destructive work begins. Use arrow keys or Page Up/Page Down
 to scroll the review; Enter accepts it and Q/Escape cancels.
 
 | Key | Action |
 | --- | --- |
-| `↑` / `↓` or `J` / `K` | Move |
+| `↑` / `↓` or `j` / `k` | Move |
 | `Space` | Toggle item |
 | `A` | Select all |
 | `N` | Select none |
+| `R` | Restore the selection from when the menu opened |
+| `Tab` | Jump to the next module category |
+| `PgUp` / `PgDn` | Change page |
+| `Home` / `End` | Jump to the first / last item |
 | `Enter` | Continue |
 | `Q` or `Esc` | Cancel safely |
 

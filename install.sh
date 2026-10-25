@@ -472,7 +472,6 @@ handle_failure() {
     rollback_system_changes
     if $interactive && declare -F ui_failure >/dev/null; then
         ui_failure "Line $failed_line: $failed_command (exit $status)."
-        printf '\nPress any key to exit.'
         IFS= read -rsn1 _ || true
         printf '\n'
     fi
@@ -1608,53 +1607,33 @@ interactive_prepare() {
     local -a choices=() profile_choices=()
     local index profile selected_list='' missing_list='' replacement_list='' key target
     ui_start
-    ui_heading
-    $dry_run && ui_status warn 'DRY RUN · no persistent changes will be made'
-    ui_card 'Welcome to Kairo' 'A safe, transactional setup for your Arch Linux CLI and Hyprland workstation.'
-
-    ui_heading
-    ui_section 'Wallpapers'
-    printf '\n  Hyprland includes curated wallpapers with snow-pine-forest as the default.\n'
-    printf '  Destination: %s\n\n' "$HOME/Pictures/Wallpapers"
-    if ! $install_wallpapers; then
-        ui_confirm 'Install curated wallpapers even without Hyprland?' && install_wallpapers=true
-    fi
+    local welcome='Your Arch Linux CLI and Hyprland workstation.'
+    welcome+=$'\n\n1. Check your system\n2. Choose configs and development tools\n3. Review changes before installation\n\n'
+    if $dry_run; then welcome+=$'PREVIEW MODE: no persistent changes.\n'; fi
     if $no_backup; then
-        ui_status warn 'Backups disabled; transactional rollback remains enabled'
+        welcome+=$'Backups disabled; automatic rollback stays enabled.\n'
     else
-        ui_status ok 'Backups and automatic rollback enabled'
+        welcome+=$'Existing configs are backed up; failed installs roll back.\n'
     fi
-    ui_status ok 'No packages are installed without confirmation'
-    ui_status ok 'Your personal Git and SSH data stays untouched'
-    ui_wait_for_enter || exit 130
+    welcome+=$'Packages are installed only when you choose to install them.\nYour personal Git and SSH data stays untouched.'
+    ui_review "$welcome" 'Welcome to Kairo' begin || exit 130
 
-    ui_heading
-    ui_section 'System detection'
-    printf '\n'
-    ui_kv 'OS' "$(system_value os)"
-    ui_kv 'Distribution' "$(system_value distribution)"
-    ui_kv 'Architecture' "$(system_value architecture)"
-    ui_kv 'Shell' "$(system_value shell)"
-    ui_kv 'Home' "$HOME"
-    ui_kv 'Config root' "$config_root"
-    ui_kv 'Terminal' "$(system_value terminal)"
-    ui_kv 'Session' "$(system_value session)"
-    ui_kv 'GPU' "$gpu_description"
-    if ((${#gpu_packages[@]})); then ui_kv 'GPU packages' "${gpu_packages[*]}"; fi
-    printf '\n'
-    ui_section 'Arch toolchain'
-    printf '\n'
-    [[ $(system_value pacman) == available ]] && ui_status ok 'pacman available' || ui_status warn 'pacman unavailable'
-    [[ $(system_value yay) == available ]] && ui_status ok 'yay available' || ui_status warn 'yay unavailable · only needed for selected AUR modules'
-    [[ $(system_value systemd) == available ]] && ui_status ok 'systemd available' || ui_status warn 'systemd unavailable'
-    ui_wait_for_enter || exit 130
+    local system_details
+    printf -v system_details 'Distribution: %s\nArchitecture: %s\nSession: %s\nShell: %s\nTerminal: %s\n\nHome: %s\nConfig root: %s\n\nGPU: %s\nGPU packages: %s\n\npacman: %s\nAUR helper (%s): %s\nsystemd: %s' \
+        "$(system_value distribution)" "$(system_value architecture)" \
+        "$(system_value session)" "$(system_value shell)" "$(system_value terminal)" \
+        "$HOME" "$config_root" "$gpu_description" "${gpu_packages[*]:-none}" \
+        "$(system_value pacman)" "$aur_helper" "$(command -v "$aur_helper" >/dev/null 2>&1 && printf available || printf missing)" \
+        "$(system_value systemd)"
+    ui_review "$system_details" 'Your system' continue || exit 130
+
+    if ! $install_wallpapers; then
+        ui_confirm 'Include wallpapers without Hyprland?' \
+            "Hyprland already includes the full wallpaper collection. Fresh installs use snow-pine-forest.png. Images go into $HOME/Pictures/Wallpapers." && install_wallpapers=true
+    fi
     if ((${#gpu_packages[@]})); then
-        ui_heading
-        ui_section 'Graphics drivers'
-        printf '\n  Detected  %s\n' "$gpu_description"
-        printf '  Proposed  %s\n\n' "${gpu_packages[*]}"
-        printf '  Kairo uses Arch packages only and does not write Xorg configuration.\n\n'
-        ui_confirm 'Install these GPU packages?' && { install_gpu_drivers=true; install_packages=true; }
+        ui_confirm 'Install the detected GPU drivers?' \
+            "Detected: $gpu_description. Packages: ${gpu_packages[*]}. Uses Arch packages; leaves Xorg configuration unchanged." && { install_gpu_drivers=true; install_packages=true; }
     fi
 
     for ((index=0; index<${#module_names[@]}; index++)); do
@@ -1683,23 +1662,12 @@ interactive_prepare() {
 
     collect_missing_packages
     if ((${#missing_aur_packages[@]})); then
-        ui_heading
-        ui_section 'AUR helper'
-        printf '\n  Select the helper Kairo should use for AUR packages.\n\n'
-        printf '  %s[P]%s paru  %s(default, Rust-based)\n' "$UI_CYAN" "$UI_RESET" "$UI_DIM"
-        printf '  %s[Y]%s yay   %s(Go-based)%s\n\n' "$UI_CYAN" "$UI_RESET" "$UI_DIM" "$UI_RESET"
-        printf '  Choice [P/y]: '
-        IFS= read -rsn1 key
-        printf '\n'
-        [[ $key == y || $key == Y ]] && aur_helper=yay || aur_helper=paru
+        ui_select_aur_helper aur_helper || exit 130
         collect_missing_packages
     fi
-    ui_heading
-    ui_section 'Optional binary repository'
-    printf '\n  Chaotic-AUR distributes third-party prebuilt AUR packages.\n'
-    printf '  Enabling it imports its signing key and modifies /etc/pacman.conf.\n\n'
     if ! $enable_chaotic_aur; then
-        ui_confirm 'Enable Chaotic-AUR? This changes system package trust.' && enable_chaotic_aur=true
+        ui_confirm 'Enable Chaotic-AUR?' \
+            'Optional third-party binary packages. Imports its signing key and modifies /etc/pacman.conf. Press Enter to keep your current repositories.' && enable_chaotic_aur=true
     fi
     if $enable_chaotic_aur || ((${#profiles[@]})); then install_packages=true; fi
 
@@ -1767,8 +1735,7 @@ interactive_prepare() {
     [[ -n $replacement_list ]] || replacement_list='  none'
 
     if ! $install_packages && ((${#missing_official_packages[@]} || ${#missing_aur_packages[@]})); then
-        ui_heading
-        ui_confirm 'Install missing packages?' && install_packages=true
+        ui_confirm 'Install the missing packages?' "$missing_list" && install_packages=true
     fi
     local review
     printf -v review 'Selected modules\n%s\nMissing packages\n%s\n\nManaged targets being replaced\n%s\n\nBackups: %s\nConfig root: %s\nLogin shell: %s\nAUR helper: %s\nInstall packages: %s\nChaotic-AUR: %s\nWallpapers: %s\nDry run: %s' \
@@ -1776,7 +1743,9 @@ interactive_prepare() {
         "$($no_backup && printf disabled || printf enabled)" "$config_root" \
         "$default_shell" "$aur_helper" "$install_packages" "$enable_chaotic_aur" \
         "$install_wallpapers" "$dry_run"
-    ui_review "$review" || exit 130
+    local review_action=install
+    $dry_run && review_action=preview
+    ui_review "$review" 'Review installation' "$review_action" || exit 130
 }
 
 # Reviewed patch and Kitty base; updates must explicitly change these pins.
@@ -2085,7 +2054,4 @@ if $interactive && declare -F ui_success >/dev/null; then
     completion_title='INSTALLATION COMPLETE'
     $dry_run && completion_title='DRY RUN COMPLETE'
     ui_success "$success_details" "$completion_title"
-    ui_footer 'Any key  exit Kairo'
-    IFS= read -rsn1 _ || true
-    printf '\n'
 fi

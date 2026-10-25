@@ -9,14 +9,21 @@ ui_alt_screen=false
 UI_RESET=$'\033[0m'
 UI_BOLD=$'\033[1m'
 UI_DIM=$'\033[2m'
-UI_CYAN=$'\033[38;5;81m'
-UI_GREEN=$'\033[38;5;114m'
-UI_YELLOW=$'\033[38;5;221m'
-UI_RED=$'\033[38;5;203m'
-UI_PURPLE=$'\033[38;5;183m'
-UI_WHITE=$'\033[38;5;255m'
-UI_SURFACE=$'\033[48;5;236m'
+# Rose Pine: match the shipped desktop instead of the terminal's ANSI palette.
+UI_BASE=$'\033[48;2;25;23;36m'
+UI_CYAN=$'\033[38;2;156;207;216m'
+UI_GREEN=$'\033[38;2;156;207;216m'
+UI_YELLOW=$'\033[38;2;246;193;119m'
+UI_RED=$'\033[38;2;235;111;146m'
+UI_PURPLE=$'\033[38;2;196;167;231m'
+UI_WHITE=$'\033[38;2;224;222;244m'
+UI_MUTED=$'\033[38;2;110;106;134m'
+UI_SURFACE=$'\033[48;2;49;47;66m'
+UI_SELECTED=$'\033[48;2;196;167;231m\033[38;2;25;23;36m'
+UI_PANEL=$'\033[48;2;31;29;46m'
 UI_REVERSE=$'\033[7m'
+UI_RESET=$'\033[0m\033[48;2;25;23;36m\033[38;2;224;222;244m'
+UI_X=1 UI_Y=1 UI_W=76 UI_ROWS=24 UI_COLS=80 UI_BOTTOM=19
 UI_STAGE_LABELS=('Preparing' 'Backup' 'Packages' 'Dotfiles' 'Shells' 'Caches' 'Validate')
 UI_KEY=''
 
@@ -30,6 +37,8 @@ ui_read_key() {
         q | Q) UI_KEY=quit ;;
         a | A) UI_KEY=all ;;
         n | N) UI_KEY=none ;;
+        r | R) UI_KEY=defaults ;;
+        $'\t') UI_KEY=category ;;
         y | Y) UI_KEY=yes ;;
         j) UI_KEY=down ;;
         k) UI_KEY=up ;;
@@ -90,13 +99,82 @@ ui_restore() {
     $ui_active && printf '\033[?2026l'
     $ui_cursor_hidden && printf '\033[?25h'
     $ui_alt_screen && printf '\033[?1049l'
+    $ui_active && printf '\033[0m'
     ui_cursor_hidden=false
     ui_alt_screen=false
     ui_active=false
 }
 
 ui_clear() {
-    printf '\033[2J\033[H'
+    printf '%s\033[2J\033[H' "$UI_RESET"
+}
+
+ui_at() {
+    local row=$1 column=$2 style=$3 text=$4 limit=${5:-$UI_W}
+    printf '\033[%d;%dH%s%s%s' "$row" "$column" "$style" "${text:0:limit}" "$UI_RESET"
+}
+
+ui_line() {
+    local count=$1 char=${2:-─} result
+    printf -v result '%*s' "$count" ''
+    printf '%s' "${result// /$char}"
+}
+
+ui_canvas() {
+    local title=$1 subtitle=${2:-MAKE YOURSELF AT HOME} mode=SETUP
+    UI_ROWS=$(tput lines 2>/dev/null || printf '24')
+    UI_COLS=$(tput cols 2>/dev/null || printf '80')
+    UI_W=$((UI_COLS - 4))
+    ((UI_W <= 112)) || UI_W=112
+    UI_X=$(((UI_COLS - UI_W) / 2 + 1))
+    UI_Y=1
+    ((UI_ROWS < 30)) || UI_Y=2
+    UI_BOTTOM=$((UI_ROWS - 5))
+    [[ ${dry_run:-false} != true ]] || mode=PREVIEW
+    printf '\033[?2026h%s\033[H\033[J' "$UI_RESET"
+    ui_at "$UI_Y" "$UI_X" "${UI_PURPLE}${UI_BOLD}" 'K A I R O' 10
+    ui_at "$UI_Y" "$((UI_X + UI_W - ${#mode}))" "$UI_MUTED" "$mode" "${#mode}"
+    ui_at "$((UI_Y + 1))" "$UI_X" "$UI_MUTED" "$(ui_line "$UI_W" '─')"
+    ui_at "$((UI_Y + 2))" "$UI_X" "${UI_WHITE}${UI_BOLD}" "$title"
+    ui_at "$((UI_Y + 3))" "$UI_X" "$UI_MUTED" "$subtitle"
+}
+
+ui_panel() {
+    local top=$1 left=$2 width=$3 height=$4 title=${5:-} row
+    ui_at "$top" "$left" "$UI_MUTED" "╭$(ui_line "$((width - 2))")╮" "$width"
+    for ((row=top+1; row<top+height-1; row++)); do
+        ui_at "$row" "$left" "$UI_MUTED" "│$(ui_line "$((width - 2))" ' ')│" "$width"
+    done
+    ui_at "$((top + height - 1))" "$left" "$UI_MUTED" "╰$(ui_line "$((width - 2))")╯" "$width"
+    if [[ -n $title ]]; then
+        ui_at "$top" "$((left + 2))" "$UI_PURPLE" " $title " "$((width - 4))"
+    fi
+}
+
+ui_controls() {
+    local primary=$1 secondary=$2
+    ui_at "$((UI_ROWS - 3))" "$UI_X" "$UI_MUTED" "$(ui_line "$UI_W")"
+    ui_at "$((UI_ROWS - 2))" "$UI_X" "${UI_PURPLE}${UI_BOLD}" "$primary"
+    ui_at "$((UI_ROWS - 1))" "$UI_X" "$UI_MUTED" "$secondary"
+    printf '\033[?2026l'
+}
+
+# Wrap prose at word boundaries; long paths still fit within the panel.
+ui_wrap() {
+    local text=$1 width=$2 line chunk
+    UI_LINES=()
+    while IFS= read -r line; do
+        while ((${#line} > width)); do
+            chunk=${line:0:width}
+            if [[ $chunk == *' '* && -n ${chunk% *} ]]; then
+                chunk=${chunk% *}
+            fi
+            UI_LINES+=("$chunk")
+            line=${line:${#chunk}}
+            line=${line# }
+        done
+        UI_LINES+=("$line")
+    done <<< "$text"
 }
 
 ui_center() {
@@ -143,30 +221,8 @@ ui_footer() {
 }
 
 ui_heading() {
-    local clear_screen=${1:-true}
-    if [[ $clear_screen == true ]]; then
-        ui_clear
-    else
-        # Clear inside the synchronized frame so shorter rows and pages do
-        # not leave old labels or separators behind.
-        printf '\033[?2026h\033[H\033[J'
-    fi
-    if $ui_compact; then
-        printf '%s%s◆ KAIRO%s\n%sArch-first dotfiles installer%s\n' \
-            "$UI_BOLD" "$UI_CYAN" "$UI_RESET" "$UI_DIM" "$UI_RESET"
-        ui_rule
-        printf '\n'
-    else
-        ui_center_styled "${UI_CYAN}${UI_BOLD}" '██╗  ██╗ █████╗ ██╗██████╗  ██████╗ '
-        ui_center_styled "${UI_CYAN}${UI_BOLD}" '██║ ██╔╝██╔══██╗██║██╔══██╗██╔═══██╗'
-        ui_center_styled "${UI_CYAN}${UI_BOLD}" '█████╔╝ ███████║██║██████╔╝██║   ██║'
-        ui_center_styled "${UI_CYAN}${UI_BOLD}" '██╔═██╗ ██╔══██║██║██╔══██╗██║   ██║'
-        ui_center_styled "${UI_CYAN}${UI_BOLD}" '██║  ██╗██║  ██║██║██║  ██║╚██████╔╝'
-        ui_center_styled "${UI_CYAN}${UI_BOLD}" '╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝ '
-        printf '\n'
-        ui_center_styled "$UI_DIM" 'Arch-first development environment installer'
-        printf '\n'
-    fi
+    ui_canvas 'Your next workspace.' 'ARCH LINUX  /  PERSONAL BY DESIGN'
+    printf '\033[?2026l\033[%d;%dH' "$((UI_Y + 5))" "$UI_X"
 }
 
 ui_card() {
@@ -246,36 +302,57 @@ ui_wait_for_enter() {
 
 # Scroll a wrapped review without losing earlier lines above the terminal.
 ui_review() {
-    local text=$1 rows columns height offset=0 maximum index line
-    local -a lines=()
+    local text=$1 title=${2:-Review installation} action=${3:-install}
+    local rows columns height offset=0 maximum index last top content_width style content_x panel_width hero_width
+    local -a logo=('██╗  ██╗ █████╗ ██╗██████╗  ██████╗' '██║ ██╔╝██╔══██╗██║██╔══██╗██╔═══██╗' '█████╔╝ ███████║██║██████╔╝██║   ██║' '██╔═██╗ ██╔══██║██║██╔══██╗██║   ██║' '██║  ██╗██║  ██║██║██║  ██║╚██████╔╝' '╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝')
+    local -a UI_LINES=()
     while true; do
         rows=$(tput lines 2>/dev/null || printf '24')
         columns=$(tput cols 2>/dev/null || printf '80')
-        ui_clear
         if ((rows < 16 || columns < 32)); then
+            ui_clear
             printf 'Resize to at least 32 x 16'
             ui_read_key || return 1
             case "$UI_KEY" in quit | escape) return 1 ;; esac
             continue
         fi
-        lines=()
-        while IFS= read -r line; do
-            while ((${#line} > columns - 2)); do
-                lines+=("${line:0:columns-2}")
-                line=${line:columns-2}
+        ui_canvas "$title" 'YOUR WORKSPACE. YOUR CHOICES.'
+        top=$((UI_Y + 5))
+        height=$((UI_BOTTOM - top - 1))
+        content_x=$UI_X panel_width=$UI_W
+        if [[ $title == 'Welcome to Kairo' ]] && ((UI_W >= 86 && rows >= 24)); then
+            hero_width=$((UI_W / 2))
+            ui_panel "$top" "$UI_X" "$hero_width" "$((UI_BOTTOM - top + 1))" 'THE KAIRO WORKSPACE'
+            for ((index=0; index<${#logo[@]} && index<height; index++)); do
+                ui_at "$((top + 2 + index))" "$((UI_X + 3))" "$UI_PURPLE" "${logo[index]}" "$((hero_width - 6))"
             done
-            lines+=("$line")
-        done <<< "$text"
-        height=$((rows - 6))
-        maximum=$((${#lines[@]} - height))
+            ui_at "$((UI_BOTTOM - 3))" "$((UI_X + 3))" "$UI_WHITE" 'Make yourself at home.' "$((hero_width - 6))"
+            ui_at "$((UI_BOTTOM - 2))" "$((UI_X + 3))" "$UI_CYAN" 'Built around the way you work.' "$((hero_width - 6))"
+            content_x=$((UI_X + hero_width + 2))
+            panel_width=$((UI_W - hero_width - 2))
+        fi
+        content_width=$((panel_width - 6))
+        ui_wrap "$text" "$content_width"
+        maximum=$((${#UI_LINES[@]} - height))
         ((maximum >= 0)) || maximum=0
         ((offset <= maximum)) || offset=$maximum
-        ui_section 'Review installation'
-        for ((index=offset; index<offset+height && index<${#lines[@]}; index++)); do
-            printf '%s\n' "${lines[index]}"
+        last=$((offset + height))
+        ((last <= ${#UI_LINES[@]})) || last=${#UI_LINES[@]}
+        ui_panel "$top" "$content_x" "$panel_width" "$((UI_BOTTOM - top + 1))" 'OVERVIEW'
+        for ((index=offset; index<last; index++)); do
+            style=$UI_WHITE
+            case "${UI_LINES[index]}" in
+                *: | 'PREVIEW MODE:'*) style="${UI_PURPLE}${UI_BOLD}" ;;
+                '  •'*) style=$UI_CYAN ;;
+            esac
+            ui_at "$((top + 1 + index - offset))" "$((content_x + 3))" "$style" "${UI_LINES[index]}" "$content_width"
         done
-        printf '\033[%d;1H' "$((rows - 4))"
-        ui_footer $'↑↓/jk scroll  PgUp/PgDn page\nEnter install  Q/Esc cancel'
+        ui_at "$UI_BOTTOM" "$((content_x + 3))" "$UI_MUTED" " $((offset + 1))–$last of ${#UI_LINES[@]} lines " "$content_width"
+        if ((columns < 60)); then
+            ui_controls "Enter $action" '↑↓ scroll  PgUp/Dn  Q cancel'
+        else
+            ui_controls "Enter  $action                         Q / Esc  cancel" '↑↓ / j k  scroll     PgUp / PgDn  page     Home / End  jump'
+        fi
         ui_read_key || return 1
         case "$UI_KEY" in
             enter) return 0 ;;
@@ -291,21 +368,65 @@ ui_review() {
 }
 
 ui_confirm() {
-    local prompt=$1
-    printf '%s?%s %s %s[y/N]%s ' "$UI_YELLOW" "$UI_RESET" "$prompt" "$UI_DIM" "$UI_RESET"
-    ui_read_key || return 1
-    printf '\n'
-    [[ $UI_KEY == yes ]]
+    local prompt=$1 details=${2:-} index top height
+    local -a UI_LINES=()
+    ui_canvas 'Make it yours.' 'OPTIONAL EXTRAS  /  YOU DECIDE'
+    top=$((UI_Y + 5))
+    height=$((UI_BOTTOM - top - 1))
+    ui_panel "$top" "$UI_X" "$UI_W" "$((UI_BOTTOM - top + 1))" 'YOUR CHOICE'
+    ui_wrap "$prompt" "$((UI_W - 6))"
+    for ((index=0; index<${#UI_LINES[@]} && index<height; index++)); do
+        ui_at "$((top + 1 + index))" "$((UI_X + 3))" "${UI_WHITE}${UI_BOLD}" "${UI_LINES[index]}" "$((UI_W - 6))"
+    done
+    top=$((top + index + 2))
+    ui_wrap "$details" "$((UI_W - 6))"
+    for ((index=0; index<${#UI_LINES[@]} && top+index<UI_BOTTOM; index++)); do
+        ui_at "$((top + index))" "$((UI_X + 3))" "$UI_MUTED" "${UI_LINES[index]}" "$((UI_W - 6))"
+    done
+    ui_controls 'Y  yes     Enter / N  no' 'Optional. Press Enter to skip.'
+    while ui_read_key; do
+        case "$UI_KEY" in
+            yes) return 0 ;;
+            enter | none | quit | escape) return 1 ;;
+        esac
+    done
+    return 1
+}
+
+# Short descriptions stay separate from labels so the picker can truncate them.
+ui_module_hint() {
+    case "$1" in
+        hypr) printf 'Hyprland, Waybar, Quickshell notifications and wallpapers.' ;;
+        kairo-shell) printf 'Alternative desktop shell; replaces Waybar and the notification center.' ;;
+        kitty-smooth) printf 'Builds pinned Kitty with smooth cursor motion; requires build tools.' ;;
+        sddm) printf 'System login theme; needs sudo. Does not restart the display manager.' ;;
+        plymouth) printf 'System boot theme; needs sudo and may rebuild initramfs.' ;;
+        git) printf 'Adds managed settings while preserving your Git identity.' ;;
+        ssh) printf 'Adds a managed SSH fragment while preserving existing hosts.' ;;
+        nvim) printf 'LazyVim config; package installation also downloads editor plugins.' ;;
+        prism) printf 'Shared terminal palettes for shells, prompts and CLI tools.' ;;
+        fish | bash | zsh | nushell) printf 'Shell config and integrations; login shell is chosen separately.' ;;
+        waybar) printf 'Status bar, fonts and wallpaper-aware colors; included with Hyprland.' ;;
+        rofi) printf 'Launcher and desktop menus; replaces an existing Rofi config.' ;;
+        core-build) printf 'Compilers, Git, download tools, archives and ShellCheck.' ;;
+        cpp) printf 'GCC, Clang, CMake, Ninja, Meson and debuggers.' ;;
+        rust) printf 'Rust toolchain management through rustup.' ;;
+        python) printf 'Python, pip and uv.' ;;
+        web) printf 'Node.js, npm, pnpm and Bun.' ;;
+        containers) printf 'Podman, Compose and Buildah.' ;;
+        wayland) printf 'Portals, clipboard, screenshots and display utilities.' ;;
+        media) printf 'PipeWire, FFmpeg, ImageMagick and yt-dlp.' ;;
+        *) printf 'Installs the bundled configuration for this tool.' ;;
+    esac
 }
 
 ui_select_modules() {
     local -n names_ref=$1 labels_ref=$2 categories_ref=$3 selected_ref=$4
     local title=${5:-Choose your modules}
     local cursor=0 index count=${#names_ref[@]} previous_category=''
-    local rows columns start end selected_count heading_rows footer_rows
-    local available used cost page marker row_style
-    local -a page_starts page_ends
-    ui_clear
+    local rows columns start end selected_count available used cost page marker style
+    local next top panel_height list_width details_x details_width row hint bar filled
+    local -a initial_selection=("${selected_ref[@]}") page_starts page_ends UI_LINES=()
     while true; do
         rows=$(tput lines 2>/dev/null || printf '24')
         columns=$(tput cols 2>/dev/null || printf '80')
@@ -316,74 +437,84 @@ ui_select_modules() {
             case "$UI_KEY" in quit | escape) return 1 ;; esac
             continue
         fi
-        ui_compact=false
-        ((rows < 32 || columns < 72)) && ui_compact=true
-        heading_rows=9
-        $ui_compact && heading_rows=4
-        footer_rows=4
-        # Reserve the heading, selection count, page indicator, footer and
-        # one final row. Count category headings when building each page.
-        available=$((rows - heading_rows - 2 - 2 - footer_rows - 1))
+        selected_count=0
+        for ((index=0; index<count; index++)); do
+            [[ ${selected_ref[index]} != true ]] || ((selected_count+=1))
+        done
+        ui_canvas "$title" "$selected_count / $count selected  ·  CURATE YOUR WORKSPACE"
+        top=$((UI_Y + 5))
+        panel_height=$((UI_BOTTOM - top + 1))
+        available=$((panel_height - 2))
+        list_width=$UI_W
+        ((UI_W < 86)) || list_width=$((UI_W * 54 / 100))
         page_starts=() page_ends=()
         start=0
         while ((start < count)); do
             used=0 end=$start previous_category=''
             while ((end < count)); do
                 cost=1
-                [[ ${categories_ref[end]} != "$previous_category" ]] && cost=3
-                ((used + cost > available)) && break
+                [[ ${categories_ref[end]} == "$previous_category" ]] || cost=2
+                ((used + cost <= available)) || break
                 used=$((used + cost))
                 previous_category=${categories_ref[end]}
-                ((end++)) || true
+                ((end+=1))
             done
             page_starts+=("$start") page_ends+=("$end")
             start=$end
         done
         for ((page=0; page<${#page_starts[@]}; page++)); do
             start=${page_starts[page]} end=${page_ends[page]}
-            ((cursor < end)) && break
+            ((cursor >= end)) || break
         done
-        ui_heading false
-        selected_count=0
-        for ((index=0; index<count; index++)); do [[ ${selected_ref[index]} == true ]] && ((selected_count++)) || true; done
-        ui_section "$title"
-        printf '  %s%d / %d selected%s\n' "$UI_GREEN" "$selected_count" "$count" "$UI_RESET"
-        previous_category=''
+        ui_panel "$top" "$UI_X" "$list_width" "$panel_height" 'CONFIGURATION'
+        row=$((top + 1)) previous_category=''
         for ((index=start; index<end; index++)); do
             if [[ ${categories_ref[index]} != "$previous_category" ]]; then
                 previous_category=${categories_ref[index]}
-                printf '\n  %s%.*s%s\n' "$UI_PURPLE" "$((columns - 2))" "$previous_category" "$UI_RESET"
+                ui_at "$row" "$((UI_X + 2))" "$UI_PURPLE" "$previous_category" "$((list_width - 4))"
+                ((row+=1))
             fi
-            marker='[ ]'
-            row_style=$UI_DIM
-            if [[ ${selected_ref[index]} == true ]]; then
-                marker='[x]'
-                row_style=$UI_WHITE
-            fi
+            marker='○' style=$UI_MUTED
+            if [[ ${selected_ref[index]} == true ]]; then marker='●'; style=$UI_WHITE; fi
             if ((index == cursor)); then
-                printf '%s%s%s  › %s %-*.*s%s\n' "$UI_SURFACE" "$UI_BOLD" "$UI_WHITE" \
-                    "$marker" "$((columns - 10))" "$((columns - 10))" "${labels_ref[index]}" "$UI_RESET"
+                printf -v hint ' › %s %-*.*s' "$marker" "$((list_width - 9))" "$((list_width - 9))" "${labels_ref[index]}"
+                ui_at "$row" "$((UI_X + 1))" "${UI_SELECTED}${UI_BOLD}" "$hint" "$((list_width - 2))"
             else
-                printf '%s    %s %.*s%s\n' "$row_style" "$marker" "$((columns - 10))" \
-                    "${labels_ref[index]}" "$UI_RESET"
+                ui_at "$row" "$((UI_X + 2))" "$style" "  $marker ${labels_ref[index]}" "$((list_width - 4))"
             fi
+            ((row+=1))
         done
-        printf '\n  %sPage %d/%d · %d–%d of %d%s\n' "$UI_DIM" \
-            "$((page + 1))" "${#page_starts[@]}" "$((start + 1))" "$end" "$count" "$UI_RESET"
-        # Keep controls anchored while moving between differently sized pages.
-        printf '\033[%d;1H' "$((rows - footer_rows))"
-        if ((columns < 72)); then
-            ui_footer $'↑↓/jk move  Space toggle\nA all N none Enter next Q quit'
-        else
-            ui_footer $'↑/↓ or j/k move · Space toggle · A all · N none\nPgUp/PgDn page · Home/End jump · Enter review · Q/Esc cancel'
+        if ((UI_W >= 86)); then
+            details_x=$((UI_X + list_width + 2))
+            details_width=$((UI_W - list_width - 2))
+            ui_panel "$top" "$details_x" "$details_width" "$panel_height" 'IN FOCUS'
+            ui_at "$((top + 2))" "$((details_x + 3))" "${UI_WHITE}${UI_BOLD}" "${labels_ref[cursor]}" "$((details_width - 6))"
+            hint=$(ui_module_hint "${names_ref[cursor]}")
+            ui_wrap "$hint" "$((details_width - 6))"
+            for ((index=0; index<${#UI_LINES[@]} && index<panel_height-7; index++)); do
+                ui_at "$((top + 4 + index))" "$((details_x + 3))" "$UI_MUTED" "${UI_LINES[index]}" "$((details_width - 6))"
+            done
+            hint='○  Not selected'
+            [[ ${selected_ref[cursor]} != true ]] || hint='●  Included in your setup'
+            ui_at "$((UI_BOTTOM - 2))" "$((details_x + 3))" "$UI_CYAN" "$hint" "$((details_width - 6))"
         fi
-        # Remove remnants only after the new frame has been painted.
-        printf '\033[J\033[?2026l'
+        ui_at "$UI_BOTTOM" "$((UI_X + 3))" "$UI_MUTED" " Page $((page + 1))/${#page_starts[@]} · $((start + 1))–$end of $count " "$((list_width - 6))"
+        if ((columns < 60)); then
+            ui_controls '↑↓ move  Space toggle  Enter' 'A all N none R reset Q exit'
+        else
+            ui_controls '↑↓ / j k  move     Space  toggle     Enter  continue' 'Tab category   A all   N none   R defaults   Q / Esc cancel'
+        fi
         ui_read_key || return 1
         case "$UI_KEY" in
             space) [[ ${selected_ref[cursor]} == true ]] && selected_ref[cursor]=false || selected_ref[cursor]=true ;;
             all) for ((index=0; index<count; index++)); do selected_ref[index]=true; done ;;
             none) for ((index=0; index<count; index++)); do selected_ref[index]=false; done ;;
+            defaults) selected_ref=("${initial_selection[@]}") ;;
+            category)
+                next=$((cursor + 1))
+                while ((next < count)) && [[ ${categories_ref[next]} == "${categories_ref[cursor]}" ]]; do ((next+=1)); done
+                ((next < count)) && cursor=$next || cursor=0
+                ;;
             quit | escape) return 1 ;;
             enter) return 0 ;;
             up) ((cursor > 0)) && ((cursor--)) || true ;;
@@ -392,38 +523,37 @@ ui_select_modules() {
             page_down) ((page + 1 < ${#page_starts[@]})) && cursor=${page_starts[page+1]} || cursor=$((count - 1)) ;;
             home) cursor=0 ;;
             end) cursor=$((count - 1)) ;;
-            mouse | ignore) continue ;;
         esac
     done
 }
 
-# Single-choice login-shell menu; Enter keeps the highlighted choice.
-ui_select_default_shell() {
-    local -n result=$1
-    local -a names=(keep bash zsh fish nushell)
-    local -a labels=('Keep current shell' Bash Zsh Fish Nushell)
-    local cursor=0 index rows columns
+# Shared single-choice screen for login shells and package helpers.
+ui_choose() {
+    local -n result=$1 names=$2 labels=$3
+    local title=$4 subtitle=$5 cursor=0 index rows columns top marker style
     for index in "${!names[@]}"; do
         [[ ${names[index]} != "$result" ]] || cursor=$index
     done
     while true; do
         rows=$(tput lines 2>/dev/null || printf '24')
         columns=$(tput cols 2>/dev/null || printf '80')
-        ui_clear
         if ((rows < 16 || columns < 32)); then
+            ui_clear
             printf 'Resize to at least 32 x 16'
         else
-            ui_section 'Default login shell'
-            printf '\n'
+            ui_canvas "$title" "$subtitle"
+            top=$((UI_Y + 5))
+            ui_panel "$top" "$UI_X" "$UI_W" "$((${#names[@]} + 2))" 'PREFERENCES'
             for index in "${!names[@]}"; do
+                marker='○' style=$UI_MUTED
+                [[ ${names[index]} != "$result" ]] || marker='●'
                 if ((index == cursor)); then
-                    printf '  %s› %s%s\n' "$UI_CYAN" "${labels[index]}" "$UI_RESET"
-                else
-                    printf '    %s\n' "${labels[index]}"
+                    style="${UI_SELECTED}${UI_BOLD}"
+                    marker="› $marker"
                 fi
+                ui_at "$((top + 1 + index))" "$((UI_X + 2))" "$style" " $marker  ${labels[index]} " "$((UI_W - 4))"
             done
-            printf '\n  Applied after installation.\n  chsh may ask for a password.\n'
-            ui_footer $'↑↓/jk move  Enter choose\nQ/Esc cancel'
+            ui_controls '↑↓ move   Enter choose' 'Q / Esc cancel'
         fi
         ui_read_key || return 1
         case "$UI_KEY" in
@@ -433,26 +563,38 @@ ui_select_default_shell() {
         case "$UI_KEY" in
             enter) result=${names[cursor]}; return 0 ;;
             up) ((cursor > 0)) && ((cursor--)) || true ;;
-            down) ((cursor < 4)) && ((cursor++)) || true ;;
+            down) ((cursor + 1 < ${#names[@]})) && ((cursor++)) || true ;;
             home) cursor=0 ;;
-            end) cursor=4 ;;
+            end) cursor=$((${#names[@]} - 1)) ;;
         esac
     done
 }
 
+ui_select_default_shell() {
+    local -a shell_ids=(keep bash zsh fish nushell)
+    local -a shell_labels=('Keep current shell' Bash Zsh Fish Nushell)
+    ui_choose "$1" shell_ids shell_labels 'Default login shell' 'APPLIED AFTER SETUP  /  CHSH MAY REQUEST YOUR PASSWORD'
+}
+
+ui_select_aur_helper() {
+    local -a helper_ids=(paru yay)
+    local -a helper_labels=('paru · Rust-based' 'yay · Go-based')
+    ui_choose "$1" helper_ids helper_labels 'AUR helper' 'FOR PACKAGES FROM THE ARCH USER REPOSITORY'
+}
+
 ui_success() {
-    local details=$1 title=${2:-INSTALLATION COMPLETE}
-    ui_heading
-    ui_center_styled "${UI_GREEN}${UI_BOLD}" "✓  $title"
-    printf '\n'
-    ui_rule
-    printf '\n%s\n' "$details"
+    ui_review "$1" "${2:-INSTALLATION COMPLETE}" close || true
 }
 
 ui_failure() {
-    ui_heading
-    ui_center_styled "${UI_RED}${UI_BOLD}" '✗  INSTALLATION FAILED'
-    printf '\n'
-    ui_rule
-    printf '\n%s%s%s\n' "$UI_RED" "$1" "$UI_RESET" >&2
+    local index top
+    local -a UI_LINES=()
+    ui_canvas 'Something needs attention.' 'INSTALLATION STOPPED'
+    top=$((UI_Y + 5))
+    ui_panel "$top" "$UI_X" "$UI_W" "$((UI_BOTTOM - top + 1))" 'DETAILS'
+    ui_wrap "$1" "$((UI_W - 6))"
+    for ((index=0; index<${#UI_LINES[@]} && top+1+index<UI_BOTTOM; index++)); do
+        ui_at "$((top + 1 + index))" "$((UI_X + 3))" "$UI_RED" "${UI_LINES[index]}" "$((UI_W - 6))"
+    done
+    ui_controls 'Any key  close' 'See the terminal log for details.'
 }
