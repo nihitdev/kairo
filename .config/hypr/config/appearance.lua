@@ -2,6 +2,8 @@
 -- │ Appearance                                   │
 -- ╰──────────────────────────────────────────────╯
 
+local colors = require("config.colors")
+
 hl.config({
     general = {
         gaps_in = 4,
@@ -9,8 +11,8 @@ hl.config({
         border_size = 2,
 
         col = {
-            active_border = "rgba(c4a7e7ff)",
-            inactive_border = "rgba(393552ff)",
+            active_border = colors.active_border,
+            inactive_border = colors.inactive_border,
         },
 
         resize_on_border = true,
@@ -30,7 +32,7 @@ hl.config({
             enabled = true,
             range = 12,
             render_power = 2,
-            color = "rgba(100d1c80)",
+            color = colors.shadow,
         },
 
         -- Keep the glass look without hammering the GPU.

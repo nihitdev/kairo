@@ -3,10 +3,12 @@ set -euo pipefail
 
 DIR="$HOME/Pictures/CozyPixels/Live Wallpapers/Wallpapers"
 CURRENT="$HOME/.config/hypr/current-live-wallpaper"
+RESTORING=false
 
 if [[ "${1:-}" == "--restore" ]]; then
     [[ -f "$CURRENT" ]] || exit 0
     VIDEO="$(realpath -- "$CURRENT")"
+    RESTORING=true
 else
     [[ -d "$DIR" ]] || exit 1
     mapfile -d "" -t VIDEOS < <(find "$DIR" -type f \( -iname "*.mp4" -o -iname "*.webm" -o -iname "*.mkv" \) -print0)
@@ -43,8 +45,7 @@ pkill -u "$(id -u)" -x mpvpaper 2>/dev/null || true
 pkill -u "$(id -u)" -x hyprpaper 2>/dev/null || true
 mpvpaper -f -p -o "no-audio loop-file=inf hwdec=auto-safe" ALL "$VIDEO"
 ln -sfn -- "$VIDEO" "$CURRENT"
-palette="${XDG_CONFIG_HOME:-$HOME/.config}/waybar/scripts/wallpaper-colors.py"
-if [[ -f "$palette" ]]; then
-    python3 "$palette" "$VIDEO" || true
+if ! $RESTORING; then
+    "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/scripts/apply-wallpaper-theme.sh" "$VIDEO"
+    notify-send "Live wallpaper activated" "$(basename "$VIDEO")"
 fi
-notify-send "Live wallpaper activated" "$(basename "$VIDEO")"

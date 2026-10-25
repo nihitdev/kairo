@@ -1,19 +1,11 @@
+@import "~/.config/rofi/colors.rasi"
+
 configuration {
     font: "SpaceMono Nerd Font 11";
     show-icons: true;
 }
 
 * {
-    bg:          #191724E6;
-    card:        #26233ACC;
-    card-hover:  #393552DD;
-
-    text:        #E0DEF4FF;
-    muted:       #908CAAFF;
-
-    purple:      #C4A7E7FF;
-    cyan:        #9CCFD8FF;
-
     background-color: transparent;
     text-color: @text;
 }
@@ -32,7 +24,7 @@ window {
     background-color: @bg;
 
     border: 1px;
-    border-color: #C4A7E744;
+    border-color: @selected;
     border-radius: 20px;
 
     padding: 0px;

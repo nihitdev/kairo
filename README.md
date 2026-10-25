@@ -353,17 +353,17 @@ to already be present for its click actions. With Hyprland, the installer enable
 Waybar's systemd user service under `graphical-session.target`; systemd restarts it
 after a failure and stops it when the session ends.
 
-Waybar's text, accents, workspace highlights, and hover colors follow the selected
-wallpaper. Both static pickers, the live-wallpaper picker, and login startup call
-`waybar/scripts/wallpaper-colors.py`; no polling daemon is used. Static images are
-sampled with Python Pillow; video wallpapers use one FFmpeg frame. A crop of the
-wallpaper's top strip guides contrast. The stylesheet imports `colors.css`, which
-is replaced atomically and Waybar reloads only when the palette changes.
+Matugen builds one dark palette from the selected wallpaper for Hyprland borders
+and shadows, Waybar, Kitty, Rofi, Hyprlock, and the Hyprland Quickshell
+notifications. The static Rofi picker, live-wallpaper picker, Quickshell carousel,
+and login startup all call `hypr/scripts/apply-wallpaper-theme.sh`; there is no
+palette polling process. Video wallpapers are sampled with one FFmpeg frame.
+Generated app colors are stored in their existing config locations and reload
+when the wallpaper changes; the wallpaper daemon remains responsible for setting
+the image itself.
 
-The installer includes Pillow, FFmpeg, and JetBrains Mono with Waybar. It samples
-an existing wallpaper into a staged payload with `--no-reload`, preserving the
-running session. A bundled palette for `snow-pine-forest.png` keeps fresh installs
-usable even when sampling dependencies or a readable wallpaper are unavailable.
+The Hyprland and Waybar package sets include Matugen and FFmpeg. Python Pillow is
+still used by the Quickshell carousel to create wallpaper thumbnails.
 
 Hyprland’s Quickshell center owns `org.freedesktop.Notifications` and provides
 compact toasts, an in-session history, DND, clear-all, and notification actions.

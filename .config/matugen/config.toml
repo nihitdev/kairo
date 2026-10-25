@@ -1,0 +1,31 @@
+[config]
+reload_apps = false
+
+[config.wallpaper]
+command = "true"
+arguments = []
+set = false
+
+[templates.hyprland]
+input_path = '~/.config/matugen/templates/hyprland-colors.lua'
+output_path = '~/.config/hypr/config/colors.lua'
+
+[templates.waybar]
+input_path = '~/.config/matugen/templates/waybar-colors.css'
+output_path = '~/.config/waybar/colors.css'
+
+[templates.kitty]
+input_path = '~/.config/matugen/templates/kitty-colors.conf'
+output_path = '~/.config/kitty/current-theme.conf'
+
+[templates.rofi]
+input_path = '~/.config/matugen/templates/rofi-colors.rasi'
+output_path = '~/.config/rofi/colors.rasi'
+
+[templates.hyprlock]
+input_path = '~/.config/matugen/templates/hyprlock.conf.in'
+output_path = '~/.config/hyprlock/hyprlock.template.conf'
+
+[templates.quickshell]
+input_path = '~/.config/matugen/templates/qs-theme.qml'
+output_path = '~/.config/quickshell/hyprland-notifications/Theme.qml'

@@ -35,10 +35,11 @@ done
 [[ -x $target/.local/bin/battery-guardian ]] || fail 'battery guardian missing'
 diff -qr "$repo_root/.config/quickshell/hyprland-notifications" "$target/.config/quickshell/hyprland-notifications"
 cmp "$repo_root/.config/waybar/config.jsonc" "$target/.config/waybar/config.jsonc"
-[[ -r $target/.config/waybar/colors.css && -x $target/.config/waybar/scripts/wallpaper-colors.py ]] || fail 'adaptive Waybar palette payload missing'
+[[ -r $target/.config/waybar/colors.css && -x $target/.config/hypr/scripts/apply-wallpaper-theme.sh ]] || fail 'Matugen palette payload missing'
+[[ -f $target/.config/matugen/config.toml && -f $target/.config/hypr/config/colors.lua ]] || fail 'Matugen config payload missing'
 grep -Fq '@import "colors.css";' "$target/.config/waybar/style.css" || fail 'palette stylesheet not imported'
-grep -Fq 'wallpaper-colors.py' "$target/.config/hypr/scripts/wallpaper-picker-rofi.sh" || fail 'Rofi palette hook missing'
-grep -Fq 'wallpaper-colors.py' "$target/.config/quickshell/wallpaper-picker/backend.py" || fail 'carousel palette hook missing'
+grep -Fq 'apply-wallpaper-theme.sh' "$target/.config/hypr/scripts/wallpaper-picker-rofi.sh" || fail 'Rofi Matugen hook missing'
+grep -Fq 'apply-wallpaper-theme.sh' "$target/.config/quickshell/wallpaper-picker/backend.py" || fail 'carousel Matugen hook missing'
 
 run_install "$target" --only hypr > "$test_root/repeat"
 ! grep -q 'Replace ' "$test_root/repeat" || fail 'desktop reinstall replaced unchanged files'

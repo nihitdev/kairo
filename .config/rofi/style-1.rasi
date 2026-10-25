@@ -1,3 +1,5 @@
+@import "~/.config/rofi/colors.rasi"
+
 /**
  *
  * 
@@ -21,14 +23,6 @@ configuration {
 }
 
 /*****----- Global Properties -----*****/
-* {
-    background:     #191724B3;
-    background-alt: #1F1D2ECC;
-    foreground:     #E0DEF4FF;
-    selected:       #C4A7E7FF;
-    active:         #9CCFD8FF;
-    urgent:         #EB6F92FF;
-}
 * { font: "JetBrainsMono Nerd Font Mono 10"; }
 
 /*****----- Main Window -----*****/

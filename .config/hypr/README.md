@@ -4,7 +4,7 @@ Hyprland 0.56+ Lua configuration with Dwindle, Scrolling (Niri-style columns), a
 
 Press **Super+/** for the searchable [shortcut reference](shortcuts.txt). **Super+F** toggles fullscreen; **Super+Shift+F** maximizes; **Super+Shift+Space** toggles floating. Super+Shift+Arrows moves windows, and Super+Ctrl+Arrows resizes them. **Super+F5/F6** adjusts brightness. **Ctrl+Print** captures the focused window. **Super+Shift+R** validates and reloads the compositor config. Hyprland also automatically reloads edits to its config files.
 
-The theme uses a transparent 32px Waybar with wallpaper-derived colors, a compact 400px Rofi launcher, and a Quickshell notification center with toasts, session history, DND, and clear-all. Waybar runs as a systemd user service tied to `graphical-session.target` and restarts after failures. Workspaces appear as dots only while occupied or currently viewed. Both wallpaper pickers update the bar palette automatically; login restores it.
+The theme uses a transparent 32px Waybar with wallpaper-derived colors, a compact 400px Rofi launcher, and a Quickshell notification center with toasts, session history, DND, and clear-all. Matugen shares the wallpaper palette across Hyprland, Waybar, Kitty, Rofi, Hyprlock, and the notification shell. Waybar runs as a systemd user service tied to `graphical-session.target` and restarts after failures. Workspaces appear as dots only while occupied or currently viewed. Both wallpaper pickers update the palette automatically; login restores it.
 
 ## Files
 

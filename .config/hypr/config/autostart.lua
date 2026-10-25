@@ -13,8 +13,8 @@ hl.on("hyprland.start", function()
     -- Start the selected wallpaper backend.
     hl.exec_cmd([[sh -c 'if [ -f "$HOME/.config/hypr/current-live-wallpaper" ]; then bash "$HOME/.config/hypr/scripts/live-wallpaper.sh" --restore; else pgrep -u "$(id -u)" -x hyprpaper >/dev/null || hyprpaper; fi']])
 
-    -- Restore wallpaper-derived bar colors once per login.
-    hl.exec_cmd('python3 "' .. os.getenv("HOME") .. '/.config/waybar/scripts/wallpaper-colors.py"')
+    -- Generate the shared wallpaper palette once per login.
+    hl.exec_cmd('"' .. os.getenv("HOME") .. '/.config/hypr/scripts/apply-wallpaper-theme.sh"')
 
     -- Hyprland notifications are owned by the lightweight Quickshell center.
     hl.exec_cmd([[sh -c 'qs -n -d -p "$HOME/.config/quickshell/hyprland-notifications"']])

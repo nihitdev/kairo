@@ -559,5 +559,4 @@ python3 "$repo_root/.config/tests/test-notifications.py"
 python3 "$repo_root/.config/tests/test-shell-configs.py"
 python3 "$repo_root/.config/tests/test-kitty-smooth.py"
 python3 "$repo_root/.config/tests/test-theme-transaction.py"
-python3 "$repo_root/.config/tests/test-wallpaper-colors.py"
 printf 'Linux installer safety tests passed.\n'

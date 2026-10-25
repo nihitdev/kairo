@@ -64,11 +64,11 @@ declare -a hypr_packages=(
     hyprland hyprpaper hypridle hyprlock awww network-manager-applet
     kitty rofi cliphist wl-clipboard jq libnotify brightnessctl playerctl
     wireplumber xdg-desktop-portal-hyprland qt5-wayland qt6-wayland qt6ct kvantum
-    grim slurp procps-ng util-linux ffmpeg quickshell qt6-declarative python-pillow
+    grim slurp procps-ng util-linux ffmpeg matugen quickshell qt6-declarative python-pillow
     ttf-iosevka-nerd ttf-jetbrains-mono-nerd
 )
 declare -a waybar_packages=(
-    waybar python python-pillow ffmpeg jq kitty wireplumber brightnessctl playerctl ttf-jetbrains-mono
+    waybar python python-pillow ffmpeg jq matugen kitty wireplumber brightnessctl playerctl ttf-jetbrains-mono
     networkmanager bluez bluez-utils bluetui pulsemixer btop cava calcurse yazi rofi libnotify fontconfig ttf-iosevka-nerd
 )
 
@@ -985,6 +985,14 @@ preflight_desktop() {
         done < <(find "$source_config_root/$module" -type f \( -name '*.sh' -o -name '*.lua' \) -print0)
     done
     if is_selected hypr; then
+        for file in config.toml templates/hyprland-colors.lua templates/waybar-colors.css \
+            templates/kitty-colors.conf templates/rofi-colors.rasi templates/hyprlock.conf.in \
+            templates/qs-theme.qml; do
+            [[ -r $source_config_root/matugen/$file ]] || {
+                printf 'Missing Matugen palette payload: %s\n' "$file" >&2; return 1;
+            }
+        done
+        assert_safe_destination "$config_root/matugen"
         [[ -x $repo_root/.local/bin/battery-guardian ]] || {
             printf 'Missing battery guardian helper.\n' >&2; return 1;
         }
@@ -1005,8 +1013,8 @@ preflight_desktop() {
         [[ -r $source_config_root/awww/archnemesis.toml ]] || {
             printf 'Missing awww transition config: %s\n' "$source_config_root/awww/archnemesis.toml" >&2; return 1;
         }
-        for file in hyprland.lua hyprpaper.conf config/windows.lua shortcuts.txt \
-            scripts/keybinds.sh scripts/reload.sh scripts/toggle-layout.sh; do
+        for file in hyprland.lua hyprpaper.conf config/windows.lua config/colors.lua shortcuts.txt \
+            scripts/apply-wallpaper-theme.sh scripts/keybinds.sh scripts/reload.sh scripts/toggle-layout.sh; do
             [[ -r $source_config_root/hypr/$file ]] || {
                 printf 'Missing Hyprland payload: %s\n' "$file" >&2; return 1;
             }
@@ -1019,7 +1027,6 @@ preflight_desktop() {
         [[ -f $source_config_root/waybar/config.jsonc &&
            -f $source_config_root/waybar/style.css &&
            -f $source_config_root/waybar/colors.css &&
-           -x $source_config_root/waybar/scripts/wallpaper-colors.py &&
            -f $source_config_root/waybar/scripts/fonts/Waycat.ttf &&
            -f $source_config_root/waybar/scripts/fonts/Skulltype.ttf ]] || return 1
         assert_safe_destination "$kairo_shell_data/fonts/archnemesis"
@@ -1079,6 +1086,7 @@ install_hypr_desktop() {
     fi
     install_item hypr "$source_config_root/awww" "$config_root/awww"
     install_item hypr "$source_config_root/hyprlock" "$config_root/hyprlock"
+    install_item hypr "$source_config_root/matugen" "$config_root/matugen"
     # Required by the existing keybinds; preserve a user's custom Rofi setup.
     if ! is_selected rofi; then
         install_seed_item hypr "$source_config_root/rofi" "$config_root/rofi"
@@ -1117,8 +1125,8 @@ install_hypr_desktop() {
         command=${command//\\/\\\\}
         command=${command//\"/\\\"}
         printf 'return "%s"\n' "$command" > "$temp_hypr/config/bar.lua"
-        # The palette helper belongs to Waybar, which is not deployed with Kairo Shell.
-        sed -i '/Restore wallpaper-derived bar colors once per login/d; /hl.exec_cmd.*waybar\/scripts\/wallpaper-colors.py/d' "$temp_hypr/config/autostart.lua"
+        # Kairo Shell owns its own palette and startup flow.
+        sed -i '/Generate the shared wallpaper palette once per login/d; /apply-wallpaper-theme.sh/d' "$temp_hypr/config/autostart.lua"
         # The current live config starts Waybar directly; replace only that entry.
         sed -i '/^[[:space:]]*"waybar",[[:space:]]*$/d' "$temp_hypr/config/autostart.lua"
         sed -i '/    -- Session daemons\./i\    hl.exec_cmd(require("config.bar"))\n' "$temp_hypr/config/autostart.lua"
@@ -1149,24 +1157,7 @@ install_kitty() {
 install_waybar() {
     is_selected waybar || return 0
     is_selected kairo-shell && return 0
-    local payload="$source_config_root/waybar" wallpaper=''
-    if ! $dry_run && command -v python3 >/dev/null 2>&1 && python3 -c 'import PIL' >/dev/null 2>&1; then
-        if [[ -f $config_root/hypr/current-live-wallpaper ]]; then
-            wallpaper="$config_root/hypr/current-live-wallpaper"
-        elif [[ -f $config_root/hypr/current-wallpaper ]]; then
-            wallpaper="$config_root/hypr/current-wallpaper"
-        fi
-        if [[ -n $wallpaper ]]; then
-            ensure_external_root
-            payload="$external_root/waybar"
-            cp -a -- "$source_config_root/waybar" "$payload"
-            if ! python3 "$payload/scripts/wallpaper-colors.py" "$wallpaper" \
-                --output "$payload/colors.css" --no-reload >/dev/null 2>&1; then
-                warnings+=('Could not sample the current wallpaper; using the bundled Waybar palette')
-            fi
-        fi
-    fi
-    install_item waybar "$payload" "$config_root/waybar"
+    install_item waybar "$source_config_root/waybar" "$config_root/waybar"
     install_item waybar "$source_config_root/waybar/scripts/fonts" "$kairo_shell_data/fonts/archnemesis"
     if is_selected hypr && command -v systemctl >/dev/null 2>&1; then
         if $dry_run; then
@@ -1552,7 +1543,8 @@ validate_installed_configs() {
                 ;;
             ssh) [[ -f $HOME/.ssh/config.d/dotfiles.conf ]] || return 1 ;;
             hypr)
-                [[ -f $config_root/hypr/hyprland.lua && -f $config_root/hypr/hyprpaper.conf ]] || return 1
+                [[ -f $config_root/hypr/hyprland.lua && -f $config_root/hypr/hyprpaper.conf &&
+                   -f $config_root/hypr/config/colors.lua && -f $config_root/matugen/config.toml ]] || return 1
                 [[ -x $HOME/.local/bin/battery-guardian ]] || return 1
                 if ! is_selected kairo-shell; then
                     [[ -f $config_root/quickshell/hyprland-notifications/shell.qml ]] || return 1
@@ -1677,7 +1669,7 @@ interactive_prepare() {
         selected_list+="  • $(module_label "$index")"$'\n'
     done
     if is_selected hypr && ! is_selected kairo-shell; then
-        selected_list+=$'  Hyprland includes Waybar, fonts, Hyprlock and Quickshell notifications.\n'
+        selected_list+=$'  Hyprland includes Waybar, fonts, Hyprlock, Matugen and Quickshell notifications.\n'
         selected_list+=$'  Rofi is seeded only when absent.\n'
     elif is_selected kairo-shell && is_selected waybar; then
         selected_list+=$'  Kairo Shell selected: Waybar deployment is skipped.\n'
@@ -1695,7 +1687,7 @@ interactive_prepare() {
             bash) [[ -e $HOME/.bashrc ]] && replacement_list+="  $HOME/.bashrc"$'\n' ;;
             zsh) [[ -e $HOME/.zshrc ]] && replacement_list+="  $HOME/.zshrc"$'\n' ;;
             hypr)
-                for target in hypr hyprlock; do
+                for target in hypr hyprlock matugen; do
                     if [[ -e $config_root/$target || -L $config_root/$target ]]; then
                         replacement_list+="  $config_root/$target"$'\n'
                     fi
@@ -1933,6 +1925,11 @@ install_curated_wallpapers
 install_hypr_desktop
 install_waybar
 install_item rofi "$source_config_root/rofi" "$config_root/rofi"
+if is_selected hypr && ! is_selected kairo-shell && ! $dry_run && [[ ${CI:-false} != true ]]; then
+    if ! "$config_root/hypr/scripts/apply-wallpaper-theme.sh"; then
+        warnings+=('Could not generate the wallpaper palette; the bundled colors remain active')
+    fi
+fi
 install_kairo_shell
 if [[ -d $source_config_root/fish ]]; then
     fish_source="$source_config_root/fish"

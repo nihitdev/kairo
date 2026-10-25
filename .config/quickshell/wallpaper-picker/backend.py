@@ -47,9 +47,8 @@ def apply(path, output):
     if p.suffix.lower() in VIDEO:
         if output != 'all': raise ValueError('Video wallpapers currently apply to all monitors')
         subprocess.run(['pkill','-u',str(os.getuid()),'-x','mpvpaper'], capture_output=True)
-        subprocess.run(['pkill','-u',str(os.getuid()),'-x','hyprpaper'], capture_output=True)
-        subprocess.run(['awww', 'kill'], capture_output=True)
         subprocess.Popen(['mpvpaper', '-f', '-p', '-o', 'no-audio loop-file=inf hwdec=auto-safe', 'ALL', str(p)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        subprocess.run(['awww', 'kill'], capture_output=True)
         link = CONFIG/'hypr/current-live-wallpaper'
     else:
         monitors = json.loads(run('hyprctl', '-j', 'monitors'))
@@ -96,14 +95,14 @@ def apply(path, output):
     tmp = HISTORY.with_suffix('.tmp')
     tmp.write_text(json.dumps(hist[:100]))
     tmp.replace(HISTORY)
-    # Palette failures must not undo a successfully applied wallpaper.
-    palette = CONFIG/'waybar/scripts/wallpaper-colors.py'
-    if palette.is_file():
+    # Theme failures must not undo a successfully applied wallpaper.
+    theme_helper = CONFIG/'hypr/scripts/apply-wallpaper-theme.sh'
+    if theme_helper.is_file():
         try:
-            subprocess.run([sys.executable, str(palette), str(p)],
-                           stdout=subprocess.DEVNULL, timeout=20, check=False)
+            subprocess.run([str(theme_helper), str(p)],
+                           stdout=subprocess.DEVNULL, timeout=30, check=False)
         except (OSError, subprocess.TimeoutExpired) as error:
-            print(f'Waybar palette: {error}', file=sys.stderr)
+            print(f'Wallpaper theme: {error}', file=sys.stderr)
     print(json.dumps({'ok':True, 'history':hist[:100]}))
 if __name__ == '__main__':
     try:
