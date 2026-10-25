@@ -43,10 +43,11 @@ class SwayNCTest(unittest.TestCase):
         self.assertTrue(os.access(installed, os.X_OK))
         self.assertFalse((self.home / '.dotfiles-backup').exists())
 
-    def test_default_plan_includes_swaync(self):
+    def test_default_plan_uses_quickshell_notifications(self):
         # Defaults include system-wide SDDM; preview selection without sudo writes.
         plan = self.install('--dry-run').stdout
-        self.assertIn('Install swaync', plan)
+        self.assertIn('quickshell/hyprland-notifications', plan)
+        self.assertNotIn('Install swaync', plan)
         self.assertIn('battery-guardian', plan)
         self.assertEqual(list(self.home.iterdir()), [])
 
@@ -104,7 +105,7 @@ class SwayNCTest(unittest.TestCase):
 
     @unittest.skipUnless(shutil.which('lua'), 'Lua is unavailable')
     def test_autostart_and_existing_blur_rules(self):
-        self.install('--only', 'hypr')
+        self.install('--only', 'hypr', '--only', 'swaync')
         script = '''
 local commands, namespaces = {}, {}
 hl = {
@@ -118,13 +119,13 @@ hl = {
 }
 dofile(arg[1])
 dofile(arg[2])
-local guardians, swaync, waybar = 0, 0, 0
+local guardians, swaync = 0, 0
 for _, command in ipairs(commands) do
     if command:find('battery-guardian', 1, true) then guardians = guardians + 1 end
     if command:find('-x swaync', 1, true) then swaync = swaync + 1 end
-    if command:find('-x waybar', 1, true) then waybar = waybar + 1 end
+    assert(not command:find('hyprland-notifications', 1, true))
 end
-assert(guardians == 1 and swaync == 1 and waybar == 1)
+assert(guardians == 1 and swaync == 1)
 assert(namespaces['^swaync-control-center$'] == 1)
 assert(namespaces['^swaync-notification-window$'] == 1)
 '''

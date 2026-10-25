@@ -144,9 +144,9 @@ exec {real_cp} "$@"
     @unittest.skipUnless(shutil.which('lua'), 'Lua not installed')
     def test_hyprland_fallback(self):
         program = ROOT / '.config/hypr/config/programs.lua'
-        code = f'dofile("{program}"); print(P.terminal); print(P.editor)'
+        code = f'dofile("{program}"); os.execute(P.terminal); os.execute(P.editor)'
         result = subprocess.check_output(['lua', '-e', code], env=self.env, text=True)
-        self.assertEqual(result, 'kitty\nkitty nvim\n')
+        self.assertEqual(result, 'stock:\nstock:nvim\n')
         launcher = self.home / '.local/bin/kitty-smooth'
         launcher.parent.mkdir(parents=True)
         shutil.copy(ROOT / '.local/bin/kitty-smooth', launcher)

@@ -33,8 +33,8 @@ done
 [[ -f $target/.local/share/fonts/archnemesis/Waycat.ttf ]] || fail 'Waycat font missing'
 [[ -f $target/.local/share/fonts/archnemesis/Skulltype.ttf ]] || fail 'Skulltype font missing'
 [[ -x $target/.local/bin/battery-guardian ]] || fail 'battery guardian missing'
-cmp "$repo_root/.config/swaync/config.json" "$target/.config/swaync/config.json"
-cmp "$repo_root/.config/swaync/style.css" "$target/.config/swaync/style.css"
+diff -qr "$repo_root/.config/quickshell/hyprland-notifications" "$target/.config/quickshell/hyprland-notifications"
+[[ ! -e $target/.config/swaync ]] || fail 'Hyprland installed competing notification daemon'
 cmp "$repo_root/.config/waybar/config.jsonc" "$target/.config/waybar/config.jsonc"
 [[ -r $target/.config/waybar/colors.css && -x $target/.config/waybar/scripts/wallpaper-colors.py ]] || fail 'adaptive Waybar palette payload missing'
 grep -Fq '@import "colors.css";' "$target/.config/waybar/style.css" || fail 'palette stylesheet not imported'
@@ -81,8 +81,13 @@ chmod +x "$test_root/mock-bin/"*
 target="$test_root/home with spaces"
 HOME="$target" XDG_CONFIG_HOME="$target/.config" PATH="$test_root/mock-bin:$PATH" \
     bash "$target/.config/hypr/scripts/lock.sh"
+grep -Fq "path = $target/.config/hypr/current-wallpaper" "$target/.config/hyprlock/hyprlock.conf" || fail 'stable wallpaper path missing from lock config'
+# Without the managed wallpaper, use the cached path and preserve its ampersand.
+rm "$target/.config/hypr/current-wallpaper"
+HOME="$target" XDG_CONFIG_HOME="$target/.config" PATH="$test_root/mock-bin:$PATH" \
+    bash "$target/.config/hypr/scripts/lock.sh"
 grep -Fq "path = $target/Pictures/space & stars.png" "$target/.config/hyprlock/hyprlock.conf" || fail 'wallpaper path corrupted in lock config'
-rm "$target/.cache/current-wallpaper" "$target/.config/hypr/current-wallpaper"
+rm "$target/.cache/current-wallpaper"
 HOME="$target" XDG_CONFIG_HOME="$target/.config" PATH="$test_root/mock-bin:$PATH" \
     bash "$target/.config/hypr/scripts/lock.sh"
 grep -q 'color = rgba(25, 23, 36, 1.0)' "$target/.config/hyprlock/hyprlock.conf" || fail 'lock fallback missing'

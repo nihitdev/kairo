@@ -110,7 +110,8 @@ MOCK
     [[ -f $home/.config/hypr/hyprland.lua ]] || fail 'default install omitted Hyprland'
     [[ -f $home/.config/waybar/style.css ]] || fail 'default install omitted Waybar'
     [[ -d $home/.config/rofi && -d $home/.config/oh-my-posh ]] || fail 'default install omitted Rofi or Oh My Posh'
-    cmp "$repo_root/.config/swaync/config.json" "$home/.config/swaync/config.json"
+    cmp "$repo_root/.config/quickshell/hyprland-notifications/shell.qml" "$home/.config/quickshell/hyprland-notifications/shell.qml"
+    [[ ! -e $home/.config/swaync ]] || fail 'default install deployed competing notification daemon'
     [[ -x $home/.local/bin/battery-guardian ]] || fail 'default install omitted battery alerts'
     [[ -f $home/sddm-selected ]] || fail 'default install omitted SDDM'
     [[ ! -e $home/.local/share/kairo ]] || fail 'default install selected Kairo Shell'
@@ -220,7 +221,7 @@ run_fish_payload_test() {
     [[ -f $home/.config/fish/conf.d/00-env.fish ]] || fail 'Fish environment module missing'
     [[ -f $home/.config/fish/conf.d/90-integrations.fish ]] || fail 'Fish integrations missing'
     diff -qr "$repo_root/.config/fish" "$home/.config/fish" >/dev/null || fail 'Fish payload differs from live sync'
-    [[ ! -e $home/.config/fish/fish_plugins ]] || fail 'obsolete Fish plugins were installed'
+    cmp "$repo_root/.config/fish/fish_plugins" "$home/.config/fish/fish_plugins"
     [[ -f $home/.config/starship/fish.toml ]] || fail 'Fish prompt was not seeded'
     [[ ! -e $home/.config/fish/fish_variables ]] || fail 'Machine-specific Fish variables were installed'
 }
@@ -376,7 +377,7 @@ run_missing_optional_source_test() {
 
 run_shell_starship_reference_test() {
     assert_file_contains "$repo_root/.config/bash/.bashrc" '$HOME/.config/starship/bash.toml'
-    assert_file_contains "$repo_root/.config/fish/conf.d/00-env.fish" '$HOME/.config/starship/fish.toml'
+    assert_file_contains "$repo_root/.config/fish/conf.d/00-env.fish" '$XDG_CONFIG_HOME/starship/fish.toml'
     assert_file_contains "$repo_root/.config/nushell/config.nu" '/starship/nushell.toml'
     assert_file_contains "$repo_root/.config/zsh/env.zsh" '$XDG_CONFIG_HOME/starship/zsh.toml'
     if grep -R -E --exclude-dir=.git --exclude-dir=.build --exclude-dir=out --exclude-dir=node_modules --exclude-dir=dist '(\.config/starship\.toml|starship/starship\.toml)' "$repo_root" >/dev/null; then

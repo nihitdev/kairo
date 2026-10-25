@@ -18,7 +18,7 @@ class ShellConfigsTest(unittest.TestCase):
             home.mkdir()
             mock_bin = root / 'bin'
             mock_bin.mkdir()
-            packages = ('zsh fish zsh-autosuggestions zsh-syntax-highlighting '
+            packages = ('zsh fish fisher zsh-autosuggestions zsh-syntax-highlighting '
                         'zsh-completions zsh-history-substring-search git fzf fd '
                         'eza bat neovim yazi lazygit btop starship zoxide mise direnv')
             (mock_bin / 'pacman').write_text(
@@ -82,7 +82,8 @@ fi
             self.assertEqual(calls.count('clone '), 5)
             self.assertEqual(calls.count('reset --hard'), 4)
             self.assertTrue((home / '.local/share/zsh/plugins/forgit/forgit.plugin.zsh').is_file())
-            self.assertFalse((home / '.config/fish/fish_plugins').exists())
+            self.assertEqual((home / '.config/fish/fish_plugins').read_bytes(),
+                             (ROOT / '.config/fish/fish_plugins').read_bytes())
             self.assertFalse((home / '.dotfiles-backup').exists())
             # A repeat preserves existing plugins and user prompt overrides.
             (home / '.config/starship/fish.toml').write_text('# personal prompt\n')

@@ -1109,6 +1109,9 @@ install_hypr_desktop() {
     if ! is_selected rofi; then
         install_seed_item hypr "$source_config_root/rofi" "$config_root/rofi"
     fi
+    if ! is_selected swaync; then
+        install_item hypr "$repo_root/.local/bin/battery-guardian" "$HOME/.local/bin/battery-guardian"
+    fi
     if $dry_run; then
         install_item hypr "$hypr_source" "$config_root/hypr"
         return 0
@@ -1153,9 +1156,6 @@ install_hypr_desktop() {
         # The current live config starts Waybar directly; replace only that entry.
         sed -i '/^[[:space:]]*"waybar",[[:space:]]*$/d' "$temp_hypr/config/autostart.lua"
         sed -i '/    -- Session daemons\./i\    hl.exec_cmd(require("config.bar"))\n' "$temp_hypr/config/autostart.lua"
-    fi
-    if ! is_selected swaync; then
-        install_item hypr "$repo_root/.local/bin/battery-guardian" "$HOME/.local/bin/battery-guardian"
     fi
     install_item hypr "$temp_hypr" "$config_root/hypr"
 }
