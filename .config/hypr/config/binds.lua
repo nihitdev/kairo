@@ -7,6 +7,7 @@ local SCRIPTS = HOME .. "/.config/hypr/scripts/"
 -- ╰──────────────────────────────────────────────╯
 
 hl.bind(M .. " + Return", hl.dsp.exec_cmd(P.terminal))
+hl.bind(M .. " + T",      hl.dsp.exec_cmd(SCRIPTS .. "scratchpad.sh"))
 hl.bind(M .. " + B",      hl.dsp.exec_cmd(P.browser))
 hl.bind(M .. " + E",      hl.dsp.exec_cmd(P.fileManager))
 hl.bind(M .. " + Space",  hl.dsp.exec_cmd(P.launcher))

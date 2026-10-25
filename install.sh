@@ -1014,7 +1014,8 @@ preflight_desktop() {
             printf 'Missing awww transition config: %s\n' "$source_config_root/awww/archnemesis.toml" >&2; return 1;
         }
         for file in hyprland.lua hyprpaper.conf config/windows.lua config/colors.lua shortcuts.txt \
-            scripts/apply-wallpaper-theme.sh scripts/keybinds.sh scripts/reload.sh scripts/toggle-layout.sh; do
+            scripts/apply-wallpaper-theme.sh scripts/keybinds.sh scripts/reload.sh scripts/scratchpad.sh \
+            scripts/toggle-layout.sh; do
             [[ -r $source_config_root/hypr/$file ]] || {
                 printf 'Missing Hyprland payload: %s\n' "$file" >&2; return 1;
             }

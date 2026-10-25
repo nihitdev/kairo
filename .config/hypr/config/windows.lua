@@ -6,3 +6,12 @@ hl.window_rule({
     center = true,
     size = { "(monitor_w*0.70)", "(monitor_h*0.70)" },
 })
+
+hl.window_rule({
+    name = "scratchpad-terminal",
+    match = { class = "^kairo-scratchpad$" },
+    workspace = "special:magic",
+    float = true,
+    center = true,
+    size = { "(monitor_w*0.72)", "(monitor_h*0.72)" },
+})
