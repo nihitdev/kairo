@@ -17,6 +17,7 @@ dry_run=false
 no_backup=false
 install_packages=false
 interactive=false
+non_interactive=false
 default_shell=keep
 enable_chaotic_aur=false
 aur_helper=paru
@@ -111,7 +112,6 @@ kairo-shell|Kairo Shell|Desktop|false||quickshell|official
 rofi|Rofi|Desktop|true|rofi|rofi|official
 wezterm|WezTerm|Desktop|true|wezterm|wezterm|official
 waybar|Waybar|Desktop|true|waybar|waybar|official
-swaync|SwayNC + battery alerts|Desktop|true|swaync|swaync|official
 sddm|SDDM login theme|System|true|sddm|sddm-greeter-qt6|official
 plymouth|Plymouth Lone|System|true|plymouth|plymouth-set-default-theme|official
 kitty-smooth|Kitty Smooth|Desktop|true|kitty|kitty|official
@@ -138,6 +138,7 @@ Usage: ./install.sh [options]
 
 Options:
   --dry-run          Show what would change without writing files
+  --non-interactive  Skip setup menus; use defaults or --only selections
   --no-backup        Replace existing files without backing them up
   --rebuild-kitty-smooth
                      Rebuild even when the pinned Kitty Smooth build is installed
@@ -166,6 +167,9 @@ EOF
 
 while (($#)); do
     case "$1" in
+        --non-interactive)
+            non_interactive=true
+            ;;
         --dry-run)
             dry_run=true
             ;;
@@ -279,7 +283,7 @@ if [[ -n $script_dir && -f $script_dir/.config/scripts/install-ui.sh ]]; then
     # shellcheck source=.config/scripts/install-ui.sh
     source "$script_dir/.config/scripts/install-ui.sh"
 fi
-if [[ -t 0 && -t 1 && ${CI:-false} != true && ${#only[@]} -eq 0 ]] &&
+if ! $non_interactive && [[ -t 0 && -t 1 && ${CI:-false} != true && ${#only[@]} -eq 0 ]] &&
     declare -F ui_start >/dev/null; then
     interactive=true
 fi
@@ -314,7 +318,7 @@ if [[ ! -f $repo_root/.config/nvim/init.lua ]]; then
         exit 0
     fi
     kairo_checkout="$HOME/kairo"
-    if [[ -t 1 && ${CI:-false} != true && -r /dev/tty ]]; then
+    if ! $non_interactive && [[ -t 1 && ${CI:-false} != true && -r /dev/tty ]]; then
         command -v sudo >/dev/null 2>&1 || {
             printf 'sudo is required for interactive system setup.\n' >&2
             exit 1
@@ -353,7 +357,7 @@ if [[ ! -f $repo_root/.config/nvim/init.lua ]]; then
     fi
     printf 'Starting Kairo...\n'
     set +e
-    if [[ -t 1 && ${CI:-false} != true && ${#only[@]} -eq 0 && -r /dev/tty ]]; then
+    if ! $non_interactive && [[ -t 1 && ${CI:-false} != true && ${#only[@]} -eq 0 && -r /dev/tty ]]; then
         (cd "$kairo_checkout" && bash ./install.sh "${original_args[@]}" </dev/tty)
     else
         (cd "$kairo_checkout" && bash ./install.sh "${original_args[@]}")
@@ -461,12 +465,13 @@ commit_transaction() {
 }
 
 handle_failure() {
-    local status=$? failed_command=${BASH_COMMAND:-unknown}
+    local status=$? failed_command=${BASH_COMMAND:-unknown} failed_line=${BASH_LINENO[0]:-unknown}
     trap - ERR INT TERM
+    printf 'Installation failed at line %s (exit %s): %s\n' "$failed_line" "$status" "$failed_command" >&2
     rollback_transaction
     rollback_system_changes
     if $interactive && declare -F ui_failure >/dev/null; then
-        ui_failure "Command: $failed_command (exit $status). Completed config replacements were rolled back."
+        ui_failure "Line $failed_line: $failed_command (exit $status)."
         printf '\nPress any key to exit.'
         IFS= read -rsn1 _ || true
         printf '\n'
@@ -494,18 +499,6 @@ is_selected() {
     fi
 
     if [[ $component == kitty ]] && is_selected kitty-smooth; then return 0; fi
-
-    # The Hyprland profile uses its Quickshell notification center by default.
-    # Keep SwayNC available when explicitly requested or used without Hyprland.
-    if [[ $component == swaync ]] && is_selected kairo-shell; then
-        return 1
-    fi
-    if [[ $component == swaync ]] && is_selected hypr; then
-        for selected in "${only[@]}"; do
-            [[ $selected == swaync ]] && return 0
-        done
-        return 1
-    fi
 
     # Hyprland includes Waybar unless the alternative desktop shell is selected.
     if [[ $component == waybar ]] && ! is_selected kairo-shell && is_selected hypr; then
@@ -651,11 +644,6 @@ collect_missing_packages() {
     fi
     if is_selected waybar && ! is_selected kairo-shell; then
         for package in "${waybar_packages[@]}"; do
-            package_is_installed "$package" || record_unique missing_official_packages "$package"
-        done
-    fi
-    if is_selected swaync; then
-        for package in libnotify util-linux; do
             package_is_installed "$package" || record_unique missing_official_packages "$package"
         done
     fi
@@ -1002,13 +990,14 @@ preflight_desktop() {
             printf 'Missing battery guardian helper.\n' >&2; return 1;
         }
         bash -n "$repo_root/.local/bin/battery-guardian"
+        assert_safe_destination "$HOME/.local/bin/battery-guardian"
         for module in hyprlock rofi quickshell/wallpaper-picker awww; do
             [[ -d $source_config_root/$module ]] || {
                 printf 'Missing desktop payload: %s\n' "$module" >&2; return 1;
             }
             assert_safe_destination "$config_root/$module"
         done
-        if ! is_selected kairo-shell && ! is_selected swaync; then
+        if ! is_selected kairo-shell; then
             [[ -d $source_config_root/quickshell/hyprland-notifications ]] || {
                 printf 'Missing Hyprland notification shell payload.\n' >&2; return 1;
             }
@@ -1026,20 +1015,6 @@ preflight_desktop() {
                 printf 'Hyprland helper is not executable: %s\n' "$file" >&2; return 1
             fi
         done
-    fi
-    if is_selected swaync; then
-        for file in config.json style.css; do
-            [[ -f $source_config_root/swaync/$file ]] || {
-                printf 'Missing SwayNC payload: %s\n' "$file" >&2; return 1;
-            }
-            assert_safe_destination "$config_root/swaync/$file"
-        done
-        assert_safe_destination "$HOME/.local/bin/battery-guardian"
-        [[ -x $repo_root/.local/bin/battery-guardian ]] || return 1
-        bash -n "$repo_root/.local/bin/battery-guardian"
-        if command -v python3 >/dev/null 2>&1; then
-            python3 -m json.tool "$source_config_root/swaync/config.json" >/dev/null
-        fi
     fi
     if is_selected waybar && ! is_selected kairo-shell; then
         [[ -f $source_config_root/waybar/config.jsonc &&
@@ -1100,7 +1075,7 @@ install_hypr_desktop() {
         describe 'Skip Waybar deployment because Kairo Shell is selected'
     fi
     install_item hypr "$source_config_root/quickshell/wallpaper-picker" "$config_root/quickshell/wallpaper-picker"
-    if ! is_selected kairo-shell && ! is_selected swaync; then
+    if ! is_selected kairo-shell; then
         install_item hypr "$source_config_root/quickshell/hyprland-notifications" "$config_root/quickshell/hyprland-notifications"
     fi
     install_item hypr "$source_config_root/awww" "$config_root/awww"
@@ -1109,9 +1084,7 @@ install_hypr_desktop() {
     if ! is_selected rofi; then
         install_seed_item hypr "$source_config_root/rofi" "$config_root/rofi"
     fi
-    if ! is_selected swaync; then
-        install_item hypr "$repo_root/.local/bin/battery-guardian" "$HOME/.local/bin/battery-guardian"
-    fi
+    install_item hypr "$repo_root/.local/bin/battery-guardian" "$HOME/.local/bin/battery-guardian"
     if $dry_run; then
         install_item hypr "$hypr_source" "$config_root/hypr"
         return 0
@@ -1119,13 +1092,7 @@ install_hypr_desktop() {
     ensure_external_root
     temp_hypr="$external_root/hypr"
     cp -a -- "$hypr_source" "$temp_hypr"
-    # SwayNC and Quickshell must not compete for org.freedesktop.Notifications.
-    if is_selected swaync; then
-        sed -i '\|hyprland-notifications|d' "$temp_hypr/config/autostart.lua"
-        if ! grep -q '"swaync"' "$temp_hypr/config/autostart.lua"; then
-            sed -i '/^[[:space:]]*"hypridle",[[:space:]]*$/a\        "swaync",' "$temp_hypr/config/autostart.lua"
-        fi
-    elif is_selected kairo-shell; then
+    if is_selected kairo-shell; then
         sed -i '\|hyprland-notifications|d' "$temp_hypr/config/autostart.lua"
     fi
     if [[ -n $wallpaper ]]; then
@@ -1585,14 +1552,10 @@ validate_installed_configs() {
                 done
                 ;;
             ssh) [[ -f $HOME/.ssh/config.d/dotfiles.conf ]] || return 1 ;;
-            swaync)
-                [[ -f $config_root/swaync/config.json && -f $config_root/swaync/style.css &&
-                   -x $HOME/.local/bin/battery-guardian ]] || return 1
-                ;;
             hypr)
                 [[ -f $config_root/hypr/hyprland.lua && -f $config_root/hypr/hyprpaper.conf ]] || return 1
                 [[ -x $HOME/.local/bin/battery-guardian ]] || return 1
-                if ! is_selected kairo-shell && ! is_selected swaync; then
+                if ! is_selected kairo-shell; then
                     [[ -f $config_root/quickshell/hyprland-notifications/shell.qml ]] || return 1
                 fi
                 ;;
@@ -1740,7 +1703,9 @@ interactive_prepare() {
     fi
     if $enable_chaotic_aur || ((${#profiles[@]})); then install_packages=true; fi
 
-    for index in "${only[@]}"; do
+    for index in "${module_names[@]}"; do
+        is_selected "$index" || continue
+        if [[ $index == waybar ]] && is_selected kairo-shell; then continue; fi
         selected_list+="  • $(module_label "$index")"$'\n'
     done
     if is_selected hypr && ! is_selected kairo-shell; then
@@ -1756,7 +1721,8 @@ interactive_prepare() {
     ((${#missing_official_packages[@]})) && missing_list+="  official: ${missing_official_packages[*]}"$'\n'
     ((${#missing_aur_packages[@]})) && missing_list+="  AUR: ${missing_aur_packages[*]}"$'\n'
     [[ -n $missing_list ]] || missing_list='  none'
-    for index in "${only[@]}"; do
+    for index in "${module_names[@]}"; do
+        is_selected "$index" || continue
         case "$index" in
             bash) [[ -e $HOME/.bashrc ]] && replacement_list+="  $HOME/.bashrc"$'\n' ;;
             zsh) [[ -e $HOME/.zshrc ]] && replacement_list+="  $HOME/.zshrc"$'\n' ;;
@@ -1778,7 +1744,6 @@ interactive_prepare() {
                 replacement_list+=$'  /usr/share/sddm/themes/archnemesis\n  /etc/sddm.conf.d/zz-archnemesis.conf\n'
                 [[ ! -f /etc/sddm.conf ]] || replacement_list+=$'  /etc/sddm.conf [Theme]\n'
                 ;;
-            swaync) ;; # Managed files are listed below, including implicit selection.
             waybar) ;; # Includes fonts; listed together below.
             kairo-shell)
                 replacement_list+="  $kairo_shell_target"$'\n'"  $kairo_shell_bin/{kairo,kairod}"$'\n'
@@ -1793,12 +1758,6 @@ interactive_prepare() {
     if is_selected sddm; then
         selected_list+=$'  SDDM: system theme installation (sudo), mandatory rollback backup.\n'
         selected_list+=$'  Does not enable or restart the display manager.\n'
-    fi
-    if is_selected swaync; then
-        selected_list+="$(ui_swaync_summary)"$'\n'
-        for target in "$config_root/swaync/config.json" "$config_root/swaync/style.css" "$HOME/.local/bin/battery-guardian"; do
-            if [[ -e $target || -L $target ]]; then replacement_list+="  $target"$'\n'; fi
-        done
     fi
     if is_selected waybar && ! is_selected kairo-shell; then
         for target in "$config_root/waybar" "$kairo_shell_data/fonts/archnemesis"; do
@@ -2001,9 +1960,6 @@ if is_selected wezterm && [[ -e $HOME/.wezterm.lua || -L $HOME/.wezterm.lua ]]; 
 else
     install_item wezterm "$source_config_root/wezterm" "$config_root/wezterm"
 fi
-install_item swaync "$source_config_root/swaync/config.json" "$config_root/swaync/config.json"
-install_item swaync "$source_config_root/swaync/style.css" "$config_root/swaync/style.css"
-install_item swaync "$repo_root/.local/bin/battery-guardian" "$HOME/.local/bin/battery-guardian"
 install_curated_wallpapers
 install_hypr_desktop
 install_waybar
@@ -2110,14 +2066,22 @@ if ((${#warnings[@]})); then
     printf 'Warnings:\n'
     printf '  - %s\n' "${warnings[@]}"
 fi
-printf 'Done. Restart your shell and configured applications.\n'
+if $dry_run; then
+    printf 'Preview complete. No changes were made. Run again without --dry-run to install.\n'
+else
+    printf 'Done. Restart your shell and configured applications.\n'
+fi
 if $interactive && declare -F ui_success >/dev/null; then
     success_details="  $summary_label       ${installed[*]:-nothing}"
     if ((${#already_current[@]})); then success_details+=$'\n'"  Already current ${already_current[*]}"; fi
     if ((${#skipped[@]})); then success_details+=$'\n'"  Skipped         ${skipped[*]}"; fi
     if [[ -n $backup_root ]]; then success_details+=$'\n'"  Backups         $backup_root"; fi
     if ((${#warnings[@]})); then success_details+=$'\n'"  Warnings        ${warnings[*]}"; fi
-    success_details+=$'\n\n'"  Restart your shell to load the new environment."
+    if $dry_run; then
+        success_details+=$'\n\n'"  No changes were made. Run again without --dry-run to install."
+    else
+        success_details+=$'\n\n'"  Restart your shell to load the new environment."
+    fi
     completion_title='INSTALLATION COMPLETE'
     $dry_run && completion_title='DRY RUN COMPLETE'
     ui_success "$success_details" "$completion_title"

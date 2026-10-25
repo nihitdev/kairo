@@ -111,7 +111,6 @@ MOCK
     [[ -f $home/.config/waybar/style.css ]] || fail 'default install omitted Waybar'
     [[ -d $home/.config/rofi && -d $home/.config/oh-my-posh ]] || fail 'default install omitted Rofi or Oh My Posh'
     cmp "$repo_root/.config/quickshell/hyprland-notifications/shell.qml" "$home/.config/quickshell/hyprland-notifications/shell.qml"
-    [[ ! -e $home/.config/swaync ]] || fail 'default install deployed competing notification daemon'
     [[ -x $home/.local/bin/battery-guardian ]] || fail 'default install omitted battery alerts'
     [[ -f $home/sddm-selected ]] || fail 'default install omitted SDDM'
     [[ ! -e $home/.local/share/kairo ]] || fail 'default install selected Kairo Shell'
@@ -170,9 +169,11 @@ run_rollback_test() {
     chmod +x "$fake_bin/bat"
 
     if HOME="$home" XDG_CONFIG_HOME="$home/.config" PATH="$fake_bin:$PATH" \
-        "$repo_root/install.sh" --only bat >/dev/null 2>&1; then
+        "$repo_root/install.sh" --only bat >"$test_root/rollback/failure.log" 2>&1; then
         fail 'injected post-install failure unexpectedly succeeded'
     fi
+    assert_file_contains "$test_root/rollback/failure.log" 'Installation failed at line '
+    assert_file_contains "$test_root/rollback/failure.log" '(exit 23)'
     assert_file_contains "$home/.config/bat/config" 'old config'
     assert_file_contains "$home/.config/bat/themes/original.theme" 'old theme'
     if find "$home" -name '.dotfiles-stage.*' -o -name '.dotfiles-previous.*' | grep -q .; then
@@ -554,7 +555,7 @@ bash "$repo_root/.config/tests/test-kairo-shell.sh"
 bash "$repo_root/.config/tests/test-desktop-install.sh"
 bash "$repo_root/.config/tests/test-plymouth-install.sh"
 bash "$repo_root/.config/tests/test-default-shell.sh"
-python3 "$repo_root/.config/tests/test-swaync.py"
+python3 "$repo_root/.config/tests/test-notifications.py"
 python3 "$repo_root/.config/tests/test-shell-configs.py"
 python3 "$repo_root/.config/tests/test-kitty-smooth.py"
 python3 "$repo_root/.config/tests/test-theme-transaction.py"

@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """Exercise menu frames without running the installer or changing live configs."""
+import os
+import pty
 import re
+import select
+import tempfile
+import time
 import shlex
 import subprocess
 import unittest
@@ -157,13 +162,50 @@ printf 'RESULT %s' "$status"
         self.assertIn('review line 0', frames[2])
         self.assertIn('RESULT 1', result.stdout)
 
-    def test_swaync_label_and_review(self):
-        self.assertIn('SwayNC + battery', ANSI.sub('', render(24, 80)))
-        result = subprocess.run(['bash', '-eu'], input=UI.read_text() +
-                                '\nui_swaync_summary', text=True, capture_output=True,
-                                check=True, timeout=5)
-        self.assertIn('persistent critical alerts', result.stdout)
-        self.assertIn('one watcher', result.stdout)
+    def test_non_interactive_preview_in_a_terminal(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory) / 'home'
+            home.mkdir()
+            env = dict(os.environ, HOME=str(home), CI='false', TERM='xterm')
+            for name, suffix in (('CONFIG', '.config'), ('CACHE', '.cache'),
+                                 ('DATA', '.local/share'), ('STATE', '.local/state')):
+                env[f'XDG_{name}_HOME'] = str(home / suffix)
+            for name in ('KAIRO_BIN_DIR', 'QS_STATE_DIR'):
+                env.pop(name, None)
+            master, slave = pty.openpty()
+            try:
+                process = subprocess.Popen(
+                    ['bash', str(ROOT / 'install.sh'), '--non-interactive', '--dry-run'],
+                    stdin=slave, stdout=slave, stderr=slave, env=env)
+                os.close(slave)
+                slave = None
+                output = bytearray()
+                deadline = time.monotonic() + 30
+                try:
+                    while time.monotonic() < deadline:
+                        if select.select([master], [], [], 0.1)[0]:
+                            try:
+                                chunk = os.read(master, 65536)
+                            except OSError:
+                                break
+                            if not chunk:
+                                break
+                            output.extend(chunk)
+                    process.wait(timeout=1)
+                finally:
+                    if process.poll() is None:
+                        process.kill()
+                        process.wait()
+                text = output.decode(errors='replace')
+                self.assertEqual(process.returncode, 0, text)
+                self.assertIn('Preview complete. No changes were made.', text)
+                self.assertIn('quickshell/hyprland-notifications', text)
+                self.assertNotIn('Choose modules', text)
+                self.assertEqual(list(home.iterdir()), [])
+            finally:
+                os.close(master)
+                if slave is not None:
+                    os.close(slave)
 
     def test_module_labels_are_plain_text(self):
         function = re.search(r'module_label\(\) \{.*?\n\}', INSTALLER, re.S)[0]

@@ -15,10 +15,10 @@ The theme uses a transparent 32px Waybar with wallpaper-derived colors, a compac
 
 Screenshots go to `~/Pictures/Screenshots` and are copied as PNG. **Ctrl+Print** captures the active window rectangle. Utility terminals float at 70% of the display size.
 
-Waybar provides live network/Bluetooth status. Click its notification icon or press **Super+Shift+N** to open the panel, right-click the icon for Do Not Disturb, or middle-click to clear history. Critical notifications remain until dismissed. SwayNC remains an explicit alternative; the installer disables its competing service when selected.
+Waybar provides live network/Bluetooth status. Click its notification icon or press **Super+Shift+N** to open the panel, right-click the icon for Do Not Disturb, or middle-click to clear history. Critical notifications remain until dismissed.
 
 ## Install
 
-From the repository root, preview with `./install.sh --dry-run --only hypr --only rofi`, then install with `./install.sh --only hypr --only rofi --install-packages`. The explicit Rofi selection replaces an existing launcher theme; Hyprland alone seeds Rofi only when absent. Existing configs are backed up by default. The 25 bundled images (18 Catppuccin Space & Cosmic images plus seven personal wallpapers) are seeded directly into `~/Pictures/Wallpapers`, with no nested folders; fresh installs select `snow-pine-forest.png`. Existing wallpaper selections and personal files are preserved. Machine-specific links and generated lockscreen configs are not distributed.
+From the repository root, preview with `./install.sh --dry-run --only hypr --only rofi`, then install with `./install.sh --only hypr --only rofi --install-packages`. The explicit Rofi selection replaces an existing launcher theme; Hyprland alone seeds Rofi only when absent. Existing configs are backed up by default. The 44 bundled images (18 Catppuccin Space & Cosmic images plus 26 maintainer-supplied wallpapers) are seeded directly into `~/Pictures/Wallpapers`, with no nested folders; fresh installs select `snow-pine-forest.png`. Existing wallpaper selections and personal files are preserved. Machine-specific links and generated lockscreen configs are not distributed.
 
 Use the main repository README for installation and rollback details. The installer does not restart your session.

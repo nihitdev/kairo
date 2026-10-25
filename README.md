@@ -256,12 +256,21 @@ Run `./install.sh --help` for the authoritative list of options, modules, and pr
 | Development | [Git](.config/git/), [Neovim](.config/nvim/), [SSH](.config/ssh/) |
 | Desktop | [WezTerm](.config/wezterm/), [Kitty](.config/kitty/), [Hyprland](.config/hypr/), [Waybar](.config/waybar/), [Kairo Shell](#kairo-shell) |
 
-Every module is selected by default except **Kairo Shell**. Prism is a lightweight
+Every module is selected by default except **Kairo Shell**.
+Hyprland uses Quickshell notifications. Prism is a lightweight
 Python-based terminal palette manager shared by Fish, Bash, Zsh, Nushell, Kitty,
 Starship, Fastfetch, and FZF; choose a palette with `prism theme switch NAME`.
 Kairo preserves the selected palette when it refreshes Fish configuration. The
 defaults apply to both the interactive module picker and CLI runs without `--only`.
 Deselect modules in the menu or use `--only NAME` for a scoped installation.
+Use `--non-interactive` to skip setup menus even in a terminal; package installation
+stays opt-in and system tools such as sudo may still request credentials:
+
+```sh
+./install.sh --non-interactive --dry-run
+./install.sh --non-interactive --install-packages --only hypr
+```
+
 Preview changes first, especially when replacing compositor configuration:
 
 ```sh
@@ -353,19 +362,15 @@ usable even when sampling dependencies or a readable wallpaper are unavailable.
 Hyprland’s Quickshell center owns `org.freedesktop.Notifications` and provides
 compact toasts, an in-session history, DND, clear-all, and notification actions.
 Waybar opens the panel, toggles DND, and clears history; **Super+Shift+N** also
-opens it. SwayNC remains available as an explicit alternative (`--only swaync`);
-the installer removes the competing Quickshell startup entry when selected.
+opens it. The installer deploys the same Quickshell notification configuration
+shipped in `.config/quickshell/hyprland-notifications`.
 
 `~/.local/bin/battery-guardian` is installed with the Hyprland profile. It starts
 on login; a process lock prevents duplicate watchers. It checks the battery every
 15 seconds, warns once at 20%, 10% and 5%, and resets warnings when charging.
 BAT1 is preferred with automatic fallback to other BAT devices; desktops without
 a battery exit without starting a watcher. Dependencies are `libnotify` and
-`util-linux`. To deploy SwayNC only without backups:
-
-```sh
-./install.sh --only swaync --no-backup
-```
+`util-linux`.
 
 The installer deploys Waycat and Skulltype into the user's XDG font directory and
 refreshes that directory's font cache. `--install-packages` includes Iosevka Nerd

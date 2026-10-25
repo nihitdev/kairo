@@ -20,7 +20,6 @@ pkgbase = kairo-git
 	optdepends = rofi: Wayland launcher and menu configuration
 	optdepends = waybar: status bar configuration
 	optdepends = quickshell: Kairo desktop shell runtime
-	optdepends = swaync: notification center configuration
 	optdepends = hyprpaper: Rofi wallpaper picker and Hyprland wallpaper restore
 	optdepends = awww: static wallpaper transitions in the Quickshell carousel
 	optdepends = mpvpaper: video wallpapers (AUR)

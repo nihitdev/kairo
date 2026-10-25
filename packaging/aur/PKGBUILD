@@ -22,7 +22,6 @@ optdepends=(
   'rofi: Wayland launcher and menu configuration'
   'waybar: status bar configuration'
   'quickshell: Kairo desktop shell runtime'
-  'swaync: notification center configuration'
   'hyprpaper: Rofi wallpaper picker and Hyprland wallpaper restore'
   'awww: static wallpaper transitions in the Quickshell carousel'
   'mpvpaper: video wallpapers (AUR)'

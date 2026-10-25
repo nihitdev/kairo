@@ -136,13 +136,6 @@ ui_kv() {
     printf '  %s%-14s%s %s\n' "$UI_DIM" "$1" "$UI_RESET" "$2"
 }
 
-# Plain text for the scrollable review, including implicit desktop dependencies.
-ui_swaync_summary() {
-    printf '%s\n' \
-        '  SwayNC: translucent glass, grouped notifications, persistent critical alerts.' \
-        '  Battery alerts: 20%, 10%, 5%; starts with Hyprland (one watcher).'
-}
-
 ui_footer() {
     printf '\n'
     ui_rule

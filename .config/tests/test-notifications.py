@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SwayNC deployment and battery alerts, isolated from the live desktop."""
+"""Quickshell notification startup and battery alerts, isolated from the live desktop."""
 
 import fcntl
 import json
@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 GUARDIAN = ROOT / '.local/bin/battery-guardian'
 
 
-class SwayNCTest(unittest.TestCase):
+class NotificationsTest(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
@@ -34,60 +34,27 @@ class SwayNCTest(unittest.TestCase):
                               env=self.env, text=True, capture_output=True,
                               check=check, timeout=60)
 
-    def assert_payload(self):
-        for name in ('config.json', 'style.css'):
-            self.assertEqual((self.home / 'config/swaync' / name).read_bytes(),
-                             (ROOT / '.config/swaync' / name).read_bytes())
-        installed = self.home / '.local/bin/battery-guardian'
-        self.assertEqual(installed.read_bytes(), GUARDIAN.read_bytes())
-        self.assertTrue(os.access(installed, os.X_OK))
-        self.assertFalse((self.home / '.dotfiles-backup').exists())
-
     def test_default_plan_uses_quickshell_notifications(self):
         # Defaults include system-wide SDDM; preview selection without sudo writes.
         plan = self.install('--dry-run').stdout
         self.assertIn('quickshell/hyprland-notifications', plan)
-        self.assertNotIn('Install swaync', plan)
         self.assertIn('battery-guardian', plan)
         self.assertEqual(list(self.home.iterdir()), [])
 
-    def test_scoped_install_preserves_unrelated_files_and_repeats(self):
-        config = self.home / 'config/swaync'
-        config.mkdir(parents=True)
-        (config / 'personal.css').write_text('/* keep */')
-        before = sorted(self.home.rglob('*'))
-        plan = self.install('--only', 'swaync', '--dry-run').stdout
-        self.assertIn('battery-guardian', plan)
-        self.assertEqual(before, sorted(self.home.rglob('*')))
-        self.install('--only', 'swaync')
-        self.assert_payload()
-        self.assertEqual((config / 'personal.css').read_text(), '/* keep */')
-        self.assertFalse((self.home / 'config/hypr').exists())
-        repeat = self.install('--only', 'swaync').stdout
-        self.assertIn('Already current: swaync', repeat)
-        self.assertNotIn('Replace ', repeat)
-
-    def test_launcher_escape_rejected_before_deployment(self):
+    def test_guardian_destination_escape_rejected_before_deployment(self):
         outside = Path(self.temporary.name) / 'outside'
         outside.mkdir()
         (self.home / '.local').mkdir()
         (self.home / '.local/bin').symlink_to(outside, target_is_directory=True)
-        self.assertNotEqual(self.install('--only', 'swaync', check=False).returncode, 0)
-        self.assertFalse((self.home / 'config/swaync').exists())
+        result = self.install('--only', 'hypr', check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse((self.home / 'config/hypr').exists())
         self.assertEqual(list(outside.iterdir()), [])
 
-    def test_timeouts_and_grouping(self):
-        config = json.loads((ROOT / '.config/swaync/config.json').read_text())
-        self.assertEqual(config['timeout'], 7)
-        self.assertEqual(config['timeout-low'], 4)
-        self.assertEqual(config['timeout-critical'], 0)
-        self.assertTrue(config['notification-grouping'])
-
-    def test_failed_guardian_copy_rolls_back_swaync(self):
-        config = self.home / 'config/swaync'
+    def test_failed_guardian_copy_rolls_back_notification_payload(self):
+        config = self.home / 'config/quickshell/hyprland-notifications'
         config.mkdir(parents=True)
-        for name in ('config.json', 'style.css', 'personal.css'):
-            (config / name).write_text('original ' + name)
+        (config / 'shell.qml').write_text('original notification shell')
         mock_bin = self.home / 'mock-bin'
         mock_bin.mkdir()
         copier = mock_bin / 'cp'
@@ -97,15 +64,16 @@ class SwayNCTest(unittest.TestCase):
         copier.chmod(0o755)
         self.env['REAL_CP'] = shutil.which('cp')
         self.env['PATH'] = str(mock_bin) + os.pathsep + self.env['PATH']
-        self.assertNotEqual(self.install('--only', 'swaync', check=False).returncode, 0)
-        for name in ('config.json', 'style.css', 'personal.css'):
-            self.assertEqual((config / name).read_text(), 'original ' + name)
+        result = self.install('--only', 'hypr', check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual((config / 'shell.qml').read_text(), 'original notification shell')
+        self.assertEqual(list(config.iterdir()), [config / 'shell.qml'])
         self.assertFalse((self.home / '.local/bin/battery-guardian').exists())
-        self.assertFalse((self.home / '.dotfiles-backup').exists())
+        self.assertFalse((self.home / 'config/hypr').exists())
 
     @unittest.skipUnless(shutil.which('lua'), 'Lua is unavailable')
     def test_autostart_and_existing_blur_rules(self):
-        self.install('--only', 'hypr', '--only', 'swaync')
+        self.install('--only', 'hypr')
         script = '''
 local commands, namespaces = {}, {}
 hl = {
@@ -119,15 +87,14 @@ hl = {
 }
 dofile(arg[1])
 dofile(arg[2])
-local guardians, swaync = 0, 0
+local guardians, centers = 0, 0
 for _, command in ipairs(commands) do
     if command:find('battery-guardian', 1, true) then guardians = guardians + 1 end
-    if command:find('-x swaync', 1, true) then swaync = swaync + 1 end
-    assert(not command:find('hyprland-notifications', 1, true))
+    if command:find('hyprland-notifications', 1, true) then centers = centers + 1 end
 end
-assert(guardians == 1 and swaync == 1)
-assert(namespaces['^swaync-control-center$'] == 1)
-assert(namespaces['^swaync-notification-window$'] == 1)
+assert(guardians == 1 and centers == 1)
+assert(namespaces['^waybar$'] == 1)
+assert(namespaces['^rofi$'] == 1)
 '''
         subprocess.run(['lua', '-', str(self.home / 'config/hypr/config/autostart.lua'),
                         str(ROOT / '.config/hypr/config/layers.lua')],

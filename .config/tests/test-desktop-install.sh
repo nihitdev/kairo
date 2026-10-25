@@ -34,7 +34,6 @@ done
 [[ -f $target/.local/share/fonts/archnemesis/Skulltype.ttf ]] || fail 'Skulltype font missing'
 [[ -x $target/.local/bin/battery-guardian ]] || fail 'battery guardian missing'
 diff -qr "$repo_root/.config/quickshell/hyprland-notifications" "$target/.config/quickshell/hyprland-notifications"
-[[ ! -e $target/.config/swaync ]] || fail 'Hyprland installed competing notification daemon'
 cmp "$repo_root/.config/waybar/config.jsonc" "$target/.config/waybar/config.jsonc"
 [[ -r $target/.config/waybar/colors.css && -x $target/.config/waybar/scripts/wallpaper-colors.py ]] || fail 'adaptive Waybar palette payload missing'
 grep -Fq '@import "colors.css";' "$target/.config/waybar/style.css" || fail 'palette stylesheet not imported'

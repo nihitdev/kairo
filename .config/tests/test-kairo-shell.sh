@@ -119,7 +119,6 @@ hl = {
 dofile(arg[1])
 local commands = table.concat(calls, "\n")
 assert(commands:find("cliphist store", 1, true), "clipboard watchers missing")
-assert(not commands:find("swaync", 1, true), "competing SwayNC daemon started")
 assert(not commands:find("hyprland-notifications", 1, true), "competing Quickshell center started")
 assert(commands:find("custom-kairod start", 1, true), "bar override ignored")
 assert(not commands:find("waybar", 1, true), "both desktop shells started")
