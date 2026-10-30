@@ -142,6 +142,13 @@ opt.fillchars:append({
   verthoriz = "┼",
 })
 opt.pumheight = 10
+opt.pumwidth = 28
+opt.breakindent = true
+opt.linebreak = true
+opt.showbreak = "↳ "
+opt.diffopt:append({ "algorithm:histogram", "linematch:60", "indent-heuristic" })
+opt.confirm = true
+opt.spelllang = { "en_us" }
 opt.title = true
 opt.titlestring = "%t — ARCHNEMESIS // KAIRO"
 vim.g.trouble_lualine = false

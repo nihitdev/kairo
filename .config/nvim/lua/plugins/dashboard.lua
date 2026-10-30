@@ -8,12 +8,7 @@ return {
             return LazyVim.pick(cmd, opts)()
           end,
 
-          header = [[
-        ╭──────────────────────────╮
-        │   A R C H N E M E S I S  │
-        │      NEOVIM // KAIRO     │
-        ╰──────────────────────────╯
-          ]],
+          header = "ARCHNEMESIS\n\n  neovim",
 
           keys = {
             {
@@ -76,6 +71,8 @@ return {
         sections = {
           { section = "header" },
           { section = "keys", gap = 0, padding = 1 },
+          { icon = " ", title = "Recent files", section = "recent_files", limit = 4, indent = 2, padding = 1 },
+          { icon = " ", title = "Projects", section = "projects", limit = 3, indent = 2, padding = 1 },
           { section = "startup" },
         },
       },

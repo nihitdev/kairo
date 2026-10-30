@@ -36,6 +36,7 @@ return {
       layouts.vertical.layout.border = "rounded"
       layouts.vertical.layout.min_width = 40
       layouts.vertical.layout.min_height = 12
+      layouts.vertical.layout.width = 0.9
       layouts.sidebar.layout.width = 34
       layouts.sidebar.layout.min_width = 28
       layouts.sidebar.layout[1].border = "rounded"
@@ -47,6 +48,7 @@ return {
         explorer = { enabled = true },
         picker = {
           enabled = true,
+          ui_select = true,
           layout = function()
             return vim.o.columns >= 120 and "default" or "vertical"
           end,
@@ -58,6 +60,7 @@ return {
             },
           },
         },
+        scope = { enabled = true },
         notifier = { enabled = true, timeout = 2500, style = "compact", width = { min = 24, max = 60 } },
         terminal = { win = { position = "float", border = "rounded", width = 0.85, height = 0.75 } },
         lazygit = { win = { border = "rounded", width = 0.92, height = 0.9 } },
@@ -235,6 +238,28 @@ return {
         lualine_y = { "location" },
         lualine_z = { "progress" },
       }
+      -- File context above the editor; navigation still works without an LSP.
+      opts.winbar = {
+        lualine_c = {
+          { "filename", path = 1, symbols = { modified = " ●", readonly = " " } },
+          {
+            "navic",
+            color_correction = "dynamic",
+            cond = function()
+              return vim.api.nvim_win_get_width(0) >= 100 and require("nvim-navic").is_available()
+            end,
+          },
+        },
+      }
+      opts.inactive_winbar = { lualine_c = { { "filename", path = 1 } } }
+      opts.options.disabled_filetypes = vim.tbl_deep_extend("force", opts.options.disabled_filetypes or {}, {
+        winbar = { "snacks_dashboard", "snacks_picker_list", "snacks_terminal", "help", "lazy", "mason" },
+      })
+      table.insert(opts.sections.lualine_x, 1, {
+        "searchcount",
+        maxcount = 999,
+        timeout = 50,
+      })
       return opts
     end,
   },

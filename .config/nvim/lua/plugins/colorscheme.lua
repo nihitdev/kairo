@@ -30,7 +30,18 @@ end
 local function tint(c)
   local p = palette()
   if not p then
-    return
+    -- A complete Rosé Pine inspired fallback also works without the palette daemon.
+    p = {
+      color0 = "#191724",
+      color1 = "#eb6f92",
+      color2 = "#9ccfd8",
+      color3 = "#f6c177",
+      color4 = "#c4a7e7",
+      color5 = "#ebbcba",
+      color6 = "#31748f",
+      color7 = "#e0def4",
+      color8 = "#908caa",
+    }
   end
   c.bg, c.bg_dark, c.bg_float = p.color0, p.color0, p.color0
   c.bg_popup, c.bg_sidebar, c.bg_statusline = p.color0, p.color0, p.color0

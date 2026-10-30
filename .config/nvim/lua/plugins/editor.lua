@@ -60,7 +60,9 @@ return {
   {
     "SmiteshP/nvim-navic",
     lazy = true,
+    event = "VeryLazy",
     opts = {
+      lsp = { auto_attach = true, preference = { "vtsls", "lua_ls", "gopls" } },
       separator = "  ",
       highlight = true,
       depth_limit = 5,
