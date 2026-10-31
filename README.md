@@ -383,11 +383,11 @@ refreshes that directory's font cache. `--install-packages` includes Iosevka Ner
 Font, Hyprpaper/Hypridle/Hyprlock, Quickshell, and the TUI tools used by the bar. It does
 not automatically install every application mentioned in personal keybinds.
 
-The repository bundles exactly 44 curated wallpapers: the 18 images from
+The repository bundles exactly 47 curated wallpapers: the 18 images from
 **CozyPixels / Catppuccin / Space & Cosmic** and four downloaded snow scenes
 (`snow-pine-forest.png`, `snow-night-moon.png`, `snow-desert-sunset.jpg`, and
 `snow-mountain-range.jpg`), plus `Clouds.jpg`, `Girl-Shooter.png`, and
-`Mahoraga.jpg`, plus 19 additional images selected from the personal wallpaper
+`Mahoraga.jpg`, plus 22 additional images selected from the personal wallpaper
 collection. Hyprland installation copies the images directly into
 `~/Pictures/Wallpapers`, with no nested folders, Nord/One Dark collections, or
 preview READMEs. It does not clone CozyPixels or replace existing personal files. A fresh install

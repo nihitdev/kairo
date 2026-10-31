@@ -10,20 +10,19 @@ Super+Shift+R validates the Lua configuration before reloading. Super+L switches
 
 Waybar uses native network and Bluetooth status modules. Click either for the existing terminal settings tools. Media controls follow the available MPRIS player. Click notifications to open the panel, right-click for Do Not Disturb, and middle-click to clear notifications. Critical notifications remain until dismissed.
 
-Files: config/*.lua for compositor settings, ../waybar/{config.jsonc,style.css} for the bar, ../rofi/style-1.rasi for the launcher, and ../swaync/{config.json,style.css} for notifications. Utility terminals float at 70% of the monitor size.
+Files: config/*.lua for compositor settings, ../waybar/{config.jsonc,style.css} for the bar, ../rofi/style-1.rasi for the launcher, and ../quickshell/hyprland-notifications/ for notifications. Utility terminals float at 70% of the monitor size.
 
-## Restore the previous desktop
+## Restore a previous desktop
 
-The full original directories are backed up at:
-
-    /home/nihitdev/.config-backups/desktop-20261019-162215
-
-To restore, copy the original files from that directory over their counterparts in ~/.config, then run `hyprctl reload`, send Waybar `SIGUSR2`, and run `swaync-client -R` and `swaync-client -rs`. Remove `require("config.windows")` if restoring individual Lua files without restoring hyprland.lua. Newly added helper files are inert once the original config is restored.
-
-Validation: Hyprland --verify-config, live hyprctl configerrors, ShellCheck for changed scripts, live Rofi menu rendering, Waybar startup logs, and SwayNC CSS reload. No packages or compositor versions were changed.
+The installer prints the backup directory after replacing existing configuration.
+Restore the desired files from that backup into `~/.config`, then run
+`Hyprland --verify-config -c ~/.config/hypr/hyprland.lua` before `hyprctl reload`.
+Restart `waybar.service` after restoring Waybar files. Notifications use the
+Quickshell configuration at `~/.config/quickshell/hyprland-notifications`.
+Machine-specific backup paths and wallpaper links are not distributed.
 
 ## Layouts and motion
 
-Super+L or the Waybar layout button cycles Dwindle → Scrolling → Master → Dwindle. Scrolling is the Niri-style layout inside Hyprland. Master gives the left window 60% of the screen and stacks other windows on the right; new windows join the stack. The selected layout persists across restarts.
+Super+L or the Waybar layout button cycles Dwindle → Scrolling → Master → Dwindle. Scrolling is a native Hyprland layout; all three layouts run in Hyprland. Master gives the left window 60% of the screen and stacks other windows on the right; new windows join the stack. The selected layout persists across restarts.
 
 Animations use a subtle 99% opening/closing scale, faster closing/fades, and smooth workspace slides. Desktop sizing and transparency are independent of these settings.

@@ -2,6 +2,8 @@
 set -Eeuo pipefail
 repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
 test_root=$(mktemp -d)
+# A temporary HOME does not isolate the real user service manager.
+export DBUS_SESSION_BUS_ADDRESS="unix:path=$test_root/no-session-bus"
 trap 'rm -rf -- "$test_root"' EXIT
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 run_install() {
@@ -90,7 +92,15 @@ grep -Fq "path = $target/Pictures/space & stars.png" "$target/.config/hyprlock/h
 rm "$target/.cache/current-wallpaper"
 HOME="$target" XDG_CONFIG_HOME="$target/.config" PATH="$test_root/mock-bin:$PATH" \
     bash "$target/.config/hypr/scripts/lock.sh"
-grep -q 'color = rgba(25, 23, 36, 1.0)' "$target/.config/hyprlock/hyprlock.conf" || fail 'lock fallback missing'
+python3 - "$target/.config/hyprlock/hyprlock.conf" <<'PYLOCK'
+from pathlib import Path
+import re
+import sys
+background = re.search(r'background\s*\{(.*?)\}', Path(sys.argv[1]).read_text(), re.S)
+assert background, 'lock background missing'
+assert re.search(r'^\s*path\s*=\s*$', background[1], re.M), 'missing wallpaper path is not empty'
+assert re.search(r'^\s*color\s*=\s*rgba\([0-9a-fA-F]{8}\)\s*$', background[1], re.M), 'lock fallback color missing'
+PYLOCK
 # A fresh Hyprland install gets the curated images and snow-pine default.
 target="$test_root/fresh-desktop"
 mkdir -p "$target"
@@ -164,4 +174,25 @@ if run_install "$target" --only kitty --install-wallpapers > "$test_root/wallpap
 fi
 [[ ! -e $target/.config/kitty ]] || fail 'wallpaper preflight failure changed configs'
 [[ -z $(find "$test_root/wallpaper-outside" -type f -print -quit) ]] || fail 'wallpaper escaped HOME'
+# The layout indicator uses Hyprland IPC, even if another session variable lingers.
+cat > "$test_root/mock-bin/hyprctl" <<'MOCK'
+#!/usr/bin/env bash
+[[ ${TEST_LAYOUT:-} != failure ]] || exit 1
+printf '{"str":"%s"}\n' "${TEST_LAYOUT:-dwindle}"
+MOCK
+chmod +x "$test_root/mock-bin/hyprctl"
+for layout in dwindle scrolling master failure; do
+    output=$(PATH="$test_root/mock-bin:$PATH" HYPRLAND_INSTANCE_SIGNATURE=fixture \
+        MANGO_INSTANCE_SIGNATURE=stale XDG_CURRENT_DESKTOP=sway TEST_LAYOUT="$layout" \
+        bash "$repo_root/.config/waybar/scripts/layout-status.sh")
+    case "$layout" in
+        dwindle) [[ $output == *DWINDLE ]] || fail 'Dwindle status missing' ;;
+        scrolling) [[ $output == *SCROLL ]] || fail 'Scrolling status missing' ;;
+        master) [[ $output == *MASTER ]] || fail 'Master status missing' ;;
+        failure) [[ $output == *HYPRLAND ]] || fail 'Hyprland IPC failure fallback missing' ;;
+    esac
+done
+output=$(env -u HYPRLAND_INSTANCE_SIGNATURE -u XDG_CURRENT_DESKTOP \
+    bash "$repo_root/.config/waybar/scripts/layout-status.sh")
+[[ $output == *HYPRLAND ]] || fail 'Hyprland session fallback missing'
 printf 'Desktop installer tests passed.\n'

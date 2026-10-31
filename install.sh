@@ -1163,8 +1163,11 @@ install_waybar() {
     if is_selected hypr && command -v systemctl >/dev/null 2>&1; then
         if $dry_run; then
             describe 'Enable Waybar in graphical-session.target (systemctl --user enable waybar.service)'
+        elif [[ -n ${NIRI_SOCKET:-} && -z ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; then
+            warnings+=('Waybar configuration installed for Hyprland; service changes skipped in the current Niri session')
         elif systemctl --user enable waybar.service >/dev/null 2>&1; then
-            if systemctl --user is-active --quiet graphical-session.target &&
+            if [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]] &&
+                systemctl --user is-active --quiet graphical-session.target &&
                 ! pgrep -u "$(id -u)" -x waybar >/dev/null 2>&1; then
                 systemctl --user start waybar.service ||
                     warnings+=('Waybar service is enabled but could not be started in this session')

@@ -7,6 +7,8 @@ unset XDG_DATA_HOME XDG_STATE_HOME XDG_CACHE_HOME KAIRO_BIN_DIR QS_STATE_DIR
 
 repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
 test_root=$(mktemp -d)
+# A temporary HOME does not isolate the real user service manager.
+export DBUS_SESSION_BUS_ADDRESS="unix:path=$test_root/no-session-bus"
 
 cleanup() {
     rm -rf -- "$test_root"

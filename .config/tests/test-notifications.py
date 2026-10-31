@@ -21,6 +21,7 @@ class NotificationsTest(unittest.TestCase):
         self.home = Path(self.temporary.name) / 'home with spaces'
         self.home.mkdir()
         self.env = dict(os.environ, HOME=str(self.home), CI='true')
+        self.env['DBUS_SESSION_BUS_ADDRESS'] = 'unix:path=' + self.temporary.name + '/no-session-bus'
         for name, directory in (('CONFIG', 'config'), ('DATA', 'data'),
                                 ('STATE', 'state'), ('CACHE', 'cache'),
                                 ('RUNTIME', 'runtime')):
