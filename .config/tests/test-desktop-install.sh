@@ -35,7 +35,7 @@ done
 [[ -f $target/.local/share/fonts/archnemesis/Waycat.ttf ]] || fail 'Waycat font missing'
 [[ -f $target/.local/share/fonts/archnemesis/Skulltype.ttf ]] || fail 'Skulltype font missing'
 [[ -x $target/.local/bin/battery-guardian ]] || fail 'battery guardian missing'
-diff -qr "$repo_root/.config/quickshell/hyprland-notifications" "$target/.config/quickshell/hyprland-notifications"
+diff -qr "$repo_root/.config/swaync" "$target/.config/swaync"
 cmp "$repo_root/.config/waybar/config.jsonc" "$target/.config/waybar/config.jsonc"
 [[ -r $target/.config/waybar/colors.css && -x $target/.config/hypr/scripts/apply-wallpaper-theme.sh ]] || fail 'Matugen palette payload missing'
 [[ -f $target/.config/matugen/config.toml && -f $target/.config/hypr/config/colors.lua ]] || fail 'Matugen config payload missing'

@@ -1,34 +1,27 @@
 @import "colors.css";
 
 * {
-    font-family: "Jetbrains Mono", monospace;
-    font-weight: 800;
-    font-size: 13px;
+    min-height: 0;
+    border: none;
+    border-radius: 0;
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 window#waybar {
     color: @wall_text;
     background: transparent;
     border: none;
-    border-radius: 10px;
-    margin: 6px 8px;
+    border-radius: 0;
+    margin: 0;
     padding: 0;
 }
 
-#workspaces,
-#mpris,
-#battery,
-#wireplumber,
-#network,
-#clock,
-#tray,
-#custom-launcher,
-#custom-lock {
+.modules-left,
+.modules-center,
+.modules-right {
     background: transparent;
-    border: none;
-    margin: 0 4px;
-    padding: 4px 2px;
-    border-radius: 0;
 }
 
 #workspaces {
@@ -36,84 +29,129 @@ window#waybar {
 }
 
 #workspaces button {
-    padding: 0px 3px;
-    margin: 4px 1px;
-    border-radius: 50%;
-    background: transparent;
+    min-width: 15px;
+    min-height: 18px;
+    margin: 0 1px;
+    padding: 0 2px;
     color: @wall_muted;
-    font-size: 5px;
+    background: transparent;
+    font-size: 11px;
+    box-shadow: none;
+    transition: color 120ms ease, background-color 120ms ease;
 }
 
 #workspaces button.active {
     color: @wall_accent;
-    background: @wall_hover;
+    background: transparent;
 }
 
 #workspaces button:hover {
-    background: @wall_hover;
-    color: @wall_secondary;
-}
-
-#workspaces button.urgent {
-    background: @wall_urgent;
-    color: @wall_on_urgent;
-    border-radius: 4px;
-}
-
-#wireplumber.muted {
-    opacity: 0.55;
-}
-
-#custom-lock {
     color: @wall_text;
 }
 
-#custom-lock:hover {
+#workspaces button.urgent {
+    color: @wall_urgent;
+    background: transparent;
+}
+
+#custom-layout,
+#custom-cpucat,
+#custom-media,
+#network,
+#bluetooth,
+#wireplumber,
+#backlight,
+#battery,
+#clock,
+#custom-notifications,
+#custom-power {
+    margin: 0 4px;
+    padding: 2px 2px;
+    background: transparent;
+}
+
+#custom-layout,
+#custom-notifications {
+    color: @wall_secondary;
+}
+
+#custom-layout {
+    font-size: 11px;
+}
+
+#custom-cpucat {
+    min-width: 24px;
+    padding: 0 4px;
+    color: @wall_accent;
+    font-family: "Waycat";
+    font-size: 20px;
+    font-weight: normal;
+}
+
+#custom-media {
+    min-width: 150px;
+    color: @wall_text;
+}
+
+#network,
+#bluetooth,
+#backlight,
+#battery {
+    color: @wall_secondary;
+}
+
+#wireplumber {
+    color: @wall_accent;
+}
+
+#wireplumber.muted,
+#network.disconnected,
+#bluetooth.disabled,
+#bluetooth.off {
+    color: @wall_muted;
+}
+
+#battery.warning {
+    color: @wall_secondary;
+}
+
+#battery.critical:not(.charging) {
+    color: @wall_critical;
+}
+
+#clock {
+    color: @wall_text;
+    font-weight: 700;
+}
+
+#custom-power {
+    margin-right: 5px;
+    color: @wall_text;
+}
+
+#custom-layout:hover,
+#custom-notifications:hover,
+#custom-power:hover,
+#network:hover,
+#bluetooth:hover,
+#wireplumber:hover,
+#backlight:hover,
+#battery:hover,
+#clock:hover,
+#custom-media:hover {
     color: @wall_accent;
 }
 
 tooltip {
-    background: @wall_tooltip_bg;
-    border: 1px solid @wall_hover;
+    color: @wall_tooltip_text;
+    background: rgba(17, 17, 27, 0.94);
+    border: 1px solid rgba(205, 214, 244, 0.16);
     border-radius: 8px;
+    padding: 4px 7px;
 }
 
 tooltip label {
     color: @wall_tooltip_text;
     font-size: 11px;
+    font-weight: 500;
 }
-
-/* Fit the floating bar to this laptop and retain its desktop controls. */
-* { min-height: 0; }
-#workspaces button { min-width: 12px; box-shadow: none; }
-#workspaces button label { font-size: 12px; }
-#custom-layout, #network, #bluetooth, #backlight,
-#custom-notifications, #custom-power {
-    background: transparent;
-    border: none;
-    margin: 0 4px;
-    padding: 4px 2px;
-}
-#connectivity, #system { background: transparent; margin: 0; }
-#custom-layout, #custom-notifications { color: @wall_secondary; }
-#custom-power { color: @wall_text; margin-right: 6px; }
-#custom-power:hover, #custom-notifications:hover, #custom-layout:hover,
-#network:hover, #bluetooth:hover, #wireplumber:hover,
-#backlight:hover, #battery:hover, #clock:hover, #mpris:hover { color: @wall_accent; }
-#network.disconnected, #bluetooth.disabled, #bluetooth.off { color: @wall_muted; }
-#battery.warning { color: @wall_accent; }
-#battery.critical:not(.charging) { color: @wall_critical; }
-#custom-cpucat {
-    font-family: "Waycat";
-    font-size: 20px;
-    font-weight: normal;
-    min-width: 24px;
-    padding: 0 5px;
-}
-
-/* Wallpaper accents; inherited label colors keep workspace states distinct. */
-#workspaces button label { color: inherit; }
-#mpris, #wireplumber, #custom-cpucat, #custom-layout { color: @wall_accent; }
-#network, #bluetooth, #battery, #backlight { color: @wall_secondary; }
-#network.disconnected, #bluetooth.disabled, #bluetooth.off { color: @wall_muted; }
-#battery.critical:not(.charging) { color: @wall_critical; }

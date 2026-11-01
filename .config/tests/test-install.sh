@@ -112,7 +112,8 @@ MOCK
     [[ -f $home/.config/hypr/hyprland.lua ]] || fail 'default install omitted Hyprland'
     [[ -f $home/.config/waybar/style.css ]] || fail 'default install omitted Waybar'
     [[ -d $home/.config/rofi && -d $home/.config/oh-my-posh ]] || fail 'default install omitted Rofi or Oh My Posh'
-    cmp "$repo_root/.config/quickshell/hyprland-notifications/shell.qml" "$home/.config/quickshell/hyprland-notifications/shell.qml"
+    cmp "$repo_root/.config/swaync/config.json" "$home/.config/swaync/config.json"
+    cmp "$repo_root/.config/swaync/style.css" "$home/.config/swaync/style.css"
     [[ -x $home/.local/bin/battery-guardian ]] || fail 'default install omitted battery alerts'
     [[ -f $home/sddm-selected ]] || fail 'default install omitted SDDM'
     [[ ! -e $home/.local/share/kairo ]] || fail 'default install selected Kairo Shell'

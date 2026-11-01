@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Quickshell notification startup and battery alerts, isolated from the live desktop."""
+"""SwayNC deployment and battery alerts, isolated from the live desktop."""
 
 import fcntl
 import json
@@ -35,10 +35,10 @@ class NotificationsTest(unittest.TestCase):
                               env=self.env, text=True, capture_output=True,
                               check=check, timeout=60)
 
-    def test_default_plan_uses_quickshell_notifications(self):
+    def test_default_plan_uses_swaync_notifications(self):
         # Defaults include system-wide SDDM; preview selection without sudo writes.
         plan = self.install('--dry-run').stdout
-        self.assertIn('quickshell/hyprland-notifications', plan)
+        self.assertIn('swaync', plan)
         self.assertIn('battery-guardian', plan)
         self.assertEqual(list(self.home.iterdir()), [])
 
@@ -52,10 +52,10 @@ class NotificationsTest(unittest.TestCase):
         self.assertFalse((self.home / 'config/hypr').exists())
         self.assertEqual(list(outside.iterdir()), [])
 
-    def test_failed_guardian_copy_rolls_back_notification_payload(self):
-        config = self.home / 'config/quickshell/hyprland-notifications'
+    def test_failed_guardian_copy_rolls_back_swaync_payload(self):
+        config = self.home / 'config/swaync'
         config.mkdir(parents=True)
-        (config / 'shell.qml').write_text('original notification shell')
+        (config / 'config.json').write_text('original swaync config')
         mock_bin = self.home / 'mock-bin'
         mock_bin.mkdir()
         copier = mock_bin / 'cp'
@@ -67,8 +67,8 @@ class NotificationsTest(unittest.TestCase):
         self.env['PATH'] = str(mock_bin) + os.pathsep + self.env['PATH']
         result = self.install('--only', 'hypr', check=False)
         self.assertNotEqual(result.returncode, 0)
-        self.assertEqual((config / 'shell.qml').read_text(), 'original notification shell')
-        self.assertEqual(list(config.iterdir()), [config / 'shell.qml'])
+        self.assertEqual((config / 'config.json').read_text(), 'original swaync config')
+        self.assertEqual(list(config.iterdir()), [config / 'config.json'])
         self.assertFalse((self.home / '.local/bin/battery-guardian').exists())
         self.assertFalse((self.home / 'config/hypr').exists())
 
@@ -88,12 +88,12 @@ hl = {
 }
 dofile(arg[1])
 dofile(arg[2])
-local guardians, centers = 0, 0
+local guardians, notification_daemons = 0, 0
 for _, command in ipairs(commands) do
     if command:find('battery-guardian', 1, true) then guardians = guardians + 1 end
-    if command:find('hyprland-notifications', 1, true) then centers = centers + 1 end
+    if command:find('swaync', 1, true) then notification_daemons = notification_daemons + 1 end
 end
-assert(guardians == 1 and centers == 1)
+assert(guardians == 1 and notification_daemons == 1)
 assert(namespaces['^waybar$'] == 1)
 assert(namespaces['^rofi$'] == 1)
 '''

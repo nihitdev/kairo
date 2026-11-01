@@ -1,11 +1,10 @@
--- Dynamic colorscheme integration with a TokyoNight fallback.
---
--- An optional palette provider can write a Base16 palette for dynamic theming.
--- on every palette change -- the same file kitty and the shell read. We feed it
--- into tokyonight's on_colors so nvim matches the terminal, keep habamax as the
--- safety net, and re-tint a running editor when the palette changes.
+-- Matugen writes a Base16-shaped palette here. Feed it into TokyoNight's
+-- on_colors hook so Neovim follows the same wallpaper palette as Hyprland.
 local uv = vim.uv or vim.loop
 local COLORS = vim.fn.expand(vim.env.NVIM_PALETTE or "~/.cache/kairo/colors.json")
+local palette_dir = vim.fn.fnamemodify(COLORS, ":h")
+local palette_file = vim.fn.fnamemodify(COLORS, ":t")
+vim.fn.mkdir(palette_dir, "p")
 
 local function palette()
   local f = io.open(COLORS, "r")
@@ -144,26 +143,57 @@ local function chrome(h, c)
   h.BufferLineCloseButtonSelected = { fg = c.comment, bg = c.bg_highlight }
 end
 
--- Re-tint when the daemon rewrites the palette. Re-running :colorscheme re-invokes
--- on_colors (which re-reads the file), so no re-setup is needed; mtime-gated so a
--- focus change without a palette change never repaints.
+-- Re-tint immediately when Matugen replaces the palette. The directory watcher
+-- handles writes and atomic renames; FocusGained remains a fallback for cases
+-- where the editor started before its cache directory existed.
 local seen = (uv.fs_stat(COLORS) or {}).mtime
+local function refresh_palette()
+  local st = uv.fs_stat(COLORS)
+  if not st then
+    return
+  end
+  if seen and st.mtime.sec == seen.sec and st.mtime.nsec == seen.nsec then
+    return
+  end
+  seen = st.mtime
+  local name = vim.g.colors_name
+  if name and name:find("tokyonight") then
+    pcall(vim.cmd.colorscheme, name)
+  end
+end
+
+local debounce = uv.new_timer()
+local function queue_refresh()
+  debounce:stop()
+  debounce:start(120, 0, function()
+    vim.schedule(refresh_palette)
+  end)
+end
+
+local palette_watch = uv.new_fs_event()
+local watch_ok = pcall(function()
+  palette_watch:start(palette_dir, {}, function(err, filename)
+    if not err and (not filename or filename == palette_file) then
+      vim.schedule(queue_refresh)
+    end
+  end)
+end)
+if not watch_ok then
+  palette_watch:close()
+end
+
+local palette_group = vim.api.nvim_create_augroup("kairo_palette", { clear = true })
 vim.api.nvim_create_autocmd("FocusGained", {
-  group = vim.api.nvim_create_augroup("kairo_palette", { clear = true }),
-  nested = true, -- Let ColorScheme consumers (lualine/bufferline) refresh too.
+  group = palette_group,
+  nested = true,
+  callback = refresh_palette,
+})
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  group = palette_group,
+  once = true,
   callback = function()
-    local st = uv.fs_stat(COLORS)
-    if not st then
-      return
-    end
-    if seen and st.mtime.sec == seen.sec and st.mtime.nsec == seen.nsec then
-      return
-    end
-    seen = st.mtime
-    local name = vim.g.colors_name
-    if name and name:find("tokyonight") then
-      pcall(vim.cmd.colorscheme, name)
-    end
+    if not debounce:is_closing() then debounce:close() end
+    if watch_ok and not palette_watch:is_closing() then palette_watch:close() end
   end,
 })
 

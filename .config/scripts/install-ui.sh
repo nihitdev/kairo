@@ -396,7 +396,7 @@ ui_confirm() {
 # Short descriptions stay separate from labels so the picker can truncate them.
 ui_module_hint() {
     case "$1" in
-        hypr) printf 'Hyprland, Waybar, Quickshell notifications and wallpapers.' ;;
+        hypr) printf 'Hyprland, Waybar, SwayNC notifications and wallpapers.' ;;
         kairo-shell) printf 'Alternative desktop shell; replaces Waybar and the notification center.' ;;
         kitty-smooth) printf 'Builds pinned Kitty with smooth cursor motion; requires build tools.' ;;
         sddm) printf 'System login theme; needs sudo. Does not restart the display manager.' ;;

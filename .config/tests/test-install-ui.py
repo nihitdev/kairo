@@ -274,7 +274,7 @@ printf 'RESULT %s' "$status"
                 text = output.decode(errors='replace')
                 self.assertEqual(process.returncode, 0, text)
                 self.assertIn('Preview complete. No changes were made.', text)
-                self.assertIn('quickshell/hyprland-notifications', text)
+                self.assertIn('swaync', text)
                 self.assertNotIn('Choose modules', text)
                 self.assertEqual(list(home.iterdir()), [])
             finally:

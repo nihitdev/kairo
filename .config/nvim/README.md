@@ -1,8 +1,8 @@
 # Neovim
 
-LazyVim with ARCHNEMESIS styling: a Rosé Pine inspired purple fallback, optional wallpaper palette integration, rounded completion menus and pickers, file/symbol breadcrumbs, and a start screen with recent files and projects. No additional plugins are required for this polish.
+LazyVim with ARCHNEMESIS styling: Matugen colors derived from the active wallpaper, a Rosé Pine inspired fallback, rounded completion menus and pickers, file/symbol breadcrumbs, and a start screen with recent files and projects. No additional plugins are required for the palette integration.
 
-An existing `~/.cache/kairo/colors.json` palette (or `NVIM_PALETTE`) takes precedence over the fallback. Focus the editor after a palette change to refresh it. Breadcrumb symbols appear when an attached language server supports document symbols; narrow windows keep just the file path.
+Matugen writes a Base16-shaped palette to `~/.cache/kairo/colors.json`. The open editor watches it and updates immediately when you change wallpapers; `NVIM_PALETTE` can point to another compatible palette. Hyprland reloads its wallpaper-derived borders and shadow through the same Matugen run. Breadcrumb symbols appear when an attached language server supports document symbols; narrow windows keep just the file path.
 
 Leader is Space. Existing shortcuts remain unchanged:
 

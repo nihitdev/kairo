@@ -1,0 +1,11 @@
+[Unit]
+Description=Waybar status bar
+StartLimitIntervalSec=60s
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/waybar --config %h/.config/waybar/config.jsonc --style %h/.config/waybar/style.css
+Restart=on-failure
+RestartSec=2s
+TimeoutStopSec=5s

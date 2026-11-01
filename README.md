@@ -153,11 +153,10 @@ The screenshot above shows the original Rofi gallery, still available with
 </details>
 
 <details>
-<summary><b>Notifications — Quickshell center</b></summary>
+<summary><b>Notifications — SwayNC</b></summary>
 
-![ARCHNEMESIS Quickshell notification panel](screenshots/notifications.png)
-
-Notification history and Do Not Disturb, opened from Waybar.
+Wallpaper-aware notification popups and control center, opened from Waybar or
+**Super+Shift+N**. Matugen colors the panel from the active wallpaper.
 
 </details>
 
@@ -260,11 +259,11 @@ Run `./install.sh --help` for the authoritative list of options, modules, and pr
 | Prompt & history | [Starship](.config/starship/), [Atuin](.config/atuin/), [Oh My Posh](.config/oh-my-posh/) |
 | CLI workflow | [Bat](.config/bat/), [Broot](.config/broot/), [Yazi](.config/yazi/), [LazyGit](.config/lazygit/), [Fastfetch](.config/fastfetch/), [Btop](.config/btop/), [Cava](.config/cava/) |
 | Development | [Git](.config/git/), [Neovim](.config/nvim/), [SSH](.config/ssh/) |
-| Desktop | [WezTerm](.config/wezterm/), [Kitty](.config/kitty/), [Hyprland](.config/hypr/), [Waybar](.config/waybar/), [Kairo Shell](#kairo-shell) |
+| Desktop | [WezTerm](.config/wezterm/), [Kitty](.config/kitty/), [Hyprland](.config/hypr/), [Waybar](.config/waybar/), [SwayNC](.config/swaync/), [Kairo Shell](#kairo-shell) |
 
 Every module is selected by default except **Kairo Shell**.
-Hyprland uses Quickshell notifications. Prism is a lightweight
-Python-based terminal palette manager shared by Fish, Bash, Zsh, Nushell, Kitty,
+Hyprland uses SwayNC notifications. Prism is a lightweight Python-based terminal
+palette manager shared by Fish, Bash, Zsh, Nushell, Kitty,
 Starship, Fastfetch, and FZF; choose a palette with `prism theme switch NAME`.
 Kairo preserves the selected palette when it refreshes Fish configuration. The
 defaults apply to both the interactive module picker and CLI runs without `--only`.
@@ -344,32 +343,28 @@ and Bluetooth icons reflect live connection status. Window controls include
 ./install.sh --no-backup --only waybar
 ```
 
-`hypr` includes Waybar, Hyprlock, and the Quickshell notification center. It seeds the custom Rofi setup only
+`hypr` includes Waybar, Hyprlock, Matugen, and SwayNC. It seeds the custom Rofi setup only
 when no Rofi directory exists; select `--only rofi` explicitly to replace one.
 Kairo Shell takes precedence over Waybar when both are selected. Its startup
 command lives in an installer-generated `hypr/config/bar.lua`, avoiding edits to
 the daemon list. Installing only Waybar expects the matching Hyprland/Rofi scripts
-to already be present for its click actions. With Hyprland, the installer enables
-Waybar's systemd user service under `graphical-session.target`; systemd restarts it
-after a failure and stops it when the session ends.
+to already be present for its click actions. With Hyprland, duplicate-safe
+compositor autostart starts Waybar alongside the session.
 
 Matugen builds one dark palette from the selected wallpaper for Hyprland borders
-and shadows, Waybar, Kitty, Rofi, Hyprlock, and the Hyprland Quickshell
-notifications. The static Rofi picker, live-wallpaper picker, Quickshell carousel,
-and login startup all call `hypr/scripts/apply-wallpaper-theme.sh`; there is no
-palette polling process. Video wallpapers are sampled with one FFmpeg frame.
-Generated app colors are stored in their existing config locations and reload
-when the wallpaper changes; the wallpaper daemon remains responsible for setting
-the image itself.
+and shadows, Waybar, Kitty, Rofi, Hyprlock, SwayNC, and Neovim. The static Rofi
+picker, live-wallpaper picker, Quickshell carousel, and login startup all call
+`hypr/scripts/apply-wallpaper-theme.sh`; there is no palette polling process.
+Video wallpapers are sampled with one FFmpeg frame. Generated app colors reload
+when the wallpaper changes; Neovim watches its palette file and updates in place.
+The wallpaper daemon remains responsible for setting the image itself.
 
 The Hyprland and Waybar package sets include Matugen and FFmpeg. Python Pillow is
 still used by the Quickshell carousel to create wallpaper thumbnails.
 
-Hyprland’s Quickshell center owns `org.freedesktop.Notifications` and provides
-compact toasts, an in-session history, DND, clear-all, and notification actions.
-Waybar opens the panel, toggles DND, and clears history; **Super+Shift+N** also
-opens it. The installer deploys the same Quickshell notification configuration
-shipped in `.config/quickshell/hyprland-notifications`.
+Hyprland uses SwayNC for desktop notifications and its control center. Waybar
+opens the panel, toggles DND, and clears notifications; **Super+Shift+N** also
+opens it. Matugen generates SwayNC colors from the active wallpaper.
 
 `~/.local/bin/battery-guardian` is installed with the Hyprland profile. It starts
 on login; a process lock prevents duplicate watchers. It checks the battery every

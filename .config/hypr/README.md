@@ -1,6 +1,6 @@
 # ARCHNEMESIS desktop
 
-Rosé Pine desktop tuned for the 1366×768 laptop panel. The existing Dwindle/Scrolling/Master cycle, wallpapers, cat and skull animations remain available.
+Wallpaper-aware Rosé Pine desktop tuned for the 1366×768 laptop panel. Matugen recolors the Hyprland border gradient, Waybar, Kitty, launcher, lock screen, SwayNC, and Neovim from one palette. The existing Dwindle/Scrolling/Master cycle, wallpapers, cat and skull animations remain available.
 
 Press **Super+/** or click the skull in Waybar for the searchable shortcut reference. New window controls include Super+F (fullscreen), Super+Shift+F (maximize), Super+Shift+Space (floating), Super+Shift+Arrows (move), and Super+Ctrl+Arrows (resize). Ctrl+Print captures the active window rectangle; screenshots are saved in ~/Pictures/Screenshots and copied as PNG.
 
@@ -8,17 +8,17 @@ Press **Super+/** or click the skull in Waybar for the searchable shortcut refer
 
 Super+Shift+R validates the Lua configuration before reloading. Super+L switches and persists the layout, restoring the previous file if validation fails. Hyprland also automatically reloads configuration edits.
 
-Waybar uses native network and Bluetooth status modules. Click either for the existing terminal settings tools. Media controls follow the available MPRIS player. Click notifications to open the panel, right-click for Do Not Disturb, and middle-click to clear notifications. Critical notifications remain until dismissed.
+Matugen drives Waybar's text, active workspace, hover and tooltip colors from the selected wallpaper through `colors.css`; Waybar itself stays transparent. Waybar uses native network and Bluetooth status modules. Click either for the existing terminal settings tools. Media controls use `playerctl` through a small custom module because Waybar's built-in MPRIS module has crashed in the installed build; a user service restarts Waybar after failures. SwayNC handles desktop notifications and the control center. Click notifications to open it, right-click for Do Not Disturb, and middle-click to clear notifications. Critical notifications remain until dismissed.
 
-Files: config/*.lua for compositor settings, ../waybar/{config.jsonc,style.css} for the bar, ../rofi/style-1.rasi for the launcher, and ../quickshell/hyprland-notifications/ for notifications. Utility terminals float at 70% of the monitor size.
+Files: config/*.lua for compositor settings, ../waybar/{config.jsonc,style.css} for the bar, ../rofi/style-1.rasi for the launcher, and ../swaync/ for notifications. Matugen updates the SwayNC palette from the active wallpaper.
 
 ## Restore a previous desktop
 
 The installer prints the backup directory after replacing existing configuration.
 Restore the desired files from that backup into `~/.config`, then run
 `Hyprland --verify-config -c ~/.config/hypr/hyprland.lua` before `hyprctl reload`.
-Restart `waybar.service` after restoring Waybar files. Notifications use the
-Quickshell configuration at `~/.config/quickshell/hyprland-notifications`.
+Restart `waybar.service` after restoring Waybar files. Notifications use SwayNC,
+configured in `~/.config/swaync`.
 Machine-specific backup paths and wallpaper links are not distributed.
 
 ## Layouts and motion
