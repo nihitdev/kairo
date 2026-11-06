@@ -4,6 +4,8 @@ LazyVim with ARCHNEMESIS styling: Matugen colors derived from the active wallpap
 
 Matugen writes a Base16-shaped palette to `~/.cache/kairo/colors.json`. The open editor watches it and updates immediately when you change wallpapers; `NVIM_PALETTE` can point to another compatible palette. Hyprland reloads its wallpaper-derived borders and shadow through the same Matugen run. Breadcrumb symbols appear when an attached language server supports document symbols; narrow windows keep just the file path.
 
+The animated dashboard greets the current OS account by username, using local time: good morning before noon, good afternoon from noon to 18:00, and good evening afterward. The greeting is recalculated whenever the dashboard renders.
+
 Leader is Space. Existing shortcuts remain unchanged:
 
 | Shortcut | Action |

@@ -1,3 +1,5 @@
+-- Dynamic colorscheme integration with a TokyoNight fallback.
+--
 -- Matugen writes a Base16-shaped palette here. Feed it into TokyoNight's
 -- on_colors hook so Neovim follows the same wallpaper palette as Hyprland.
 local uv = vim.uv or vim.loop
